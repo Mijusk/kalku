@@ -13,7 +13,7 @@ Bloques de desarrollo: 1 Publicar · 2 Mapa · 3 Encuentros · 4 Gráficos y tie
 - [x] Motor de dominio (0–100) y mezcla 60/25/15
 - [x] Combate de prueba con ataque rápido y fuerte, puntos y gemas
 - [ ] Elegir y cargar el pack de pixel art (32×32)
-- [ ] Generador de mapas: una zona de Pradera Uno con semilla fija y un lugar especial en texto
+- [x] Generador de mapas: una zona de Pradera Uno con semilla fija y un lugar especial en texto
 - [ ] Moverse por el mapa y encontrar criaturas
 - [ ] Tienda de 5 objetos cosméticos
 - [ ] Límite diario de Cifras por ejercicios demasiado fáciles

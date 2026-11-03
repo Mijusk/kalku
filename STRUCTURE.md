@@ -42,10 +42,12 @@ kalku/
 │   └── world/                @kalku/world: mundo generado por código con semilla, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
-│       │   ├── types.ts        Tipos: TileKind, WorldMap, RegionSpec
+│       │   ├── types.ts        Tipos: TileKind, WorldMap, TerrainSpec, RegionSpec, PieceSpec
 │       │   ├── noise.ts        Ruido de valor con semilla (hecho a mano, sin dependencias)
 │       │   ├── terrain.ts      generateTerrain: reparte casillas por proporción y agrupa agua y árboles
-│       │   ├── regions.ts      Regiones como datos (Pradera Uno, 60×40)
+│       │   ├── pieces.ts       Lugares hechos a mano como texto (leyenda, pueblo y arena provisionales)
+│       │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
+│       │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
 │       │   └── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla por pack
 │       └── test/             Tests con vitest
 │
@@ -82,7 +84,7 @@ kalku/
 
 | Qué | Dónde | Fase |
 | --- | --- | --- |
-| Caminos, lugares especiales y dibujo del mapa | `packages/world/` (lógica pura) + escena `WorldScene` | 1 |
+| Dibujo del mapa y bordes bonitos | escena `WorldScene` (usa `@kalku/world`) | 1 |
 | Tienda de 5 objetos y datos de objetos | `apps/game/src/data/` | 1 |
 | Criaturas como datos | `packages/content/` o `apps/game/src/data/` | 2 |
 | Servidor: cuentas, validación, sincronización | `supabase/` (migraciones y funciones) | 2 |
