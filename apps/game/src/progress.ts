@@ -31,7 +31,9 @@ export function loadProgress(): PlayerProgress {
     // Añade habilidades nuevas que no existían cuando se guardó.
     const profile = { ...createProfile(), ...parsed.profile };
     for (const id of SKILL_IDS) profile[id] ??= createProfile()[id];
-    return { ...defaultProgress(), ...parsed, profile };
+    // Datos guardados a mano o corruptos: solo se aceptan textos.
+    const gems = Array.isArray(parsed.gems) ? parsed.gems.filter((g): g is string => typeof g === 'string') : [];
+    return { ...defaultProgress(), ...parsed, profile, gems };
   } catch {
     return defaultProgress();
   }

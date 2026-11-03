@@ -65,3 +65,28 @@ describe('pistas', () => {
     }
   });
 });
+
+describe('pistas de conteo', () => {
+  it('los niveles 1 y 2 nunca enseñan la respuesta al contar', () => {
+    const rng = createRng(11);
+    for (const skill of SKILLS) {
+      for (let i = 0; i < 300; i++) {
+        const ex = generateExercise(skill.id, rng, { format: 'result' });
+        for (const level of [1, 2] as const) {
+          for (const locale of ['es', 'ca'] as const) {
+            const text = getHint(ex, level, locale).text;
+            if (!/Cuenta|Compta/.test(text)) continue;
+            const numbers = (text.match(/\d+/g) ?? []).map(Number);
+            expect(numbers, `${text} (respuesta ${ex.answer})`).not.toContain(ex.answer);
+          }
+        }
+      }
+    }
+  });
+
+  it('el nivel 2 cuenta menos pasos que el nivel 3', () => {
+    const ex: Exercise = { ...carry, skill: 'add-within-10', a: 3, b: 5, c: 8, answer: 8, difficulty: 1 };
+    const count = (s: string) => (s.match(/\d+/g) ?? []).length;
+    expect(count(getHint(ex, 2, 'es').text)).toBeLessThan(count(getHint(ex, 3, 'es').text));
+  });
+});

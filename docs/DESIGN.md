@@ -87,6 +87,8 @@ Crecimiento: los profes lo usan gratis, los niños lo llevan a casa, las familia
 
 ## Cuentas y progreso
 
+Previsto para la fase 2 (ver [ROADMAP.md](ROADMAP.md)). Hoy el progreso se guarda solo en el navegador (`localStorage`).
+
 - El progreso vive en el servidor (Supabase, UE), ligado al niño, no al aparato.
 - Cuenta de centro → profes con código → clases con QR → alumnos entran con QR o con el código de su tarjeta (p. ej. «LEÓN-47») + «toca tu animal».
 - Sin clase: cuenta anónima con apodo; se pide pronto el correo de los padres (consentimiento para menores de 14).

@@ -104,3 +104,22 @@ describe('generadores', () => {
     expect(formatExercise({ ...ex, operator: '-', a: 12, b: 5, c: 7, hidden: 'c', answer: 7 })).toBe('12 − 5 = _');
   });
 });
+
+describe('createRng', () => {
+  it('int da enteros dentro del rango, ambos incluidos', () => {
+    const rng = createRng(3);
+    const values = new Set(Array.from({ length: 500 }, () => rng.int(2, 4)));
+    expect(values).toEqual(new Set([2, 3, 4]));
+  });
+
+  it('int lanza RangeError con un rango no válido', () => {
+    const rng = createRng(3);
+    expect(() => rng.int(5, 1)).toThrow(RangeError);
+    expect(() => rng.int(1.5, 3)).toThrow(RangeError);
+    expect(() => rng.int(1, Number.NaN)).toThrow(RangeError);
+  });
+
+  it('pick lanza RangeError con una lista vacía', () => {
+    expect(() => createRng(3).pick([])).toThrow(RangeError);
+  });
+});

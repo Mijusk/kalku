@@ -24,13 +24,13 @@ PR pedido: $ARGUMENTS (si no hay número, el PR abierto de la rama actual: `gh p
    ```bash
    gh pr view <n> --comments
    gh pr checks <n>
-   gh api repos/Mijusk/kalku/pulls/<n>/comments
+   gh api --paginate repos/Mijusk/kalku/pulls/<n>/comments
    ```
 2. **CI en rojo primero.** Reproduce el fallo en local, arréglalo y comprueba que el mismo check pasa.
 3. **Clasifica cada comentario:**
    - **Arreglar:** fallo real, regla de `CLAUDE.md` rota, test que falta, texto en un solo idioma.
    - **No arreglar:** sugerencia de estilo sin beneficio claro, algo fuera de la issue, o algo que contradice una decisión de `docs/DECISIONS.md`.
    - **Preguntar a Luis:** cambia una regla de producto o una decisión.
-4. **Arregla** lo de la primera lista, `npm run check` en verde, commit en castellano y `git push`.
+4. **Ponte en la rama del PR** antes de tocar nada: comprueba que no hay cambios sin guardar (`git status`) y ejecuta `gh pr checkout <n>`. Luego **arregla** lo de la primera lista, `npm run check` en verde, commit en castellano y `git push`.
 5. **Responde en cada hilo** de CodeRabbit, en castellano y en una o dos frases: qué cambiaste (con el commit) o por qué no. Para hablar con CodeRabbit en el PR, menciónalo como `@coderabbitai`.
 6. **Dile a Luis** qué has arreglado, qué has dejado y por qué, y si el PR ya está listo para fusionar.

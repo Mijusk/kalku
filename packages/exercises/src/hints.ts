@@ -37,7 +37,7 @@ function resultHint(ex: Exercise, level: Hint['level'], locale: Locale): string 
             `${big} + ${small} = ${big} + ${toTen} + ${small - toTen}`,
             `${big} + ${small} = ${big} + ${toTen} + ${small - toTen}`,
           )
-        : t(locale, `Cuenta: ${countSteps(big, small, 1)}…`, `Compta: ${countSteps(big, small, 1)}…`);
+        : t(locale, `Cuenta: ${countSteps(big, halfway(small), 1)}…`, `Compta: ${countSteps(big, halfway(small), 1)}…`);
     }
     return crossesTen
       ? t(locale, `${big} + ${toTen} = 10. Ahora, 10 + ${small - toTen} = ?`, `${big} + ${toTen} = 10. Ara, 10 + ${small - toTen} = ?`)
@@ -56,7 +56,7 @@ function resultHint(ex: Exercise, level: Hint['level'], locale: Locale): string 
   if (level === 2) {
     return crossesTen
       ? `${a} − ${b} = ${a} − ${unitsA} − ${b - unitsA}`
-      : t(locale, `Cuenta hacia atrás: ${countSteps(a, b, -1)}…`, `Compta enrere: ${countSteps(a, b, -1)}…`);
+      : t(locale, `Cuenta hacia atrás: ${countSteps(a, halfway(b), -1)}…`, `Compta enrere: ${countSteps(a, halfway(b), -1)}…`);
   }
   return crossesTen
     ? t(locale, `${a} − ${unitsA} = 10. Ahora, 10 − ${b - unitsA} = ?`, `${a} − ${unitsA} = 10. Ara, 10 − ${b - unitsA} = ?`)
@@ -87,6 +87,14 @@ function missingHint(ex: Exercise, level: Hint['level'], locale: Locale): string
   if (level === 1) return t(locale, `¿De qué número quitas ${b} y te quedan ${c}?`, `De quin número treus ${b} i te'n queden ${c}?`);
   if (level === 2) return t(locale, `Piensa al revés: ${c} + ${b}.`, `Pensa-ho al revés: ${c} + ${b}.`);
   return t(locale, `${c} + ${b} = ?`, `${c} + ${b} = ?`);
+}
+
+/**
+ * Pasos que enseña la pista de nivel 2: la mitad de los que faltan, sin
+ * llegar nunca a la respuesta. El nivel 3 enseña todos menos el último.
+ */
+function halfway(steps: number): number {
+  return Math.floor((steps - 1) / 2);
 }
 
 /** «8, 9, 10» para mostrar el conteo paso a paso. */

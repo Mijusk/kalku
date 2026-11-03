@@ -64,7 +64,9 @@ Web instalable (PWA) primero; apps de Android e iPhone con Capacitor cuando el j
 
 Planes Gratis, Familia (4,99 €/mes o 39,99 €/año), Docente gratis y Centro (2 €/alumno/año). Todo online, sin comerciales.
 
-**Por qué:** los anuncios rendirían unos 50 €/mes con 600 alumnos, chocan con la DSA (art. 28) y la LOPDGDD, los colegios no los aceptan, y ver un anuncio para ganar XP rompe el principio 1.
+**Por qué (decisión de producto):** los anuncios rendirían unos 50 €/mes con 600 alumnos, los colegios no los aceptan, y ver un anuncio para ganar XP rompe el principio 1.
+
+**Contexto legal (no es lo que decide, pero lo complica):** la DSA (art. 28) prohíbe a las plataformas mostrar a menores anuncios basados en perfiles, así que solo cabría publicidad contextual, que rinde menos. Y la LOPDGDD (art. 7) exige el consentimiento de los padres para tratar datos de menores de 14 años, lo que afecta a cualquier red de anuncios que use datos del niño.
 
 **Descartado:** anuncios recompensados (idea inicial de Luis); venta colegio a colegio.
 
