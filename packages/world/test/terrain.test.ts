@@ -102,6 +102,42 @@ describe('generateTerrain', () => {
     expect(share(map, 'tallGrass')).toBeCloseTo(0.5, 5);
   });
 
+  it('los cupos se reparten juntos: nunca piden más casillas de las que hay', () => {
+    // 13×2 = 26 casillas; 4 × 0,25 redondeado por separado pediría 28.
+    const full: RegionSpec = {
+      id: 'prueba-llena',
+      width: 13,
+      height: 2,
+      proportions: { water: 0.25, tree: 0.25, tallGrass: 0.25, flowers: 0.25 },
+    };
+    for (let seed = 0; seed < 200; seed++) {
+      const map = generateTerrain(full, seed);
+      const count = (kind: TileKind): number => map.tiles.filter((t) => t === kind).length;
+      // Los cupos son 7, 7, 6 y 6: ninguna capa pasa de 7.
+      for (const kind of FEATURES) expect(count(kind)).toBeLessThanOrEqual(7);
+      // Las capas sin agrupar siempre llegan a su cupo; antes las flores se quedaban en 5.
+      expect(count('tallGrass')).toBeGreaterThanOrEqual(6);
+      expect(count('flowers')).toBeGreaterThanOrEqual(6);
+      expect(isolated(map, 'tree')).toEqual([]);
+      expect(isolated(map, 'water')).toEqual([]);
+    }
+  });
+
+  it('en regiones diminutas el primer grupo no se pierde', () => {
+    // 3×2, mitad agua y un tercio de árboles (con la semilla 25 el árbol se perdía): siempre hay una pareja.
+    const tiny: RegionSpec = {
+      id: 'prueba-diminuta',
+      width: 3,
+      height: 2,
+      proportions: { water: 0.5, tree: 1 / 3, tallGrass: 0, flowers: 0 },
+    };
+    for (let seed = 0; seed < 300; seed++) {
+      const map = generateTerrain(tiny, seed);
+      expect(map.tiles.filter((t) => t === 'tree')).toHaveLength(2);
+      expect(isolated(map, 'tree')).toEqual([]);
+    }
+  });
+
   it('rechaza regiones no válidas', () => {
     const base = PRADERA_UNO;
     expect(() => generateTerrain({ ...base, width: 0 }, 1)).toThrow(RangeError);
@@ -144,6 +180,13 @@ describe('valueNoise', () => {
       expect(v).toBeGreaterThanOrEqual(0);
       expect(v).toBeLessThan(1);
     }
+  });
+
+  it('rechaza parámetros que darían NaN o un mapa vacío', () => {
+    expect(() => valueNoise(10, 10, 4, 0, createRng(1))).toThrow(RangeError);
+    expect(() => valueNoise(10, 10, 4, 1.5, createRng(1))).toThrow(RangeError);
+    expect(() => valueNoise(10, 10, 0, 2, createRng(1))).toThrow(RangeError);
+    expect(() => valueNoise(0, 10, 4, 2, createRng(1))).toThrow(RangeError);
   });
 
   it('es suave: casillas vecinas se parecen más que casillas al azar', () => {

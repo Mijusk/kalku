@@ -35,11 +35,12 @@ export function generateTerrain(region: RegionSpec, seed: number): WorldMap {
   const total = width * height;
   const tiles = new Array<TileKind>(total).fill('grass');
 
+  const targets = layerTargets(region, total);
   const seeds = createRng(seed);
-  for (const layer of LAYERS) {
+  for (const [index, layer] of LAYERS.entries()) {
     // Cada capa tiene su propia semilla: así sus manchas no coinciden con las de otra.
     const noise = valueNoise(width, height, layer.cellSize, layer.octaves, createRng(seeds.int(0, 0xffffffff)));
-    let target = Math.round(region.proportions[layer.kind] * total);
+    let target = targets[index] ?? 0;
     // Un grupo necesita al menos 2 casillas.
     if (layer.clustered && target < 2) target = 0;
 
@@ -89,6 +90,27 @@ function validateRegion(region: RegionSpec): void {
   if (sum > 1 + 1e-9) throw new RangeError(`Las proporciones suman más de 1: ${sum}`);
 }
 
+/**
+ * Casillas de cada capa, calculadas juntas: se redondea hacia abajo y los
+ * restos se dan a las capas con más decimales (en empate, la que va
+ * antes). Así la suma nunca pasa del total redondeado de lo pedido.
+ */
+function layerTargets(region: RegionSpec, total: number): number[] {
+  const exact = LAYERS.map((layer) => region.proportions[layer.kind] * total);
+  const targets = exact.map((x) => Math.floor(x));
+  const wanted = Math.min(total, Math.round(exact.reduce((a, b) => a + b, 0)));
+  let missing = wanted - targets.reduce((a, b) => a + b, 0);
+  const byRemainder = exact
+    .map((x, i) => ({ i, rest: x - Math.floor(x) }))
+    .sort((a, b) => b.rest - a.rest || a.i - b.i);
+  for (const { i } of byRemainder) {
+    if (missing <= 0) break;
+    targets[i] = (targets[i] ?? 0) + 1;
+    missing--;
+  }
+  return targets;
+}
+
 /** Índices ordenados de mayor a menor ruido; en empate, el índice menor primero. */
 function byNoiseDesc(noise: Float64Array): number[] {
   return Array.from(noise.keys()).sort((a, b) => (noise[b] ?? 0) - (noise[a] ?? 0) || a - b);
@@ -117,13 +139,32 @@ function enforceClusters(
   removeIsolated();
   let count = tiles.filter((t) => t === kind).length;
 
-  while (count < target) {
+  const higher = (i: number, best: number): boolean => best === -1 || (noise[i] ?? 0) > (noise[best] ?? 0);
+
+  // Sin grupos todavía, se empieza con una pareja: la casilla libre de más
+  // ruido que tenga otra libre al lado, y la mejor de sus vecinas libres.
+  if (count === 0 && target >= 2) {
+    let first = -1;
+    for (let i = 0; i < tiles.length; i++) {
+      if (tiles[i] !== 'grass' || !neighbors(i, width, height).some((n) => tiles[n] === 'grass')) continue;
+      if (higher(i, first)) first = i;
+    }
+    if (first !== -1) {
+      let second = -1;
+      for (const n of neighbors(first, width, height)) {
+        if (tiles[n] === 'grass' && higher(n, second)) second = n;
+      }
+      tiles[first] = kind;
+      tiles[second] = kind;
+      count = 2;
+    }
+  }
+
+  while (count > 0 && count < target) {
     let best = -1;
     for (let i = 0; i < tiles.length; i++) {
-      if (tiles[i] !== 'grass') continue;
-      // Sin grupos todavía, se empieza por la casilla libre de más ruido.
-      if (count > 0 && !hasSameNeighbor(i)) continue;
-      if (best === -1 || (noise[i] ?? 0) > (noise[best] ?? 0)) best = i;
+      if (tiles[i] !== 'grass' || !hasSameNeighbor(i)) continue;
+      if (higher(i, best)) best = i;
     }
     if (best === -1) break;
     tiles[best] = kind;

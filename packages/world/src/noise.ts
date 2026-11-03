@@ -17,6 +17,12 @@ export function valueNoise(
   octaves: number,
   rng: Rng,
 ): Float64Array {
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1) {
+    throw new RangeError(`Tamaño no válido: ${width}×${height}`);
+  }
+  if (!Number.isFinite(cellSize) || cellSize <= 0) throw new RangeError(`cellSize no válido: ${cellSize}`);
+  if (!Number.isInteger(octaves) || octaves < 1) throw new RangeError(`octaves no válido: ${octaves}`);
+
   const out = new Float64Array(width * height);
   let amplitude = 1;
   let totalAmplitude = 0;
