@@ -1,0 +1,238 @@
+:root {
+  --bg: #1b2a1f;
+  --panel: #f6f1e3;
+  --ink: #1b2a1f;
+  --muted: #5b6b5e;
+  --primary: #2f6b3a;
+  --danger: #b8432f;
+  --good: #2f8a3e;
+  --bad: #b8432f;
+  --info: #3b6fb6;
+  --radius: 12px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+#game {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+#ui {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.hud {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  background: rgb(27 42 31 / 0.75);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.hud-coins {
+  color: #f4c542;
+}
+
+.hud-gems {
+  color: #8fd3ff;
+}
+
+.hud-bar {
+  flex: 1 1 120px;
+  max-width: 220px;
+  height: 10px;
+  border-radius: 5px;
+  background: rgb(255 255 255 / 0.25);
+  overflow: hidden;
+}
+
+.hud-bar > span {
+  display: block;
+  height: 100%;
+  background: #5fd35f;
+  transition: width 0.4s ease;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  background: var(--panel);
+  border-top: 4px solid var(--ink);
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.panel-tag {
+  margin: 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.panel-feedback {
+  margin: 0;
+  min-height: 1.4em;
+  font-size: 18px;
+  text-align: center;
+}
+
+.panel-feedback[data-kind='good'] {
+  color: var(--good);
+  font-weight: 700;
+}
+
+.panel-feedback[data-kind='bad'] {
+  color: var(--bad);
+}
+
+.panel-feedback[data-kind='info'] {
+  color: var(--info);
+}
+
+/* Los números del ejercicio: grandes y nítidos, para niños de 6 años. */
+.exercise {
+  margin: 0;
+  font-size: clamp(36px, 8vw, 56px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.answer {
+  margin: 0;
+  min-width: 3ch;
+  padding: 2px 12px;
+  border-bottom: 4px solid var(--ink);
+  font-size: 40px;
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  gap: 8px;
+}
+
+.key,
+.btn {
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--ink);
+  touch-action: manipulation;
+}
+
+.key:active,
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.key {
+  height: 56px;
+  font-size: 26px;
+}
+
+.key-ok {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn {
+  min-height: 52px;
+  padding: 0 22px;
+  font-size: 20px;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-small {
+  min-height: 40px;
+  font-size: 16px;
+}
+
+/* En horizontal con poca altura, el panel va a la derecha del juego. */
+@media (orientation: landscape) and (max-height: 600px) {
+  #app {
+    flex-direction: row;
+  }
+
+  #ui {
+    width: min(360px, 45vw);
+    overflow-y: auto;
+  }
+
+  .panel {
+    height: 100%;
+    justify-content: center;
+    border-top: 0;
+    border-left: 4px solid var(--ink);
+  }
+
+  .hud {
+    right: auto;
+  }
+}
