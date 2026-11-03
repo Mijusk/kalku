@@ -1,6 +1,6 @@
 import { createRng } from '@kalku/exercises';
 import { valueNoise } from './noise.js';
-import type { FeatureKind, RegionSpec, TileKind, WorldMap } from './types.js';
+import type { FeatureKind, TerrainSpec, TileKind, WorldMap } from './types.js';
 
 interface Layer {
   readonly kind: FeatureKind;
@@ -29,7 +29,7 @@ const LAYERS: readonly Layer[] = [
  * casillas, salvo que la regla de agrupación obligue a quitar alguna
  * casilla suelta que no se pueda recolocar.
  */
-export function generateTerrain(region: RegionSpec, seed: number): WorldMap {
+export function generateTerrain(region: TerrainSpec, seed: number): WorldMap {
   validateRegion(region);
   const { width, height } = region;
   const total = width * height;
@@ -74,7 +74,7 @@ export function neighbors(index: number, width: number, height: number): number[
   return result;
 }
 
-function validateRegion(region: RegionSpec): void {
+function validateRegion(region: TerrainSpec): void {
   const { width, height, proportions } = region;
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1) {
     throw new RangeError(`Tamaño de región no válido: ${width}×${height}`);
@@ -95,7 +95,7 @@ function validateRegion(region: RegionSpec): void {
  * restos se dan a las capas con más decimales (en empate, la que va
  * antes). Así la suma nunca pasa del total redondeado de lo pedido.
  */
-function layerTargets(region: RegionSpec, total: number): number[] {
+function layerTargets(region: TerrainSpec, total: number): number[] {
   const exact = LAYERS.map((layer) => region.proportions[layer.kind] * total);
   const targets = exact.map((x) => Math.floor(x));
   const wanted = Math.min(total, Math.round(exact.reduce((a, b) => a + b, 0)));

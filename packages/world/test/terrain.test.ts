@@ -7,7 +7,7 @@ import {
   tileAt,
   valueNoise,
   type FeatureKind,
-  type RegionSpec,
+  type TerrainSpec,
   type TileKind,
   type WorldMap,
 } from '../src/index.js';
@@ -17,7 +17,7 @@ const FEATURES: readonly FeatureKind[] = ['water', 'tree', 'tallGrass', 'flowers
 const ALL_KINDS: readonly TileKind[] = ['grass', 'tallGrass', 'tree', 'water', 'path', 'flowers'];
 
 /** Una región distinta a Pradera Uno, con mucha agua y bosque, para probar otros tamaños. */
-const LAKES: RegionSpec = {
+const LAKES: TerrainSpec = {
   id: 'prueba-lagos',
   width: 37,
   height: 23,
@@ -104,7 +104,7 @@ describe('generateTerrain', () => {
 
   it('los cupos se reparten juntos: nunca piden más casillas de las que hay', () => {
     // 13×2 = 26 casillas; 4 × 0,25 redondeado por separado pediría 28.
-    const full: RegionSpec = {
+    const full: TerrainSpec = {
       id: 'prueba-llena',
       width: 13,
       height: 2,
@@ -125,7 +125,7 @@ describe('generateTerrain', () => {
 
   it('en regiones diminutas el primer grupo no se pierde', () => {
     // 3×2, mitad agua y un tercio de árboles (con la semilla 25 el árbol se perdía): siempre hay una pareja.
-    const tiny: RegionSpec = {
+    const tiny: TerrainSpec = {
       id: 'prueba-diminuta',
       width: 3,
       height: 2,
