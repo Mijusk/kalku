@@ -54,7 +54,7 @@ kalku/
     └── game/                 @kalku/game: el juego, web instalable (PWA)
         ├── index.html          Contenedores #game (canvas) y #ui (HTML)
         ├── vite.config.ts      Vite + PWA (manifest y service worker)
-        ├── public/             Ficheros estáticos (icono)
+        ├── public/             Ficheros estáticos (icono, _headers de caché para Cloudflare Pages)
         └── src/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
