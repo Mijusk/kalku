@@ -48,7 +48,8 @@ kalku/
 │       │   ├── pieces.ts       Lugares hechos a mano como texto (leyenda, pueblo y arena provisionales)
 │       │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
 │       │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
-│       │   └── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla por pack
+│       │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla por pack
+│       │   └── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
 │       └── test/             Tests con vitest
 │
 └── apps/
@@ -61,7 +62,8 @@ kalku/
             ├── i18n.ts         Textos de interfaz es/ca
             ├── progress.ts     Guardado del progreso (PROVISIONAL: localStorage)
             ├── art/
-            │   └── pixelArt.ts Sprites provisionales dibujados como texto (también las 16 orillas de agua y camino)
+            │   ├── pixelArt.ts Sprites provisionales dibujados como texto (también las 16 orillas de agua y camino)
+            │   └── tiles.ts    Tileset del mapa: orden de las casillas y fotograma de cada una (con autotile)
             ├── scenes/         Escenas de Phaser
             │   ├── BootScene.ts    Crea o carga texturas
             │   └── BattleScene.ts  Combate por turnos de prueba
@@ -84,7 +86,6 @@ kalku/
 
 | Qué | Dónde | Fase |
 | --- | --- | --- |
-| Dibujo del mapa y bordes bonitos | escena `WorldScene` (usa `@kalku/world`) | 1 |
 | Tienda de 5 objetos y datos de objetos | `apps/game/src/data/` | 1 |
 | Criaturas como datos | `packages/content/` o `apps/game/src/data/` | 2 |
 | Servidor: cuentas, validación, sincronización | `supabase/` (migraciones y funciones) | 2 |

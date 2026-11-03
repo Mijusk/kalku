@@ -5,3 +5,4 @@ export * from './pieces.js';
 export * from './layout.js';
 export * from './regions.js';
 export * from './autotile.js';
+export * from './movement.js';

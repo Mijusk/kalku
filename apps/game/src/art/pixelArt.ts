@@ -42,7 +42,42 @@ export const PALETTE: Palette = {
   e: 0xe3c98a, // arena de la orilla
   d: 0xc49a5a, // tierra del camino
   D: 0xa67c43, // tierra oscura
+  n: 0x2e6b34, // copa del árbol
+  N: 0x1f4f27, // sombra del árbol
+  t: 0x6b4a2b, // tronco
+  R: 0xb8432f, // tejado rojo
+  W: 0xe9dcc0, // pared
+  v: 0x7a3ea0, // marca del jefe
 };
+
+/**
+ * Dibuja varios sprites seguidos en una sola textura (una tira), cada píxel
+ * de `scale` × `scale`. Sirve de tileset para un tilemap de Phaser: el
+ * fotograma i es el sprite i de `frames`.
+ */
+export function createPixelSheet(
+  scene: Phaser.Scene,
+  key: string,
+  frames: readonly (readonly string[])[],
+  palette: Palette,
+  scale: number,
+): void {
+  const size = Math.max(...frames.map((rows) => rows.length));
+  const texture = scene.textures.createCanvas(key, frames.length * size * scale, size * scale);
+  if (texture === null) throw new Error(`No se pudo crear la textura ${key}`);
+  const ctx = texture.getContext();
+  frames.forEach((rows, frame) => {
+    rows.forEach((row, y) => {
+      [...row].forEach((ch, x) => {
+        const color = palette[ch];
+        if (color === undefined) return;
+        ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+        ctx.fillRect((frame * size + x) * scale, y * scale, scale, scale);
+      });
+    });
+  });
+  texture.refresh();
+}
 
 export const HERO = [
   '....kkkkkk....',
@@ -150,3 +185,52 @@ export function edgedTile(mask: number, fill: readonly string[], edge: string): 
       .join(''),
   );
 }
+
+export const TALL_GRASS = [
+  'gGggGggg',
+  'gGgGGgGg',
+  'GgGgGGgG',
+  'gggggggg',
+  'ggGggGgg',
+  'gGGgGGgG',
+  'GgGGgGgG',
+  'gggggggg',
+];
+
+export const TREE = [
+  'ggnnnngg',
+  'gnnnnnng',
+  'nnnNnnnn',
+  'nnnnnNnn',
+  'gnNnnnng',
+  'ggnnnngg',
+  'gggttggg',
+  'ggGttGgg',
+];
+
+/** Casa (provisional): cada casilla es un trozo de tejado sobre pared. */
+export const HOUSE = [
+  'RRRRRRRR',
+  'RkRRRRkR',
+  'RRRRRRRR',
+  'WWWWWWWW',
+  'WkkWWkkW',
+  'WkkWWkkW',
+  'WWWWWWWW',
+  'WWWWWWWW',
+];
+
+/** Tienda (provisional): como la casa, con tejado azul. */
+export const SHOP = HOUSE.map((row) => row.replace(/R/g, 'b'));
+
+/** Casilla del jefe (provisional): una marca en el suelo. */
+export const BOSS = [
+  'gggggggg',
+  'gvggggvg',
+  'ggvggvgg',
+  'gggvvggg',
+  'gggvvggg',
+  'ggvggvgg',
+  'gvggggvg',
+  'gggggggg',
+];

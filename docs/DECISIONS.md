@@ -2,6 +2,16 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-03 · Mapa en pantalla y movimiento (`WorldScene`)
+
+- Pradera Uno se genera con la **semilla fija 42** (`PRADERA_UNO_SEED` en `WorldScene`): todos ven el mismo mapa. Con esa semilla el camino no cruza agua.
+- El mapa es un tilemap de Phaser creado por código. El tileset es una tira generada desde los sprites de texto (`tiles.ts`): primero las casillas de un dibujo, luego las 16 orillas de agua y las 16 de camino (sustituye a las texturas sueltas `tile-water-<n>` / `tile-path-<n>`). Casillas de 16 px en pantalla (sprites de 8 px a doble tamaño), hasta el pack de 32 px (#10).
+- Se anda casilla a casilla (150 ms por paso). Qué se pisa lo decide `isWalkable` de `@kalku/world`: árboles, agua, casas y tienda no.
+- Tocar la pantalla lleva al personaje andando por el camino más corto (`pathTo`). Si se toca algo que no se pisa, va a la casilla más cercana a la que se puede llegar. El teclado manda sobre un camino a medias, y un toque rápido de tecla da al menos un paso.
+- El juego arranca en el mapa. El combate de prueba sigue en `?combate` (también en la web publicada).
+
+**Por qué:** casilla a casilla es más fácil de controlar para un niño de 6 años y encaja con los encuentros por paso en hierba alta (#8).
+
 ## 2026-11-03 · Bordes de agua y camino (autotiling)
 
 - Cada casilla de agua o camino tiene una **máscara** de vecinas del mismo tipo: N=1, E=2, S=4, W=8 y, en modo 8, NE=16, SE=32, SW=64, NW=128.
