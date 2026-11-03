@@ -1,6 +1,4 @@
-## Tarea
-
-<!-- T-NNN · título, con enlace al fichero de la tarea -->
+Closes #
 
 ## Qué cambia
 
@@ -13,10 +11,10 @@
 
 ## Criterios de aceptación
 
-<!-- Copia los de la tarea y marca solo los comprobados -->
+<!-- Copia los de la issue y marca solo los comprobados -->
 
 - [ ]
 
 ## Notas
 
-<!-- Decisiones, cosas que no se pudieron comprobar, tareas nuevas creadas -->
+<!-- Decisiones, cosas que no se pudieron comprobar, issues nuevas creadas -->

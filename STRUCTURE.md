@@ -10,15 +10,15 @@ kalku/
 ├── package.json              Workspaces y scripts de la raíz (dev, test, build, check)
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
+├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
-│   └── pull_request_template.md Plantilla de PR (tarea, cómo probar, criterios)
+│   ├── ISSUE_TEMPLATE/tarea.md Plantilla de issue de tarea
+│   └── pull_request_template.md Plantilla de PR (Closes #, cómo probar, criterios)
 ├── .claude/skills/
-│   ├── planificar/SKILL.md   Comando /planificar: crea y ordena tareas, sin código
-│   └── desarrollar/SKILL.md  Comando /desarrollar: implementa una tarea y abre un PR
-│
-├── tasks/                    Tareas, una por fichero (T-NNN-titulo.md)
-│   └── README.md             Formato, estados e índice de tareas
+│   ├── planificar/SKILL.md   Comando /planificar: crea y ordena issues, sin código
+│   ├── desarrollar/SKILL.md  Comando /desarrollar: implementa una issue y abre un PR
+│   └── revisar/SKILL.md      Comando /revisar: atiende CodeRabbit, CI y comentarios
 │
 ├── docs/
 │   ├── DESIGN.md             Resumen del documento de diseño del juego

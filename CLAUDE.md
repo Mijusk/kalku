@@ -42,12 +42,15 @@ Antes de dar por terminado cualquier cambio, `npm run check` tiene que pasar.
 
 ## Trabajar por tareas
 
-El trabajo se organiza en tareas, una por fichero, en [tasks/](tasks/README.md). Hay dos comandos:
+El trabajo se organiza en [issues de GitHub](https://github.com/Mijusk/kalku/issues) con la etiqueta `tarea`, un hito por fase y etiquetas de bloque y tamaño. Hay tres comandos (en `.claude/skills/`), que usan `gh`:
 
-- **`/planificar`** decide qué hay que hacer: divide bloques de la hoja de ruta o ideas en tareas con criterios de aceptación. No toca código.
-- **`/desarrollar`** implementa **una** tarea, en su rama `tarea/T-NNN-…`, con tests, y abre un pull request. La marca como hecha dentro del propio PR.
+- **`/planificar`** decide qué hay que hacer: divide bloques de la hoja de ruta o ideas en issues con criterios de aceptación. No toca código.
+- **`/desarrollar`** implementa **una** issue, en su rama `tarea/<número>-…`, con tests, y abre un pull request con `Closes #<número>`.
+- **`/revisar`** atiende la revisión de un PR (CodeRabbit, CI y comentarios de Luis): arregla lo que proceda y responde en cada hilo.
 
-Si te piden algo fuera de estos comandos y es más que un arreglo pequeño, propón crear una tarea con `/planificar` en vez de hacerlo directamente.
+Cada PR lo revisa CodeRabbit automáticamente (configuración en `.coderabbit.yaml`). Sus comentarios son sugerencias que hay que comprobar, no órdenes. Luis fusiona.
+
+Si te piden algo fuera de estos comandos y es más que un arreglo pequeño, propón crear una issue con `/planificar` en vez de hacerlo directamente.
 
 ## Arquitectura en una frase
 

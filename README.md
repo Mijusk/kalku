@@ -20,4 +20,4 @@ Abre http://localhost:5173 y juega un combate de prueba.
 - [docs/DESIGN.md](docs/DESIGN.md): diseño del juego
 - [docs/DECISIONS.md](docs/DECISIONS.md): decisiones y por qué
 - [docs/ROADMAP.md](docs/ROADMAP.md): fases y bloques
-- [tasks/](tasks/README.md): tareas, con `/planificar` y `/desarrollar` desde Claude Code
+- [Issues](https://github.com/Mijusk/kalku/issues?q=is%3Aissue+label%3Atarea): tareas, con `/planificar`, `/desarrollar` y `/revisar` desde Claude Code (necesita [GitHub CLI](https://cli.github.com/) con `gh auth login`)

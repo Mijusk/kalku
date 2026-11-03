@@ -2,7 +2,7 @@
 
 Con unas 3 horas al día (≈ 90 h al mes). Fechas orientativas. Plan completo: [Plan de acción](https://claude.ai/artifact/UUajJhALcdSPfiTcKdgYmn).
 
-El detalle de cada bloque está en [tasks/](../tasks/README.md): se planifica con `/planificar` y se implementa con `/desarrollar`.
+El detalle de cada bloque está en las [issues con la etiqueta `tarea`](https://github.com/Mijusk/kalku/issues?q=is%3Aissue+label%3Atarea), agrupadas por hito: se planifican con `/planificar`, se implementan con `/desarrollar` y la revisión se atiende con `/revisar`.
 
 Bloques de desarrollo: 1 Publicar · 2 Mapa · 3 Encuentros · 4 Gráficos y tienda · 5 Pulido (fase 1) · 6 Servidor · 7 Clases · 8 Sin conexión · 9 Paneles · 10 Privacidad (fase 2).
 
