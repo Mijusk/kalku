@@ -1,0 +1,17 @@
+{
+  "name": "@kalku/exercises",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generador de ejercicios, corrección, pistas, puntos y motor de dominio. Código puro, sin dependencias de navegador: lo usan el juego y, más adelante, el servidor.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  }
+}

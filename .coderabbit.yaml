@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Configuración de CodeRabbit para Kalku. Las reglas completas están en CLAUDE.md.
+language: es-ES
+tone_instructions: "Revisa en castellano, breve y concreto. El autor programa solo y con poco tiempo: prioriza fallos reales sobre estilo."
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: true
+  auto_review:
+    enabled: true
+    drafts: false
+  path_filters:
+    - "!**/package-lock.json"
+    - "!**/dist/**"
+  path_instructions:
+    - path: "**/*"
+      instructions: |
+        Kalku es un juego de matemáticas para niños de 6 a 12 años. Revisa que se cumplan estas reglas de producto (CLAUDE.md) y márcalo como importante si alguna se rompe:
+        1. Nada que dé ventaja en el juego se compra ni se consigue con anuncios. Sin anuncios.
+        2. Fallar nunca quita monedas, progreso ni baja el dominio de 0.
+        3. Responder despacio nunca da menos puntos que jugar sin tiempo.
+        5. Nada de datos personales de niños sin consentimiento, ni analítica o seguimiento de terceros.
+        6. Todo texto visible para el usuario existe en castellano (es) y catalán (ca).
+    - path: "packages/**"
+      instructions: |
+        Los paquetes son lógica pura que también correrá en el servidor: no pueden usar window, document, localStorage ni importar phaser.
+        Nada aleatorio con Math.random(): debe usarse createRng(seed). Las funciones de lógica no mutan sus argumentos.
+        Toda lógica nueva necesita tests en test/.
+    - path: "apps/game/**"
+      instructions: |
+        Los textos de interfaz van en src/i18n.ts con es y ca. Los números de los ejercicios se muestran en HTML, no en el canvas.
+        Botones de al menos 48 px y usables en tablet con el dedo.
+    - path: "**/*.test.ts"
+      instructions: "Comprueba que los tests prueban reglas reales con semilla fija y que no hay tests desactivados (skip, only)."
+
+chat:
+  auto_reply: true
