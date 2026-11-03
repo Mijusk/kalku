@@ -45,7 +45,8 @@ kalku/
 │       │   ├── types.ts        Tipos: TileKind, WorldMap, RegionSpec
 │       │   ├── noise.ts        Ruido de valor con semilla (hecho a mano, sin dependencias)
 │       │   ├── terrain.ts      generateTerrain: reparte casillas por proporción y agrupa agua y árboles
-│       │   └── regions.ts      Regiones como datos (Pradera Uno, 60×40)
+│       │   ├── regions.ts      Regiones como datos (Pradera Uno, 60×40)
+│       │   └── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla por pack
 │       └── test/             Tests con vitest
 │
 └── apps/
@@ -58,7 +59,7 @@ kalku/
             ├── i18n.ts         Textos de interfaz es/ca
             ├── progress.ts     Guardado del progreso (PROVISIONAL: localStorage)
             ├── art/
-            │   └── pixelArt.ts Sprites provisionales dibujados como texto
+            │   └── pixelArt.ts Sprites provisionales dibujados como texto (también las 16 orillas de agua y camino)
             ├── scenes/         Escenas de Phaser
             │   ├── BootScene.ts    Crea o carga texturas
             │   └── BattleScene.ts  Combate por turnos de prueba

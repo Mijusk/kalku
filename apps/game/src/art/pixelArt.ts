@@ -37,6 +37,11 @@ export const PALETTE: Palette = {
   G: 0x4a8f3e, // hierba oscura
   f: 0xf7e26b, // flor
   p: 0xd77bba, // flor rosa
+  a: 0x3b8fd6, // agua
+  l: 0x8fd0f2, // brillo del agua
+  e: 0xe3c98a, // arena de la orilla
+  d: 0xc49a5a, // tierra del camino
+  D: 0xa67c43, // tierra oscura
 };
 
 export const HERO = [
@@ -104,3 +109,44 @@ export const FLOWERS = [
   'ggpppggg',
   'gggpgggg',
 ];
+
+export const WATER = [
+  'aaaaaaaa',
+  'aalaaaaa',
+  'aaaaaala',
+  'aaaaaaaa',
+  'alaaaaaa',
+  'aaaaalaa',
+  'aaaaaaaa',
+  'aaalaaaa',
+];
+
+export const PATH = [
+  'dddddddd',
+  'ddDddddd',
+  'dddddDdd',
+  'dddddddd',
+  'dDdddddd',
+  'ddddddDd',
+  'dddDdddd',
+  'dddddddd',
+];
+
+/**
+ * Variante de una casilla con orilla (autotiling provisional). `mask` es la
+ * máscara de lados de `@kalku/world` (N=1, E=2, S=4, W=8): en cada lado que
+ * NO está unido se pinta una franja de `edge`. Así, de un solo dibujo salen
+ * las 16 variantes. Con el pack de gráficos esto se sustituye por sus PNG.
+ */
+export function edgedTile(mask: number, fill: readonly string[], edge: string): string[] {
+  const open = { n: (mask & 1) === 0, e: (mask & 2) === 0, s: (mask & 4) === 0, w: (mask & 8) === 0 };
+  const last = fill.length - 1;
+  return fill.map((row, y) =>
+    [...row]
+      .map((ch, x) => {
+        const onEdge = (open.n && y === 0) || (open.s && y === last) || (open.w && x === 0) || (open.e && x === row.length - 1);
+        return onEdge ? edge : ch;
+      })
+      .join(''),
+  );
+}

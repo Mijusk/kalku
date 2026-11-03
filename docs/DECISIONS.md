@@ -2,6 +2,16 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-03 · Bordes de agua y camino (autotiling)
+
+- Cada casilla de agua o camino tiene una **máscara** de vecinas del mismo tipo: N=1, E=2, S=4, W=8 y, en modo 8, NE=16, SE=32, SW=64, NW=128.
+- En modo 8 una esquina solo cuenta si sus dos lados están unidos. Así salen 47 máscaras en vez de 256, que es como vienen la mayoría de packs.
+- Fuera del mapa cuenta como unido: el agua y el camino que tocan el borde no dibujan orilla contra la nada.
+- Solo se une con el mismo tipo de casilla (el camino no se une al agua).
+- Una **tabla** por pack traduce máscara → número de casilla del pack, con una variante de reserva. Cambiar de pack es escribir otra tabla. Las de ahora (`WATER_TILES`, `PATH_TILES`) son **provisionales**: modo 4, la variante es la propia máscara, y en el juego cada una es la textura `tile-water-<n>` / `tile-path-<n>` generada desde texto.
+
+**Por qué:** separar la máscara (lógica, con tests) de la tabla (datos del pack) deja elegir el pack (#10) sin tocar código.
+
 ## 2026-11-03 · Cómo se genera el terreno (`@kalku/world`)
 
 - Cada tipo de casilla (agua, árboles, hierba alta, flores) tiene su propio ruido de valor con semilla. Se reparten en ese orden: cada capa coge, entre las casillas que siguen libres, las de más ruido hasta cubrir su proporción. Así las proporciones salen exactas (redondeadas a casillas) y las manchas son naturales.
