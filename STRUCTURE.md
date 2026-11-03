@@ -65,7 +65,8 @@ kalku/
             │   ├── pixelArt.ts Sprites provisionales dibujados como texto (también las 16 orillas de agua y camino)
             │   └── tiles.ts    Tileset del mapa: orden de las casillas y fotograma de cada una (con autotile)
             ├── scenes/         Escenas de Phaser
-            │   ├── BootScene.ts    Crea o carga texturas
+            │   ├── BootScene.ts    Crea o carga texturas (también el tileset) y elige escena: mapa, o combate con ?combate
+            │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap, personaje, teclado y toque, cámara
             │   └── BattleScene.ts  Combate por turnos de prueba
             └── ui/             Interfaz HTML encima del canvas
                 ├── ExercisePanel.ts  Ejercicio, teclado numérico, pistas
