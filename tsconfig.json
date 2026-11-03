@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "packages/exercises" },
+    { "path": "packages/world" },
     { "path": "apps/game" }
   ]
 }
