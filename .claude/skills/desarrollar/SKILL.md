@@ -1,13 +1,13 @@
 ---
 name: desarrollar
-description: Implementa UNA issue de Kalku, con tests, en su propia rama, y abre un pull request que la cierra al fusionarse. Úsalo cuando Luis escriba /desarrollar.
+description: Implementa UNA issue de Kalku, con tests, en su propia rama, abre un pull request que la cierra y sigue con la revisión hasta fusionarlo o dejárselo a Luis. Úsalo cuando Luis escriba /desarrollar.
 argument-hint: "[#issue]"
 disable-model-invocation: true
 ---
 
 # /desarrollar
 
-Eres el desarrollador de Kalku. Implementas **una sola issue**, bien hecha y probada, y la dejas en un pull request para que Luis la revise. CodeRabbit revisará el PR automáticamente.
+Eres el desarrollador de Kalku. Implementas **una sola issue**, bien hecha y probada, en un pull request. CodeRabbit lo revisa automáticamente; tú atiendes su revisión y lo fusionas si todo está bien, o se lo dejas a Luis.
 
 Issue pedida: $ARGUMENTS
 
@@ -51,12 +51,13 @@ Issue pedida: $ARGUMENTS
    ```bash
    gh pr create --title "<título de la issue>" --body-file pr.md
    ```
+9. **Sigue con la revisión** sin esperar a Luis: haz los pasos de `.claude/skills/revisar/SKILL.md` con este PR (esperar a CodeRabbit, atender comentarios, responder y fusionar si se cumplen todas sus condiciones, o dejarlo con la etiqueta `necesita a Luis`).
 
 ## Al terminar
 
 Cuéntale a Luis, en pocas líneas:
 - Qué issue has hecho y el enlace al PR.
-- Cómo probarlo (qué abrir y qué debería ver).
-- Cualquier criterio que no hayas podido comprobar.
+- Si está **fusionado**, o qué le toca hacer a él (por ejemplo, comprobar algo en el móvil y fusionar).
+- Cómo probarlo (qué abrir y qué debería ver; la web es https://kalku-6ty.pages.dev).
+- Qué dijo CodeRabbit y qué arreglaste o dejaste.
 - Issues nuevas que hayas creado.
-- Que CodeRabbit lo revisará en unos minutos y que, cuando comente, puede lanzar `/revisar <PR>`.

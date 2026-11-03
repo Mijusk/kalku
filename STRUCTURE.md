@@ -17,8 +17,8 @@ kalku/
 │   └── pull_request_template.md Plantilla de PR (Closes #, cómo probar, criterios)
 ├── .claude/skills/
 │   ├── planificar/SKILL.md   Comando /planificar: crea y ordena issues, sin código
-│   ├── desarrollar/SKILL.md  Comando /desarrollar: implementa una issue y abre un PR
-│   └── revisar/SKILL.md      Comando /revisar: atiende CodeRabbit, CI y comentarios
+│   ├── desarrollar/SKILL.md  Comando /desarrollar: implementa una issue, abre un PR y sigue hasta fusionarlo
+│   └── revisar/SKILL.md      Comando /revisar: atiende CodeRabbit, CI y comentarios, y fusiona
 │
 ├── docs/
 │   ├── DESIGN.md             Resumen del documento de diseño del juego

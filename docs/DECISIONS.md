@@ -2,6 +2,14 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-03 · Los PR se fusionan solos cuando la revisión está atendida
+
+Sustituye a «Luis fusiona». `/desarrollar` abre el PR y sigue con `/revisar`, que espera a CodeRabbit, atiende sus comentarios y **fusiona** si todos los checks están en verde, cada hilo tiene respuesta, no hay comentarios de Luis sin atender y todos los criterios del PR están marcados. Se lo deja a Luis (etiqueta `necesita a Luis`) si queda un criterio que solo puede comprobar él (en pantalla, en el móvil), si el PR toca dinero, datos de niños o una regla de producto, o si tras dos rondas CodeRabbit sigue pidiendo cambios.
+
+**Por qué:** Luis no quiere fusionar cada PR a mano. Los criterios visuales se los queda él (decisión suya).
+
+**Descartado:** el auto-merge de GitHub, que fusiona en cuanto CodeRabbit termina aunque haya dejado comentarios sin atender.
+
 ## 2026-11-03 · Camino y lugares hechos a mano (`generateRegion`)
 
 - Los lugares (pueblo, arena del jefe) son piezas de texto con una leyenda de una letra por casilla (`PIECE_LEGEND`). Se colocan encima del terreno y quedan exactamente como están escritos: el camino y la limpieza no los tocan.

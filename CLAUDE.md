@@ -45,10 +45,10 @@ Antes de dar por terminado cualquier cambio, `npm run check` tiene que pasar.
 El trabajo se organiza en [issues de GitHub](https://github.com/Mijusk/kalku/issues) con la etiqueta `tarea`, un hito por fase y etiquetas de bloque y tamaño. Hay tres comandos (en `.claude/skills/`), que usan `gh`:
 
 - **`/planificar`** decide qué hay que hacer: divide bloques de la hoja de ruta o ideas en issues con criterios de aceptación. No toca código.
-- **`/desarrollar`** implementa **una** issue, en su rama `tarea/<número>-…`, con tests, y abre un pull request con `Closes #<número>`.
-- **`/revisar`** atiende la revisión de un PR (CodeRabbit, CI y comentarios de Luis): arregla lo que proceda y responde en cada hilo.
+- **`/desarrollar`** implementa **una** issue, en su rama `tarea/<número>-…`, con tests, abre un pull request con `Closes #<número>` y sigue con la revisión hasta fusionarlo.
+- **`/revisar`** atiende la revisión de un PR (CodeRabbit, CI y comentarios de Luis): arregla lo que proceda, responde en cada hilo y fusiona si todo está bien.
 
-Cada PR lo revisa CodeRabbit automáticamente (configuración en `.coderabbit.yaml`). Sus comentarios son sugerencias que hay que comprobar, no órdenes. Luis fusiona.
+Cada PR lo revisa CodeRabbit automáticamente (configuración en `.coderabbit.yaml`). Sus comentarios son sugerencias que hay que comprobar, no órdenes. `/desarrollar` sigue solo con la revisión, y `/revisar` **fusiona el PR** cuando todos los checks están en verde, cada hilo tiene respuesta y todos los criterios están marcados. Si queda algo que solo puede comprobar Luis (en pantalla, en el móvil), o el PR toca dinero, datos de niños o una regla de producto, lo deja con la etiqueta `necesita a Luis` y fusiona él.
 
 Si te piden algo fuera de estos comandos y es más que un arreglo pequeño, propón crear una issue con `/planificar` en vez de hacerlo directamente.
 
