@@ -1,3 +1,4 @@
+import type { CreatureId } from '@kalku/content';
 import type Phaser from 'phaser';
 
 /**
@@ -37,6 +38,12 @@ export const PALETTE: Palette = {
   G: 0x4a8f3e, // hierba oscura
   f: 0xf7e26b, // flor
   p: 0xd77bba, // flor rosa
+  l: 0x9ad46a, // verde claro (Sumus Brote)
+  t: 0x3f9a4a, // verde trébol
+  d: 0x8a5a33, // madera (Sumus Roble)
+  c: 0x7cc6e8, // celeste (Restus Gota)
+  a: 0xb7c0c7, // gris niebla (Restus Bruma)
+  n: 0x5b4a7a, // morado oscuro (Restus Sombra)
 };
 
 export const HERO = [
@@ -82,6 +89,25 @@ export const CREATURE_ADD = [
 export const CREATURE_SUB = CREATURE_ADD.map((row) => row.replace(/y/g, 'b')).map((row, i) =>
   i === 7 ? 'kbbbbooooobbbbbk' : i === 6 || i === 8 ? row.replace(/o/g, 'b') : row,
 );
+
+/** Cambia un color del sprite por otro. */
+function recolor(rows: readonly string[], from: string, to: string): string[] {
+  return rows.map((row) => row.split(from).join(to));
+}
+
+/**
+ * Sprites provisionales de las criaturas de Pradera Uno (`@kalku/content`):
+ * los sumus llevan el «+» y los restus el «−», cada uno de su color.
+ * El tipo obliga a que toda criatura tenga su sprite.
+ */
+export const CREATURE_SPRITES: Record<CreatureId, readonly string[]> = {
+  'sumus-brote': recolor(CREATURE_ADD, 'y', 'l'),
+  'sumus-trebol': recolor(CREATURE_ADD, 'y', 't'),
+  'sumus-roble': recolor(CREATURE_ADD, 'y', 'd'),
+  'restus-gota': recolor(CREATURE_SUB, 'b', 'c'),
+  'restus-bruma': recolor(CREATURE_SUB, 'b', 'a'),
+  'restus-sombra': recolor(CREATURE_SUB, 'b', 'n'),
+};
 
 export const GRASS = [
   'gggggggg',
