@@ -3,6 +3,7 @@ name: desarrollar
 description: Implementa UNA issue de Kalku, con tests, en su propia rama, y abre un pull request que la cierra al fusionarse. Úsalo cuando Luis escriba /desarrollar.
 argument-hint: "[#issue]"
 disable-model-invocation: true
+effort: high
 ---
 
 # /desarrollar

@@ -3,6 +3,7 @@ name: revisar
 description: Atiende la revisión de un pull request de Kalku (CodeRabbit, CI y comentarios de Luis), arregla lo que proceda y responde en cada hilo. Úsalo cuando Luis escriba /revisar.
 argument-hint: "[número de PR]"
 disable-model-invocation: true
+effort: medium
 ---
 
 # /revisar

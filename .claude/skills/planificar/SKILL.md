@@ -3,6 +3,7 @@ name: planificar
 description: Planifica Kalku sin tocar código. Convierte un bloque de la hoja de ruta, una idea o una revisión en issues de GitHub con criterios de aceptación, etiquetas y dependencias. Úsalo cuando Luis escriba /planificar.
 argument-hint: "[bloque N | #issue | idea | revisar]"
 disable-model-invocation: true
+effort: low
 ---
 
 # /planificar
