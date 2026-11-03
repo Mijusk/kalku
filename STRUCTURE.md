@@ -26,18 +26,26 @@ kalku/
 │   └── ROADMAP.md            Fases y tareas hasta septiembre de 2027
 │
 ├── packages/
-│   └── exercises/            @kalku/exercises: lógica de aprendizaje, TypeScript puro
+│   ├── exercises/            @kalku/exercises: lógica de aprendizaje, TypeScript puro
+│   │   ├── src/
+│   │   │   ├── index.ts        Exporta todo el paquete
+│   │   │   ├── types.ts        Tipos: Exercise, SkillId, Locale, Hint…
+│   │   │   ├── rng.ts          Aleatorio con semilla (mulberry32)
+│   │   │   ├── skills.ts       Currículo: habilidades en orden, nombres es/ca, requisitos
+│   │   │   ├── generators.ts   Un generador por habilidad + formato del ejercicio
+│   │   │   ├── check.ts        Corrección de respuestas
+│   │   │   ├── hints.ts        Pistas en 3 niveles, es/ca
+│   │   │   ├── mastery.ts      Dominio 0–100 por habilidad (+8/+5/−6/−3)
+│   │   │   ├── selection.ts    Qué habilidad toca: 60 % actual, 25 % repaso, 15 % reto
+│   │   │   └── scoring.ts      Puntos (Cifras): dificultad, racha, rapidez sin penalizar
+│   │   └── test/             Tests con vitest
+│   └── world/                @kalku/world: mundo generado por código con semilla, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
-│       │   ├── types.ts        Tipos: Exercise, SkillId, Locale, Hint…
-│       │   ├── rng.ts          Aleatorio con semilla (mulberry32)
-│       │   ├── skills.ts       Currículo: habilidades en orden, nombres es/ca, requisitos
-│       │   ├── generators.ts   Un generador por habilidad + formato del ejercicio
-│       │   ├── check.ts        Corrección de respuestas
-│       │   ├── hints.ts        Pistas en 3 niveles, es/ca
-│       │   ├── mastery.ts      Dominio 0–100 por habilidad (+8/+5/−6/−3)
-│       │   ├── selection.ts    Qué habilidad toca: 60 % actual, 25 % repaso, 15 % reto
-│       │   └── scoring.ts      Puntos (Cifras): dificultad, racha, rapidez sin penalizar
+│       │   ├── types.ts        Tipos: TileKind, WorldMap, RegionSpec
+│       │   ├── noise.ts        Ruido de valor con semilla (hecho a mano, sin dependencias)
+│       │   ├── terrain.ts      generateTerrain: reparte casillas por proporción y agrupa agua y árboles
+│       │   └── regions.ts      Regiones como datos (Pradera Uno, 60×40)
 │       └── test/             Tests con vitest
 │
 └── apps/
@@ -73,7 +81,7 @@ kalku/
 
 | Qué | Dónde | Fase |
 | --- | --- | --- |
-| Generador de mapas por región | `packages/world/` (lógica pura) + escena `WorldScene` | 1 |
+| Caminos, lugares especiales y dibujo del mapa | `packages/world/` (lógica pura) + escena `WorldScene` | 1 |
 | Tienda de 5 objetos y datos de objetos | `apps/game/src/data/` | 1 |
 | Criaturas como datos | `packages/content/` o `apps/game/src/data/` | 2 |
 | Servidor: cuentas, validación, sincronización | `supabase/` (migraciones y funciones) | 2 |

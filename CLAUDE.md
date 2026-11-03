@@ -32,7 +32,7 @@ Node 22 (ver `.nvmrc`). Todo se lanza desde la raíz.
 ```bash
 npm install          # instalar
 npm run dev          # juego en http://localhost:5173
-npm test             # tests de @kalku/exercises (vitest)
+npm test             # tests de los paquetes (vitest)
 npm run typecheck    # TypeScript en todo el monorepo
 npm run build        # compilar todo (genera también el service worker)
 npm run check        # typecheck + test + build: lo mismo que la CI
