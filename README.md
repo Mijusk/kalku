@@ -19,4 +19,5 @@ Abre http://localhost:5173 y juega un combate de prueba.
 - [STRUCTURE.md](STRUCTURE.md): dónde está cada cosa
 - [docs/DESIGN.md](docs/DESIGN.md): diseño del juego
 - [docs/DECISIONS.md](docs/DECISIONS.md): decisiones y por qué
-- [docs/ROADMAP.md](docs/ROADMAP.md): fases y tareas
+- [docs/ROADMAP.md](docs/ROADMAP.md): fases y bloques
+- [tasks/](tasks/README.md): tareas, con `/planificar` y `/desarrollar` desde Claude Code

@@ -40,6 +40,15 @@ npm run check        # typecheck + test + build: lo mismo que la CI
 
 Antes de dar por terminado cualquier cambio, `npm run check` tiene que pasar.
 
+## Trabajar por tareas
+
+El trabajo se organiza en tareas, una por fichero, en [tasks/](tasks/README.md). Hay dos comandos:
+
+- **`/planificar`** decide qué hay que hacer: divide bloques de la hoja de ruta o ideas en tareas con criterios de aceptación. No toca código.
+- **`/desarrollar`** implementa **una** tarea, en su rama `tarea/T-NNN-…`, con tests, y abre un pull request. La marca como hecha dentro del propio PR.
+
+Si te piden algo fuera de estos comandos y es más que un arreglo pequeño, propón crear una tarea con `/planificar` en vez de hacerlo directamente.
+
 ## Arquitectura en una frase
 
 `packages/exercises` es la lógica pura de aprendizaje (generar, corregir, pistas, puntos, dominio, qué ejercicio toca); `apps/game` es el juego en Phaser que la usa. Más adelante el servidor usará el mismo paquete para validar respuestas.

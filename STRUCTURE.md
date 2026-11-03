@@ -10,7 +10,15 @@ kalku/
 ├── package.json              Workspaces y scripts de la raíz (dev, test, build, check)
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
-├── .github/workflows/ci.yml  CI: typecheck + tests + build en cada push y PR
+├── .github/
+│   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
+│   └── pull_request_template.md Plantilla de PR (tarea, cómo probar, criterios)
+├── .claude/skills/
+│   ├── planificar/SKILL.md   Comando /planificar: crea y ordena tareas, sin código
+│   └── desarrollar/SKILL.md  Comando /desarrollar: implementa una tarea y abre un PR
+│
+├── tasks/                    Tareas, una por fichero (T-NNN-titulo.md)
+│   └── README.md             Formato, estados e índice de tareas
 │
 ├── docs/
 │   ├── DESIGN.md             Resumen del documento de diseño del juego
