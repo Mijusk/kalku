@@ -10,11 +10,15 @@ export interface SettingsCallbacks {
 /** Pantalla de ajustes en HTML. Botones de 48 px o más; cada cambio se aplica al instante. */
 export class SettingsPanel {
   private readonly root: HTMLElement;
+  /** Resto de la interfaz, inerte mientras el diálogo está abierto. */
+  private readonly inerted: Element[];
 
   constructor(container: HTMLElement, private readonly progress: PlayerProgress, private readonly callbacks: SettingsCallbacks) {
     this.root = document.createElement('div');
     this.root.className = 'settings';
     this.root.setAttribute('role', 'dialog');
+    this.inerted = Array.from(container.children);
+    for (const el of this.inerted) el.setAttribute('inert', '');
     container.append(this.root);
     this.render();
     this.root.querySelector('button')?.focus();
@@ -40,6 +44,7 @@ export class SettingsPanel {
     close.textContent = tr('back', locale);
     close.addEventListener('click', () => {
       this.root.remove();
+      for (const el of this.inerted) el.removeAttribute('inert');
       this.callbacks.onClose();
     });
 
