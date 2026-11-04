@@ -55,7 +55,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Cada vez que suma, le sale una hoja.', ca: 'Cada cop que suma, li surt una fulla.' },
     hp: 20,
     sprite: 'creature-sumus-brote',
-    provisional: true,
+    provisional: false,
   },
   {
     id: 'restus-gota',
@@ -65,7 +65,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Gotea y se hace pequeñito.', ca: 'Degota i es fa petitet.' },
     hp: 20,
     sprite: 'creature-restus-gota',
-    provisional: true,
+    provisional: false,
   },
   {
     id: 'sumus-trebol',
@@ -75,7 +75,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Junta hojas hasta llegar a veinte.', ca: 'Ajunta fulles fins a arribar a vint.' },
     hp: 30,
     sprite: 'creature-sumus-trebol',
-    provisional: true,
+    provisional: false,
   },
   {
     id: 'restus-bruma',
@@ -85,7 +85,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Esconde números entre la niebla.', ca: 'Amaga nombres dins la boira.' },
     hp: 30,
     sprite: 'creature-restus-bruma',
-    provisional: true,
+    provisional: false,
   },
   {
     id: 'sumus-roble',
@@ -95,7 +95,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Fuerte y viejo: siempre se lleva una.', ca: 'Fort i vell: sempre en porta una.' },
     hp: 40,
     sprite: 'creature-sumus-roble',
-    provisional: true,
+    provisional: false,
   },
   {
     id: 'restus-sombra',
@@ -105,7 +105,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Pide prestado a la decena de al lado.', ca: 'Demana prestat a la desena del costat.' },
     hp: 40,
     sprite: 'creature-restus-sombra',
-    provisional: true,
+    provisional: false,
   },
 ];
 

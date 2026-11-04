@@ -16,7 +16,7 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 ## 2026-11-03 · Criaturas por familias (sumus, restus)
 
 - Las criaturas se agrupan en **familias**, y la familia decide la operación: a un **sumus** se le gana sumando y a un **restus**, restando. El nombre es invariable (un sumus, dos sumus), igual en castellano y catalán.
-- Hay **una criatura por habilidad** (6 en Pradera Uno, no 5 como decía la issue #7), con nombre propio: Sumus Brote, Restus Gota, Sumus Trébol, Restus Bruma, Sumus Roble y Restus Sombra. Los nombres son **provisionales** hasta que Luis los apruebe.
+- Hay **una criatura por habilidad** (6 en Pradera Uno, no 5 como decía la issue #7), con nombre propio: Sumus Brote, Restus Gota, Sumus Trébol, Restus Bruma, Sumus Roble y Restus Sombra. Luis aprobó los nombres el 2026-11-04.
 - El niño no elige la operación: la habilidad que toca (`pickSkill`) decidirá qué criatura aparece, para que nunca pueda esquivar lo que le cuesta practicar. Pendiente: `BattleScene` todavía elige `creature-add` o `creature-sub` al azar.
 - Los nombres de elementos (brote, gota, sombra…) son solo variedad: no dan habilidades ni debilidades. Las debilidades por operación inversa de DESIGN.md quedan para cuando haya criaturas compañeras, y entonces darán un bonus, no serán obligatorias para ganar.
 - Los **problemus** (problemas con enunciado) esperan a tener su habilidad.

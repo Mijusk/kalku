@@ -25,8 +25,8 @@ describe('criaturas de Pradera Uno', () => {
     }
   });
 
-  it('los nombres siguen pendientes de aprobar', () => {
-    expect(CREATURES.every((c) => c.provisional)).toBe(true);
+  it('los nombres ya están aprobados por Luis', () => {
+    expect(CREATURES.every((c) => !c.provisional)).toBe(true);
   });
 });
 
