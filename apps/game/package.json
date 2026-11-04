@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@kalku/content": "0.1.0",
     "@kalku/exercises": "0.1.0",
     "phaser": "3.90.0"
   }
