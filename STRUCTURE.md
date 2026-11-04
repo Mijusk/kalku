@@ -60,7 +60,7 @@ kalku/
         └── src/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
-            ├── progress.ts     Guardado del progreso (PROVISIONAL: localStorage)
+            ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage)
             ├── art/
             │   └── pixelArt.ts Sprites provisionales dibujados como texto
             ├── scenes/         Escenas de Phaser
@@ -69,6 +69,7 @@ kalku/
             └── ui/             Interfaz HTML encima del canvas
                 ├── ExercisePanel.ts  Ejercicio, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio
+                ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz
                 └── styles.css
 ```
 

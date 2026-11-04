@@ -7,6 +7,30 @@ import { createProfile, SKILL_IDS, type Locale, type MasteryProfile } from '@kal
  * fase 2 pasa a Supabase (UE) y las respuestas se validan en el servidor;
  * localStorage quedará solo como copia para jugar sin conexión.
  */
+export interface Settings {
+  /** Con false no se mide el tiempo ni hay bonus de rapidez (los puntos no bajan). */
+  timed: boolean;
+  textSize: 'normal' | 'large';
+  /** Lectura en voz alta. De momento solo se guarda; la voz llega en otra tarea. */
+  autoVoice: boolean;
+}
+
+export const DEFAULT_SETTINGS: Settings = { timed: true, textSize: 'normal', autoVoice: false };
+
+/** Completa con valores por defecto e ignora lo que no sea válido. */
+export function parseSettings(raw: unknown): Settings {
+  const r = typeof raw === 'object' && raw !== null ? (raw as Record<string, unknown>) : {};
+  return {
+    timed: typeof r.timed === 'boolean' ? r.timed : DEFAULT_SETTINGS.timed,
+    textSize: r.textSize === 'large' || r.textSize === 'normal' ? r.textSize : DEFAULT_SETTINGS.textSize,
+    autoVoice: typeof r.autoVoice === 'boolean' ? r.autoVoice : DEFAULT_SETTINGS.autoVoice,
+  };
+}
+
+export function applyTextSize(settings: Settings): void {
+  document.documentElement.dataset.text = settings.textSize;
+}
+
 export interface PlayerProgress {
   version: 1;
   locale: Locale;
@@ -14,12 +38,13 @@ export interface PlayerProgress {
   profile: MasteryProfile;
   /** Habilidades por las que ya se ha dado la gema de dominio. */
   gems: string[];
+  settings: Settings;
 }
 
 const STORAGE_KEY = 'kalku:progress';
 
 export function defaultProgress(): PlayerProgress {
-  return { version: 1, locale: 'es', coins: 0, profile: createProfile(), gems: [] };
+  return { version: 1, locale: 'es', coins: 0, profile: createProfile(), gems: [], settings: { ...DEFAULT_SETTINGS } };
 }
 
 export function loadProgress(): PlayerProgress {
@@ -33,7 +58,8 @@ export function loadProgress(): PlayerProgress {
     for (const id of SKILL_IDS) profile[id] ??= createProfile()[id];
     // Datos guardados a mano o corruptos: solo se aceptan textos.
     const gems = Array.isArray(parsed.gems) ? parsed.gems.filter((g): g is string => typeof g === 'string') : [];
-    return { ...defaultProgress(), ...parsed, profile, gems };
+    const locale: Locale = parsed.locale === 'ca' ? 'ca' : 'es';
+    return { ...defaultProgress(), ...parsed, locale, profile, gems, settings: parseSettings(parsed.settings) };
   } catch {
     return defaultProgress();
   }

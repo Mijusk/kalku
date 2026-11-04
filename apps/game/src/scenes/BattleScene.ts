@@ -18,9 +18,10 @@ import {
   type Slot,
 } from '@kalku/exercises';
 import { tr } from '../i18n';
-import { loadProgress, saveProgress, type PlayerProgress } from '../progress';
+import { applyTextSize, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { ExercisePanel } from '../ui/ExercisePanel';
 import { Hud } from '../ui/Hud';
+import { SettingsPanel } from '../ui/SettingsPanel';
 
 export const GAME_WIDTH = 480;
 export const GAME_HEIGHT = 270;
@@ -75,6 +76,7 @@ export class BattleScene extends Phaser.Scene {
   create(): void {
     this.progress = loadProgress();
     this.rng = createRng(randomSeed());
+    applyTextSize(this.progress.settings);
 
     this.drawBackground();
     this.player = this.createFighter('hero', 120, 190, 4, BATTLE.playerHp);
@@ -90,7 +92,7 @@ export class BattleScene extends Phaser.Scene {
       onSubmit: (answer) => this.submit(answer),
       onHint: () => this.showNextHint(),
       onNext: () => this.startBattle(),
-      onToggleLanguage: () => this.toggleLanguage(),
+      onOpenSettings: () => this.openSettings(),
     });
     this.panel.setLocale(this.progress.locale);
     this.startBattle();
@@ -201,7 +203,8 @@ export class BattleScene extends Phaser.Scene {
       difficulty: turn.exercise.difficulty,
       streak: this.streak,
       helped,
-      elapsedMs: performance.now() - turn.startedAt,
+      // Sin tiempo no se mide: no hay bonus de rapidez, pero los puntos no bajan.
+      elapsedMs: this.progress.settings.timed ? performance.now() - turn.startedAt : undefined,
     });
     this.streak = correct ? this.streak + 1 : 0;
     this.progress.coins += score.total;
@@ -248,12 +251,19 @@ export class BattleScene extends Phaser.Scene {
     );
   }
 
-  private toggleLanguage(): void {
-    this.progress.locale = this.progress.locale === 'es' ? 'ca' : 'es';
-    saveProgress(this.progress);
-    this.panel.setLocale(this.progress.locale);
-    this.refreshHud();
-    this.panel.showActions();
+  private openSettings(): void {
+    const ui = document.getElementById('ui');
+    if (!ui) return;
+    new SettingsPanel(ui, this.progress, {
+      onChange: () => {
+        // Cada cambio se aplica y se guarda al instante.
+        applyTextSize(this.progress.settings);
+        saveProgress(this.progress);
+        this.panel.setLocale(this.progress.locale);
+        this.refreshHud();
+      },
+      onClose: () => this.panel.showActions(),
+    });
   }
 
   private refreshHud(): void {
