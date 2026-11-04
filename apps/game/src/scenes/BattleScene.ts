@@ -251,9 +251,12 @@ export class BattleScene extends Phaser.Scene {
     );
   }
 
+  private settingsOpen = false;
+
   private openSettings(): void {
     const ui = document.getElementById('ui');
-    if (!ui) return;
+    if (!ui || this.settingsOpen) return;
+    this.settingsOpen = true;
     new SettingsPanel(ui, this.progress, {
       onChange: () => {
         // Cada cambio se aplica y se guarda al instante.
@@ -262,7 +265,10 @@ export class BattleScene extends Phaser.Scene {
         this.panel.setLocale(this.progress.locale);
         this.refreshHud();
       },
-      onClose: () => this.panel.showActions(),
+      onClose: () => {
+        this.settingsOpen = false;
+        this.panel.showActions();
+      },
     });
   }
 

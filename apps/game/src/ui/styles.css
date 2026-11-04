@@ -249,11 +249,19 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 12px;
   padding: 16px;
   overflow-y: auto;
   background: var(--panel);
+}
+
+/* Centrado que no oculta el inicio cuando el contenido desborda. */
+.settings > :first-child {
+  margin-top: auto;
+}
+
+.settings > :last-child {
+  margin-bottom: auto;
 }
 
 .settings-item {

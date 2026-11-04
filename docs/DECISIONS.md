@@ -107,4 +107,4 @@ Nombre provisional anterior: Mundo Cifra. «Kalku» viene de cálculo / càlcul;
 
 ## 2026-11-04 · Ajustes del jugador: tiempo, tamaño de texto y voz
 
-Los ajustes (`settings`) viven en el progreso: tiempo sí/no, texto normal/grande y voz automática. Sin tiempo, `BattleScene` no mide y llama a `scoreAnswer` sin `elapsedMs`: sin bonus de rapidez y con los mismos puntos que responder despacio (principio 3). No se sube `version` del progreso: al cargar se completan los valores que falten. El ajuste de voz solo se guarda; la lectura en voz alta irá en otra tarea.
+Los ajustes (`settings`) viven en el progreso: tiempo sí/no, texto normal/grande y voz automática. Sin tiempo, `BattleScene` no mide y llama a `scoreAnswer` sin `elapsedMs`: sin bonus de rapidez y con los mismos puntos que responder despacio (principio 3). No se sube `version` del progreso: al cargar se completan los valores que falten o que no sean válidos. El idioma no está en `settings`: sigue en `locale`, aunque se cambia desde la misma pantalla. El ajuste de voz solo se guarda; la lectura en voz alta irá en otra tarea.

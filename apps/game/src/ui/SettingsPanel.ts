@@ -17,6 +17,7 @@ export class SettingsPanel {
     this.root.setAttribute('role', 'dialog');
     container.append(this.root);
     this.render();
+    this.root.querySelector('button')?.focus();
   }
 
   private render(): void {
@@ -24,9 +25,13 @@ export class SettingsPanel {
     const locale = progress.locale;
     const s = progress.settings;
     const change = (apply: () => void) => () => {
+      // Al repintar se sustituyen los botones: devolvemos el foco al equivalente.
+      const buttons = Array.from(this.root.querySelectorAll('button'));
+      const focused = buttons.indexOf(document.activeElement as HTMLButtonElement);
       apply();
       this.callbacks.onChange();
       this.render();
+      if (focused >= 0) this.root.querySelectorAll('button')[focused]?.focus();
     };
 
     const close = document.createElement('button');
@@ -68,14 +73,19 @@ function title(text: string): HTMLElement {
   return h;
 }
 
+let itemCount = 0;
+
 function item(label: string, buttons: HTMLElement[]): HTMLElement {
   const node = document.createElement('div');
   node.className = 'settings-item';
   const l = document.createElement('span');
   l.className = 'settings-label';
+  l.id = `settings-label-${itemCount++}`;
   l.textContent = label;
   const row = document.createElement('div');
   row.className = 'row';
+  row.setAttribute('role', 'group');
+  row.setAttribute('aria-labelledby', l.id);
   row.append(...buttons);
   node.append(l, row);
   return node;
