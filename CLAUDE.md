@@ -66,6 +66,7 @@ Si te piden algo fuera de estos comandos y es más que un arreglo pequeño, prop
 - **Contenido como datos, no como código suelto.** Habilidades en `skills.ts`; más adelante, criaturas, objetos y regiones en ficheros de datos. Añadir una criatura no debería tocar lógica.
 - **Nada de editor visual.** Mapas generados por código con semilla, lugares especiales escritos como texto, sprites provisionales como texto (`apps/game/src/art/pixelArt.ts`). No añadir Tiled ni editores de niveles.
 - **Interfaz de ejercicios en HTML, el mundo en Phaser.** Los números del ejercicio van en HTML con letra grande; el pixel art, en el canvas.
+- **Letra clara siempre.** El mundo es pixel art, pero números, nombres, vida, mensajes y botones van en letra redonda y legible, nunca en fuente pixel (ver `docs/DECISIONS.md`).
 - **Accesible para niños de 6 años:** botones de al menos 48 px, teclado numérico en pantalla, textos cortos.
 - Commits en castellano, en imperativo y cortos: «Añade generador de restas llevando».
 
