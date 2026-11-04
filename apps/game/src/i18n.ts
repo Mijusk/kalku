@@ -23,6 +23,16 @@ const STRINGS = {
   gem: { es: '¡Gema de dominio!', ca: 'Gemma de domini!' },
   challenge: { es: 'Reto', ca: 'Repte' },
   review: { es: 'Repaso', ca: 'Repàs' },
+  settings: { es: 'Ajustes', ca: 'Ajustos' },
+  back: { es: 'Volver', ca: 'Tornar' },
+  languageLabel: { es: 'Idioma', ca: 'Idioma' },
+  timer: { es: 'Tiempo', ca: 'Temps' },
+  textSize: { es: 'Tamaño del texto', ca: 'Mida del text' },
+  autoVoice: { es: 'Voz automática', ca: 'Veu automàtica' },
+  on: { es: 'Sí', ca: 'Sí' },
+  off: { es: 'No', ca: 'No' },
+  normal: { es: 'Normal', ca: 'Normal' },
+  large: { es: 'Grande', ca: 'Gran' },
   language: { es: 'Català', ca: 'Castellano' },
 } as const satisfies Record<string, Record<Locale, string>>;
 

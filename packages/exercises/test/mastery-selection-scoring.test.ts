@@ -100,6 +100,14 @@ describe('puntos', () => {
     expect(fast).toBeGreaterThan(slow);
   });
 
+  it('sin tiempo no hay bonus de rapidez y los puntos igualan a responder despacio', () => {
+    const input = { correct: true, difficulty: 4, streak: 2, helped: false } as const;
+    const noTimer = scoreAnswer(input);
+    const slow = scoreAnswer({ ...input, elapsedMs: 120_000 });
+    expect(noTimer.speedBonus).toBe(0);
+    expect(noTimer).toEqual(slow);
+  });
+
   it('la racha suma con tope y la ayuda reduce los puntos', () => {
     const base = scoreAnswer({ correct: true, difficulty: 2, streak: 0, helped: false }).total;
     const streak = scoreAnswer({ correct: true, difficulty: 2, streak: 3, helped: false }).total;

@@ -11,7 +11,7 @@ export interface PanelCallbacks {
   onSubmit(answer: string): void;
   onHint(): void;
   onNext(): void;
-  onToggleLanguage(): void;
+  onOpenSettings(): void;
 }
 
 export class ExercisePanel {
@@ -39,7 +39,7 @@ export class ExercisePanel {
         button(tr('strongAttack', this.locale), 'btn btn-danger', () => this.callbacks.onAction('strong')),
       ),
       tag ? el('p', 'panel-feedback', tag) : el('span'),
-      button(tr('language', this.locale), 'btn btn-small', () => this.callbacks.onToggleLanguage()),
+      button(tr('settings', this.locale), 'btn btn-small', () => this.callbacks.onOpenSettings()),
     );
   }
 
