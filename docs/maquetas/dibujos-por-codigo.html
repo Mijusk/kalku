@@ -16,7 +16,7 @@
   --fg: #1d2a22;
   --muted: #55665a;
   --line: #d6e2cf;
-  --accent: #2f8a57;
+  --accent: #24714a;
   --accent-ink: #ffffff;
   --stage: #dfeccf;
   --font-display: "Baloo 2", "Nunito", system-ui, sans-serif;
@@ -643,9 +643,15 @@ ol.rules b { font-weight: 800; }
   }
   let tick = 0;
   renderMap(0); renderCards(0);
-  if (!reduce) {
-    setInterval(() => { tick++; renderMap(tick); renderCards(tick); }, 170);
+  // Se para si el sistema pide menos movimiento (también si cambia con la página abierta).
+  let timer = null;
+  function setMotion(still) {
+    if (still && timer) { clearInterval(timer); timer = null; }
+    if (!still && !timer) timer = setInterval(() => { tick++; renderMap(tick); renderCards(tick); }, 170);
   }
+  setMotion(reduce);
+  const mq = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (mq && mq.addEventListener) mq.addEventListener('change', (e) => setMotion(e.matches));
 
   // escalas de color
   const rampsEl = document.getElementById('ramps');

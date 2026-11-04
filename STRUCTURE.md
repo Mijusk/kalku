@@ -27,7 +27,7 @@ kalku/
 │   ├── DECISIONS.md          Registro de decisiones (qué y por qué), la más reciente arriba
 │   ├── ROADMAP.md            Fases y tareas hasta septiembre de 2027
 │   └── maquetas/
-│       └── dibujos-por-codigo.html  Maqueta del generador de dibujos (reglas, mapa y criaturas por piezas)
+│       └── dibujos-por-codigo.html  Maqueta del generador de dibujos (mapa por reglas y semilla, criaturas por piezas)
 │
 ├── packages/
 │   ├── exercises/            @kalku/exercises: lógica de aprendizaje, TypeScript puro
