@@ -38,13 +38,54 @@ export const PALETTE: Palette = {
   G: 0x4a8f3e, // hierba oscura
   f: 0xf7e26b, // flor
   p: 0xd77bba, // flor rosa
-  l: 0x9ad46a, // verde claro (Sumus Brote)
-  t: 0x3f9a4a, // verde trébol
-  d: 0x8a5a33, // madera (Sumus Roble)
-  c: 0x7cc6e8, // celeste (Restus Gota)
-  a: 0xb7c0c7, // gris niebla (Restus Bruma)
-  n: 0x5b4a7a, // morado oscuro (Restus Sombra)
+  a: 0x3b8fd6, // agua
+  l: 0x8fd0f2, // brillo del agua
+  e: 0xe3c98a, // arena de la orilla
+  d: 0xc49a5a, // tierra del camino
+  D: 0xa67c43, // tierra oscura
+  n: 0x2e6b34, // copa del árbol
+  N: 0x1f4f27, // sombra del árbol
+  t: 0x6b4a2b, // tronco
+  R: 0xb8432f, // tejado rojo
+  W: 0xe9dcc0, // pared
+  v: 0x7a3ea0, // marca del jefe
+  // Criaturas de Pradera Uno (números para no chocar con las letras del mapa)
+  '1': 0x9ad46a, // verde claro (Sumus Brote)
+  '2': 0x3f9a4a, // verde trébol (Sumus Trébol)
+  '3': 0x8a5a33, // madera (Sumus Roble)
+  '4': 0x7cc6e8, // celeste (Restus Gota)
+  '5': 0xb7c0c7, // gris niebla (Restus Bruma)
+  '6': 0x5b4a7a, // morado oscuro (Restus Sombra)
 };
+
+/**
+ * Dibuja varios sprites seguidos en una sola textura (una tira), cada píxel
+ * de `scale` × `scale`. Sirve de tileset para un tilemap de Phaser: el
+ * fotograma i es el sprite i de `frames`.
+ */
+export function createPixelSheet(
+  scene: Phaser.Scene,
+  key: string,
+  frames: readonly (readonly string[])[],
+  palette: Palette,
+  scale: number,
+): void {
+  const size = Math.max(...frames.map((rows) => rows.length));
+  const texture = scene.textures.createCanvas(key, frames.length * size * scale, size * scale);
+  if (texture === null) throw new Error(`No se pudo crear la textura ${key}`);
+  const ctx = texture.getContext();
+  frames.forEach((rows, frame) => {
+    rows.forEach((row, y) => {
+      [...row].forEach((ch, x) => {
+        const color = palette[ch];
+        if (color === undefined) return;
+        ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+        ctx.fillRect((frame * size + x) * scale, y * scale, scale, scale);
+      });
+    });
+  });
+  texture.refresh();
+}
 
 export const HERO = [
   '....kkkkkk....',
@@ -101,12 +142,12 @@ function recolor(rows: readonly string[], from: string, to: string): string[] {
  * El tipo obliga a que toda criatura tenga su sprite.
  */
 export const CREATURE_SPRITES: Record<CreatureId, readonly string[]> = {
-  'sumus-brote': recolor(CREATURE_ADD, 'y', 'l'),
-  'sumus-trebol': recolor(CREATURE_ADD, 'y', 't'),
-  'sumus-roble': recolor(CREATURE_ADD, 'y', 'd'),
-  'restus-gota': recolor(CREATURE_SUB, 'b', 'c'),
-  'restus-bruma': recolor(CREATURE_SUB, 'b', 'a'),
-  'restus-sombra': recolor(CREATURE_SUB, 'b', 'n'),
+  'sumus-brote': recolor(CREATURE_ADD, 'y', '1'),
+  'sumus-trebol': recolor(CREATURE_ADD, 'y', '2'),
+  'sumus-roble': recolor(CREATURE_ADD, 'y', '3'),
+  'restus-gota': recolor(CREATURE_SUB, 'b', '4'),
+  'restus-bruma': recolor(CREATURE_SUB, 'b', '5'),
+  'restus-sombra': recolor(CREATURE_SUB, 'b', '6'),
 };
 
 export const GRASS = [
@@ -129,4 +170,94 @@ export const FLOWERS = [
   'gggpgpgg',
   'ggpppggg',
   'gggpgggg',
+];
+
+export const WATER = [
+  'aaaaaaaa',
+  'aalaaaaa',
+  'aaaaaala',
+  'aaaaaaaa',
+  'alaaaaaa',
+  'aaaaalaa',
+  'aaaaaaaa',
+  'aaalaaaa',
+];
+
+export const PATH = [
+  'dddddddd',
+  'ddDddddd',
+  'dddddDdd',
+  'dddddddd',
+  'dDdddddd',
+  'ddddddDd',
+  'dddDdddd',
+  'dddddddd',
+];
+
+/**
+ * Variante de una casilla con orilla (autotiling provisional). `mask` es la
+ * máscara de lados de `@kalku/world` (N=1, E=2, S=4, W=8): en cada lado que
+ * NO está unido se pinta una franja de `edge`. Así, de un solo dibujo salen
+ * las 16 variantes. Con el pack de gráficos esto se sustituye por sus PNG.
+ */
+export function edgedTile(mask: number, fill: readonly string[], edge: string): string[] {
+  const open = { n: (mask & 1) === 0, e: (mask & 2) === 0, s: (mask & 4) === 0, w: (mask & 8) === 0 };
+  const last = fill.length - 1;
+  return fill.map((row, y) =>
+    [...row]
+      .map((ch, x) => {
+        const onEdge = (open.n && y === 0) || (open.s && y === last) || (open.w && x === 0) || (open.e && x === row.length - 1);
+        return onEdge ? edge : ch;
+      })
+      .join(''),
+  );
+}
+
+export const TALL_GRASS = [
+  'gGggGggg',
+  'gGgGGgGg',
+  'GgGgGGgG',
+  'gggggggg',
+  'ggGggGgg',
+  'gGGgGGgG',
+  'GgGGgGgG',
+  'gggggggg',
+];
+
+export const TREE = [
+  'ggnnnngg',
+  'gnnnnnng',
+  'nnnNnnnn',
+  'nnnnnNnn',
+  'gnNnnnng',
+  'ggnnnngg',
+  'gggttggg',
+  'ggGttGgg',
+];
+
+/** Casa (provisional): cada casilla es un trozo de tejado sobre pared. */
+export const HOUSE = [
+  'RRRRRRRR',
+  'RkRRRRkR',
+  'RRRRRRRR',
+  'WWWWWWWW',
+  'WkkWWkkW',
+  'WkkWWkkW',
+  'WWWWWWWW',
+  'WWWWWWWW',
+];
+
+/** Tienda (provisional): como la casa, con tejado azul. */
+export const SHOP = HOUSE.map((row) => row.replace(/R/g, 'b'));
+
+/** Casilla del jefe (provisional): una marca en el suelo. */
+export const BOSS = [
+  'gggggggg',
+  'gvggggvg',
+  'ggvggvgg',
+  'gggvvggg',
+  'gggvvggg',
+  'ggvggvgg',
+  'gvggggvg',
+  'gggggggg',
 ];

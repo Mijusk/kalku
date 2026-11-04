@@ -49,7 +49,9 @@ kalku/
 │   │   │   ├── terrain.ts      generateTerrain: reparte casillas por proporción y agrupa agua y árboles
 │   │   │   ├── pieces.ts       Lugares hechos a mano como texto (leyenda, pueblo y arena provisionales)
 │   │   │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
-│   │   │   └── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
+│   │   │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
+│   │   │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla por pack
+│   │   │   └── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
 │   │   └── test/             Tests con vitest
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
@@ -67,9 +69,11 @@ kalku/
             ├── i18n.ts         Textos de interfaz es/ca
             ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage)
             ├── art/
-            │   └── pixelArt.ts Sprites provisionales dibujados como texto
+            │   ├── pixelArt.ts Sprites provisionales dibujados como texto (también las 16 orillas de agua y camino)
+            │   └── tiles.ts    Tileset del mapa: orden de las casillas y fotograma de cada una (con autotile)
             ├── scenes/         Escenas de Phaser
-            │   ├── BootScene.ts    Crea o carga texturas
+            │   ├── BootScene.ts    Crea o carga texturas (también el tileset) y elige escena: mapa, o combate con ?combate
+            │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap, personaje, teclado y toque, cámara
             │   └── BattleScene.ts  Combate por turnos de prueba
             └── ui/             Interfaz HTML encima del canvas
                 ├── ExercisePanel.ts  Ejercicio, teclado numérico, pistas
@@ -91,7 +95,6 @@ kalku/
 
 | Qué | Dónde | Fase |
 | --- | --- | --- |
-| Dibujo del mapa y bordes bonitos | escena `WorldScene` (usa `@kalku/world`) | 1 |
 | Tienda de 5 objetos y datos de objetos | `apps/game/src/data/` | 1 |
 | Servidor: cuentas, validación, sincronización | `supabase/` (migraciones y funciones) | 2 |
 | Panel docente y de familias | `apps/panel/` | 2 |

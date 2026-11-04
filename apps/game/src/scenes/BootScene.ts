@@ -1,6 +1,17 @@
 import { CREATURES } from '@kalku/content';
 import Phaser from 'phaser';
-import { CREATURE_ADD, CREATURE_SPRITES, CREATURE_SUB, createPixelTexture, FLOWERS, GRASS, HERO, PALETTE } from '../art/pixelArt';
+import {
+  CREATURE_ADD,
+  CREATURE_SPRITES,
+  CREATURE_SUB,
+  createPixelSheet,
+  createPixelTexture,
+  FLOWERS,
+  GRASS,
+  HERO,
+  PALETTE,
+} from '../art/pixelArt';
+import { TILE_SIZE, TILESET_KEY, tileFrames } from '../art/tiles';
 
 /** Carga (o genera) todas las texturas antes de empezar. */
 export class BootScene extends Phaser.Scene {
@@ -17,6 +28,11 @@ export class BootScene extends Phaser.Scene {
     }
     createPixelTexture(this, 'tile-grass', GRASS, PALETTE);
     createPixelTexture(this, 'tile-flowers', FLOWERS, PALETTE);
-    this.scene.start('battle');
+    // Tileset del mapa: todas las casillas (con las 16 orillas de agua y de camino) en una tira.
+    createPixelSheet(this, TILESET_KEY, tileFrames(), PALETTE, TILE_SIZE / 8);
+
+    // El juego empieza en el mapa. Para desarrollo, el combate de prueba sigue en ?combate.
+    const battle = new URLSearchParams(window.location.search).has('combate');
+    this.scene.start(battle ? 'battle' : 'world');
   }
 }
