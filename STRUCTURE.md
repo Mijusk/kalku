@@ -13,8 +13,10 @@ kalku/
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
+│   ├── workflows/claude.yml    Claude desde las issues: etiquetas plan/dev, /revisar tras CodeRabbit, @claude
 │   ├── ISSUE_TEMPLATE/tarea.md Plantilla de issue de tarea
 │   └── pull_request_template.md Plantilla de PR (Closes #, cómo probar, criterios)
+├── .claude/modo-github.md    Cómo pregunta y avisa Claude cuando lo lanza GitHub
 ├── .claude/skills/
 │   ├── planificar/SKILL.md   Comando /planificar: crea y ordena issues, sin código
 │   ├── desarrollar/SKILL.md  Comando /desarrollar: implementa una issue y abre un PR
@@ -39,17 +41,22 @@ kalku/
 │   │   │   ├── selection.ts    Qué habilidad toca: 60 % actual, 25 % repaso, 15 % reto
 │   │   │   └── scoring.ts      Puntos (Cifras): dificultad, racha, rapidez sin penalizar
 │   │   └── test/             Tests con vitest
-│   └── world/                @kalku/world: mundo generado por código con semilla, TypeScript puro
+│   ├── world/                @kalku/world: mundo generado por código con semilla, TypeScript puro
+│   │   ├── src/
+│   │   │   ├── index.ts        Exporta todo el paquete
+│   │   │   ├── types.ts        Tipos: TileKind, WorldMap, TerrainSpec, RegionSpec, PieceSpec
+│   │   │   ├── noise.ts        Ruido de valor con semilla (hecho a mano, sin dependencias)
+│   │   │   ├── terrain.ts      generateTerrain: reparte casillas por proporción y agrupa agua y árboles
+│   │   │   ├── pieces.ts       Lugares hechos a mano como texto (leyenda, pueblo y arena provisionales)
+│   │   │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
+│   │   │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
+│   │   │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla por pack
+│   │   │   └── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
+│   │   └── test/             Tests con vitest
+│   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
-│       │   ├── types.ts        Tipos: TileKind, WorldMap, TerrainSpec, RegionSpec, PieceSpec
-│       │   ├── noise.ts        Ruido de valor con semilla (hecho a mano, sin dependencias)
-│       │   ├── terrain.ts      generateTerrain: reparte casillas por proporción y agrupa agua y árboles
-│       │   ├── pieces.ts       Lugares hechos a mano como texto (leyenda, pueblo y arena provisionales)
-│       │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
-│       │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
-│       │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla por pack
-│       │   └── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
+│       │   └── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno; validateCreatures
 │       └── test/             Tests con vitest
 │
 └── apps/
@@ -88,6 +95,5 @@ kalku/
 | Qué | Dónde | Fase |
 | --- | --- | --- |
 | Tienda de 5 objetos y datos de objetos | `apps/game/src/data/` | 1 |
-| Criaturas como datos | `packages/content/` o `apps/game/src/data/` | 2 |
 | Servidor: cuentas, validación, sincronización | `supabase/` (migraciones y funciones) | 2 |
 | Panel docente y de familias | `apps/panel/` | 2 |

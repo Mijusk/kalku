@@ -1,0 +1,328 @@
+# Claude trabaja desde las issues y los PR, sin que Luis abra Claude Code.
+#
+#   Etiqueta `plan` en una issue  -> Claude comenta un plan (sin código).
+#   Etiqueta `dev` en una issue   -> Claude sigue /desarrollar y abre el PR.
+#   Luis contesta en una issue con `necesita a Luis` -> Claude retoma.
+#   CodeRabbit revisa un PR de una rama tarea/*      -> Claude sigue /revisar.
+#   `@claude` en un comentario de Luis               -> Claude responde a eso.
+#
+# Solo Luis puede lanzarlo (y CodeRabbit, para /revisar). Las reglas de cómo
+# preguntar y avisar están en .claude/modo-github.md.
+
+name: Claude
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  pull_request_review_comment:
+    types: [created]
+
+# Una ejecución a la vez por issue o PR; la siguiente espera, no cancela.
+concurrency:
+  group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  actions: read
+  id-token: write
+
+env:
+  # Herramientas y límites comunes. --max-turns corta cualquier bucle.
+  CLAUDE_TOOLS: --allowedTools "Bash,Read,Edit,Write,Glob,Grep" --permission-mode acceptEdits
+
+jobs:
+  plan:
+    if: >-
+      github.event_name == 'issues' &&
+      github.event.label.name == 'plan' &&
+      github.event.sender.login == 'Mijusk'
+    # El plan solo lee y comenta: sin escritura en el código y con Bash
+    # limitado a gh issue, por si un comentario ajeno intenta colarle órdenes.
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Guardar solo los comentarios de Luis y de Claude
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$NUMERO/comments" \
+            --jq '.[] | select(.user.login == "Mijusk" or .user.login == "claude[bot]") | "### \(.user.login) · \(.created_at)\n\n\(.body)\n"' \
+            > "$RUNNER_TEMP/comentarios.md"
+      - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 20
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: --allowedTools "Read,Glob,Grep,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh issue list:*)" --max-turns 30
+          prompt: |
+            Repositorio: ${{ github.repository }}. Issue: #${{ github.event.issue.number }}.
+
+            Lee `CLAUDE.md` y `.claude/modo-github.md` y síguelos.
+
+            Tarea: preparar el plan de implementación de la issue #${{ github.event.issue.number }}. NO escribas código, no crees ramas ni PR.
+            1. Lee la issue (`gh issue view ${{ github.event.issue.number }}`, sin `--comments`), sus comentarios de Luis y tuyos en `${{ runner.temp }}/comentarios.md`, `STRUCTURE.md`, `docs/DECISIONS.md` y el código justo que haría falta tocar.
+            2. Si la issue es `tamaño L`, está `bloqueada` o depende de issues abiertas, dilo en un comentario y propón cómo dividirla o qué falta. Termina.
+            3. Si no, comenta en la issue un plan corto en castellano:
+               - Qué ficheros vas a crear o cambiar y por qué.
+               - Qué tests añadirás (reglas concretas).
+               - Cómo comprobará Luis cada criterio de aceptación.
+               - Dudas: solo decisiones de producto que la issue no resuelve, cada una con tu recomendación.
+               - Última línea: «Si te vale, cambia la etiqueta `plan` por `dev`.»
+            4. Si hay dudas, pon `necesita a Luis` (ver `.claude/modo-github.md`).
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
+
+  dev:
+    if: >-
+      github.event_name == 'issues' &&
+      github.event.label.name == 'dev' &&
+      github.event.sender.login == 'Mijusk'
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Guardar solo los comentarios de Luis y de Claude
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$NUMERO/comments" \
+            --jq '.[] | select(.user.login == "Mijusk" or .user.login == "claude[bot]") | "### \(.user.login) · \(.created_at)\n\n\(.body)\n"' \
+            > "$RUNNER_TEMP/comentarios.md"
+      - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 60
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: ${{ env.CLAUDE_TOOLS }} --max-turns 120
+          prompt: |
+            Repositorio: ${{ github.repository }}. Issue: #${{ github.event.issue.number }}.
+
+            Lee `CLAUDE.md` y `.claude/modo-github.md` y síguelos.
+
+            Tarea: implementar la issue #${{ github.event.issue.number }} siguiendo `.claude/skills/desarrollar/SKILL.md` paso a paso, con «${{ github.event.issue.number }}» como issue pedida.
+            - Quita la etiqueta `plan` si la tiene.
+            - Los comentarios de Luis y tuyos están en `${{ runner.temp }}/comentarios.md` (no uses `--comments`). Si hay un plan tuyo y respuestas de Luis, síguelos: lo que diga Luis manda.
+            - «Dile a Luis» y «Al terminar» significan un comentario en la issue con el enlace al PR, cómo probarlo y lo que no pudiste comprobar.
+            - No hace falta que esperes a CodeRabbit: cuando revise el PR, el workflow lanzará /revisar solo.
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
+
+  retomar:
+    # Luis contesta en una issue en desarrollo en la que Claude estaba esperando.
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request == null &&
+      github.event.comment.user.login == 'Mijusk' &&
+      !contains(github.event.comment.body, '@claude') &&
+      contains(github.event.issue.labels.*.name, 'necesita a Luis') &&
+      contains(github.event.issue.labels.*.name, 'dev')
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Guardar solo los comentarios de Luis y de Claude
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$NUMERO/comments" \
+            --jq '.[] | select(.user.login == "Mijusk" or .user.login == "claude[bot]") | "### \(.user.login) · \(.created_at)\n\n\(.body)\n"' \
+            > "$RUNNER_TEMP/comentarios.md"
+      - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 60
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: ${{ env.CLAUDE_TOOLS }} --max-turns 120
+          prompt: |
+            Repositorio: ${{ github.repository }}. Issue: #${{ github.event.issue.number }}.
+
+            Lee `CLAUDE.md` y `.claude/modo-github.md` y síguelos.
+
+            Luis acaba de contestar en la issue #${{ github.event.issue.number }}, que estaba esperando una decisión suya. Lee la issue (`gh issue view ${{ github.event.issue.number }}`, sin `--comments`) y sus comentarios de Luis y tuyos en `${{ runner.temp }}/comentarios.md`, y quita `necesita a Luis`.
+            Sigue implementándola con `.claude/skills/desarrollar/SKILL.md`. Si ya existe la rama `tarea/${{ github.event.issue.number }}-…` o su PR, continúa sobre ella en vez de empezar de cero.
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
+
+  retomar-plan:
+    # Igual, pero en una issue que solo está en plan: mismos límites que `plan`.
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request == null &&
+      github.event.comment.user.login == 'Mijusk' &&
+      !contains(github.event.comment.body, '@claude') &&
+      contains(github.event.issue.labels.*.name, 'necesita a Luis') &&
+      contains(github.event.issue.labels.*.name, 'plan') &&
+      !contains(github.event.issue.labels.*.name, 'dev')
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Guardar solo los comentarios de Luis y de Claude
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$NUMERO/comments" \
+            --jq '.[] | select(.user.login == "Mijusk" or .user.login == "claude[bot]") | "### \(.user.login) · \(.created_at)\n\n\(.body)\n"' \
+            > "$RUNNER_TEMP/comentarios.md"
+      - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 20
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: --allowedTools "Read,Glob,Grep,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh issue list:*)" --max-turns 30
+          prompt: |
+            Repositorio: ${{ github.repository }}. Issue: #${{ github.event.issue.number }}.
+
+            Lee `CLAUDE.md` y `.claude/modo-github.md` y síguelos.
+
+            Luis acaba de contestar en la issue #${{ github.event.issue.number }}, que estaba esperando una decisión suya para el plan. Lee la issue (`gh issue view ${{ github.event.issue.number }}`, sin `--comments`) y sus comentarios de Luis y tuyos en `${{ runner.temp }}/comentarios.md`, y quita `necesita a Luis`.
+            Actualiza el plan con su respuesta en un comentario nuevo y corto. No escribas código. Termina recordando que, si le vale, cambie `plan` por `dev`.
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
+
+  revisar:
+    # CodeRabbit ha revisado un PR de una tarea. Sus respuestas sueltas en un
+    # hilo también cuentan como «review», pero sin cuerpo: esas se ignoran
+    # para no entrar en una conversación infinita entre bots.
+    if: >-
+      github.event_name == 'pull_request_review' &&
+      github.event.review.user.login == 'coderabbitai[bot]' &&
+      github.event.review.body != '' &&
+      startsWith(github.event.pull_request.head.ref, 'tarea/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 45
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          allowed_bots: coderabbitai
+          claude_args: ${{ env.CLAUDE_TOOLS }} --max-turns 80
+          prompt: |
+            Repositorio: ${{ github.repository }}. PR: #${{ github.event.pull_request.number }} (rama `${{ github.event.pull_request.head.ref }}`, ya en el directorio actual).
+
+            Lee `CLAUDE.md` y `.claude/modo-github.md` y síguelos.
+
+            Tarea: atender la revisión siguiendo `.claude/skills/revisar/SKILL.md` con «${{ github.event.pull_request.number }}» como PR pedido. La rama ya está preparada: no hagas `gh pr checkout`.
+            - Límite de rondas: cuenta los commits del PR que atienden revisiones. Si ya hay dos, no arregles más: resume en un comentario lo que queda, pon `necesita a Luis` al PR y termina.
+            - Si la revisión no tiene nada que atender, no hagas commits ni comentes por comentar.
+            - «Dile a Luis» significa un comentario en el PR.
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
+
+  mencion:
+    # Luis escribe @claude en una issue o un PR para pedir algo puntual.
+    if: >-
+      (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
+      github.event.comment.user.login == 'Mijusk' &&
+      contains(github.event.comment.body, '@claude')
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 45
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          include_comments_by_actor: "Mijusk,claude[bot],coderabbitai[bot]"
+          claude_args: ${{ env.CLAUDE_TOOLS }} --max-turns 60 --append-system-prompt "Sigue CLAUDE.md y .claude/modo-github.md. Responde en castellano."
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"

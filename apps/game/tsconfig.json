@@ -9,5 +9,9 @@
     "types": ["vite/client", "vite-plugin-pwa/client"]
   },
   "include": ["src", "vite.config.ts"],
-  "references": [{ "path": "../../packages/exercises" }, { "path": "../../packages/world" }]
+  "references": [
+    { "path": "../../packages/exercises" },
+    { "path": "../../packages/world" },
+    { "path": "../../packages/content" }
+  ]
 }
