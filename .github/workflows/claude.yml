@@ -43,15 +43,23 @@ jobs:
       github.event_name == 'issues' &&
       github.event.label.name == 'plan' &&
       github.event.sender.login == 'Mijusk'
+    # El plan solo lee y comenta: sin escritura en el código y con Bash
+    # limitado a gh issue, por si un comentario ajeno intenta colarle órdenes.
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          claude_args: ${{ env.CLAUDE_TOOLS }} --max-turns 30
+          claude_args: --allowedTools "Read,Glob,Grep,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh issue list:*)" --max-turns 30
           prompt: |
             Repositorio: ${{ github.repository }}. Issue: #${{ github.event.issue.number }}.
 
@@ -67,6 +75,15 @@ jobs:
                - Dudas: solo decisiones de producto que la issue no resuelve, cada una con tu recomendación.
                - Última línea: «Si te vale, cambia la etiqueta `plan` por `dev`.»
             4. Si hay dudas, pon `necesita a Luis` (ver `.claude/modo-github.md`).
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
 
   dev:
     if: >-
@@ -99,6 +116,15 @@ jobs:
             - Si en los comentarios de la issue hay un plan tuyo y respuestas de Luis, síguelos: lo que diga Luis manda.
             - «Dile a Luis» y «Al terminar» significan un comentario en la issue con el enlace al PR, cómo probarlo y lo que no pudiste comprobar.
             - No hace falta que esperes a CodeRabbit: cuando revise el PR, el workflow lanzará /revisar solo.
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
 
   retomar:
     # Luis contesta en una issue en la que Claude estaba esperando.
@@ -133,6 +159,15 @@ jobs:
             Luis acaba de contestar en la issue #${{ github.event.issue.number }}, que estaba esperando una decisión suya. Lee el hilo entero (`gh issue view ${{ github.event.issue.number }} --comments`) y quita `necesita a Luis`.
             - Si la issue tiene la etiqueta `dev`: sigue implementándola con `.claude/skills/desarrollar/SKILL.md`. Si ya existe la rama `tarea/${{ github.event.issue.number }}-…` o su PR, continúa sobre ella en vez de empezar de cero.
             - Si solo tiene `plan`: actualiza el plan con su respuesta en un comentario nuevo y corto. No escribas código. Termina recordando que, si le vale, cambie `plan` por `dev`.
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
 
   revisar:
     # CodeRabbit ha revisado un PR de una tarea. Sus respuestas sueltas en un
@@ -170,6 +205,15 @@ jobs:
             - Límite de rondas: cuenta los commits del PR que atienden revisiones. Si ya hay dos, no arregles más: resume en un comentario lo que queda, pon `necesita a Luis` al PR y termina.
             - Si la revisión no tiene nada que atender, no hagas commits ni comentes por comentar.
             - «Dile a Luis» significa un comentario en el PR.
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
 
   mencion:
     # Luis escribe @claude en una issue o un PR para pedir algo puntual.
@@ -193,3 +237,12 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_args: ${{ env.CLAUDE_TOOLS }} --max-turns 60 --append-system-prompt "Sigue CLAUDE.md y .claude/modo-github.md. Responde en castellano."
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
