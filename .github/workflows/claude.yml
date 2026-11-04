@@ -55,6 +55,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Guardar solo los comentarios de Luis y de Claude
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$NUMERO/comments" \
+            --jq '.[] | select(.user.login == "Mijusk" or .user.login == "claude[bot]") | "### \(.user.login) · \(.created_at)\n\n\(.body)\n"' \
+            > "$RUNNER_TEMP/comentarios.md"
       - uses: anthropics/claude-code-action@v1
         timeout-minutes: 20
         with:
@@ -67,7 +75,7 @@ jobs:
             Lee `CLAUDE.md` y `.claude/modo-github.md` y síguelos.
 
             Tarea: preparar el plan de implementación de la issue #${{ github.event.issue.number }}. NO escribas código, no crees ramas ni PR.
-            1. Lee la issue entera con sus comentarios (`gh issue view ${{ github.event.issue.number }} --comments`), `STRUCTURE.md`, `docs/DECISIONS.md` y el código justo que haría falta tocar.
+            1. Lee la issue (`gh issue view ${{ github.event.issue.number }}`, sin `--comments`), sus comentarios de Luis y tuyos en `${{ runner.temp }}/comentarios.md`, `STRUCTURE.md`, `docs/DECISIONS.md` y el código justo que haría falta tocar.
             2. Si la issue es `tamaño L`, está `bloqueada` o depende de issues abiertas, dilo en un comentario y propón cómo dividirla o qué falta. Termina.
             3. Si no, comenta en la issue un plan corto en castellano:
                - Qué ficheros vas a crear o cambiar y por qué.
@@ -102,6 +110,14 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Guardar solo los comentarios de Luis y de Claude
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$NUMERO/comments" \
+            --jq '.[] | select(.user.login == "Mijusk" or .user.login == "claude[bot]") | "### \(.user.login) · \(.created_at)\n\n\(.body)\n"' \
+            > "$RUNNER_TEMP/comentarios.md"
       - uses: anthropics/claude-code-action@v1
         timeout-minutes: 60
         with:
@@ -115,7 +131,7 @@ jobs:
 
             Tarea: implementar la issue #${{ github.event.issue.number }} siguiendo `.claude/skills/desarrollar/SKILL.md` paso a paso, con «${{ github.event.issue.number }}» como issue pedida.
             - Quita la etiqueta `plan` si la tiene.
-            - Si en los comentarios de la issue hay un plan tuyo y respuestas de Luis, síguelos: lo que diga Luis manda.
+            - Los comentarios de Luis y tuyos están en `${{ runner.temp }}/comentarios.md` (no uses `--comments`). Si hay un plan tuyo y respuestas de Luis, síguelos: lo que diga Luis manda.
             - «Dile a Luis» y «Al terminar» significan un comentario en la issue con el enlace al PR, cómo probarlo y lo que no pudiste comprobar.
             - No hace falta que esperes a CodeRabbit: cuando revise el PR, el workflow lanzará /revisar solo.
       - name: Avisar si algo ha fallado
@@ -148,6 +164,14 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Guardar solo los comentarios de Luis y de Claude
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$NUMERO/comments" \
+            --jq '.[] | select(.user.login == "Mijusk" or .user.login == "claude[bot]") | "### \(.user.login) · \(.created_at)\n\n\(.body)\n"' \
+            > "$RUNNER_TEMP/comentarios.md"
       - uses: anthropics/claude-code-action@v1
         timeout-minutes: 60
         with:
@@ -159,7 +183,7 @@ jobs:
 
             Lee `CLAUDE.md` y `.claude/modo-github.md` y síguelos.
 
-            Luis acaba de contestar en la issue #${{ github.event.issue.number }}, que estaba esperando una decisión suya. Lee el hilo entero (`gh issue view ${{ github.event.issue.number }} --comments`) y quita `necesita a Luis`.
+            Luis acaba de contestar en la issue #${{ github.event.issue.number }}, que estaba esperando una decisión suya. Lee la issue (`gh issue view ${{ github.event.issue.number }}`, sin `--comments`) y sus comentarios de Luis y tuyos en `${{ runner.temp }}/comentarios.md`, y quita `necesita a Luis`.
             Sigue implementándola con `.claude/skills/desarrollar/SKILL.md`. Si ya existe la rama `tarea/${{ github.event.issue.number }}-…` o su PR, continúa sobre ella en vez de empezar de cero.
       - name: Avisar si algo ha fallado
         if: failure()
@@ -191,6 +215,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Guardar solo los comentarios de Luis y de Claude
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$NUMERO/comments" \
+            --jq '.[] | select(.user.login == "Mijusk" or .user.login == "claude[bot]") | "### \(.user.login) · \(.created_at)\n\n\(.body)\n"' \
+            > "$RUNNER_TEMP/comentarios.md"
       - uses: anthropics/claude-code-action@v1
         timeout-minutes: 20
         with:
@@ -202,7 +234,7 @@ jobs:
 
             Lee `CLAUDE.md` y `.claude/modo-github.md` y síguelos.
 
-            Luis acaba de contestar en la issue #${{ github.event.issue.number }}, que estaba esperando una decisión suya para el plan. Lee el hilo entero (`gh issue view ${{ github.event.issue.number }} --comments`) y quita `necesita a Luis`.
+            Luis acaba de contestar en la issue #${{ github.event.issue.number }}, que estaba esperando una decisión suya para el plan. Lee la issue (`gh issue view ${{ github.event.issue.number }}`, sin `--comments`) y sus comentarios de Luis y tuyos en `${{ runner.temp }}/comentarios.md`, y quita `necesita a Luis`.
             Actualiza el plan con su respuesta en un comentario nuevo y corto. No escribas código. Termina recordando que, si le vale, cambie `plan` por `dev`.
       - name: Avisar si algo ha fallado
         if: failure()
@@ -283,6 +315,7 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          include_comments_by_actor: "Mijusk,claude[bot]"
           claude_args: ${{ env.CLAUDE_TOOLS }} --max-turns 60 --append-system-prompt "Sigue CLAUDE.md y .claude/modo-github.md. Responde en castellano."
       - name: Avisar si algo ha fallado
         if: failure()
