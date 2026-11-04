@@ -13,8 +13,10 @@ kalku/
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
+│   ├── workflows/claude.yml    Claude desde las issues: etiquetas plan/dev, /revisar tras CodeRabbit, @claude
 │   ├── ISSUE_TEMPLATE/tarea.md Plantilla de issue de tarea
 │   └── pull_request_template.md Plantilla de PR (Closes #, cómo probar, criterios)
+├── .claude/modo-github.md    Cómo pregunta y avisa Claude cuando lo lanza GitHub
 ├── .claude/skills/
 │   ├── planificar/SKILL.md   Comando /planificar: crea y ordena issues, sin código
 │   ├── desarrollar/SKILL.md  Comando /desarrollar: implementa una issue y abre un PR
