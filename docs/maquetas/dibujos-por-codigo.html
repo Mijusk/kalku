@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Maqueta del generador de dibujos (4 nov 2026), referencia para la #10: reglas de estilo, mapa por semilla y criaturas por piezas. Se abre tal cual en el navegador. La casa NO vale: hay que rehacerla. -->
+<title>Dibujos de Kalku</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: una columna estrecha, como una libreta de bocetos; el mapa y las criaturas mandan. */
+:root {
+  --bg: #f1f6ec;
+  --surface: #ffffff;
+  --fg: #1d2a22;
+  --muted: #55665a;
+  --line: #d6e2cf;
+  --accent: #2f8a57;
+  --accent-ink: #ffffff;
+  --stage: #dfeccf;
+  --font-display: "Baloo 2", "Nunito", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111914; --surface: #18231c; --fg: #e7f0e9; --muted: #9fb2a5;
+    --line: #2a3a30; --accent: #73d197; --accent-ink: #0d1a12; --stage: #1f2e24;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111914; --surface: #18231c; --fg: #e7f0e9; --muted: #9fb2a5;
+  --line: #2a3a30; --accent: #73d197; --accent-ink: #0d1a12; --stage: #1f2e24;
+  color-scheme: dark;
+}
+html, body { background: var(--bg); color: var(--fg); }
+body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 40px; }
+h1, h2 { font-family: var(--font-display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.9rem, 6vw, 2.6rem); }
+h2 { font-size: 1.5rem; }
+p { margin: 0; max-width: 62ch; }
+.eyebrow { font-weight: 800; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+header { display: grid; gap: 10px; }
+.lead { color: var(--muted); font-size: 1.08rem; }
+section { display: grid; gap: 14px; }
+.stage {
+  background: var(--stage);
+  border-radius: 14px;
+  padding: 10px;
+  max-width: 100%;
+}
+.stage canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; border-radius: 6px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+button {
+  font: 800 1rem var(--font-body);
+  min-height: 48px; padding: 0 20px;
+  border-radius: 999px; border: 0;
+  background: var(--accent); color: var(--accent-ink);
+  cursor: pointer;
+}
+button:focus-visible { outline: 3px solid var(--fg); outline-offset: 3px; }
+.seed { color: var(--muted); font-variant-numeric: tabular-nums; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 12px; display: grid; gap: 6px; justify-items: center; text-align: center; min-width: 0;
+}
+.card canvas { width: 100%; max-width: 160px; height: auto; image-rendering: pixelated; background: var(--stage); border-radius: 10px; }
+.name { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; line-height: 1.1; }
+.chip { font-size: 0.78rem; font-weight: 800; padding: 2px 10px; border-radius: 999px; background: var(--stage); color: var(--fg); }
+.parts { font-size: 0.85rem; color: var(--muted); line-height: 1.35; }
+.mini { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.mini .card { padding: 8px; gap: 4px; }
+.mini .parts { font-size: 0.72rem; }
+@media (max-width: 560px) {
+  .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .mini { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .card { padding: 8px; }
+  .name { font-size: 1rem; }
+  .parts { font-size: 0.75rem; }
+}
+ol.rules { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; max-width: 62ch; }
+ol.rules b { font-weight: 800; }
+.ramps { display: grid; gap: 6px; }
+.ramp { display: flex; align-items: center; gap: 10px; }
+.ramp span.label { width: 86px; font-size: 0.85rem; color: var(--muted); flex: none; }
+.swatches { display: flex; }
+.swatches i { width: 26px; height: 26px; display: block; }
+.swatches i:first-child { border-radius: 6px 0 0 6px; }
+.swatches i:last-child { border-radius: 0 6px 6px 0; }
+.ask { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 8px; }
+</style>
+</head>
+<body>
+
+<main>
+  <header>
+    <span class="eyebrow">Prueba para la #10 · dibujos</span>
+    <h1>Pradera Uno, dibujada solo con reglas</h1>
+    <p class="lead">Aquí no hay ni un dibujo hecho a mano. Unas pocas reglas de estilo y una semilla generan el mapa y las criaturas, con su animación.</p>
+  </header>
+
+  <section aria-labelledby="mapa-t">
+    <h2 id="mapa-t">El mapa</h2>
+    <div class="stage"><canvas id="map" aria-label="Mapa de Pradera Uno generado por código"></canvas></div>
+    <div class="row">
+      <button id="otro-mapa" type="button">Otro mapa</button>
+      <span class="seed" id="seed-label">Semilla 42</span>
+    </div>
+    <p>Cada semilla da una pradera distinta: estanque con orilla, camino hasta la casa, árboles, hierba alta, flores y piedras. Con la misma semilla, todos los niños ven el mismo mapa.</p>
+  </section>
+
+  <section aria-labelledby="cri-t">
+    <h2 id="cri-t">Tres criaturas de Pradera Uno</h2>
+    <div class="cards" id="named"></div>
+    <p>Cada criatura se monta con piezas: un cuerpo, algo en la cabeza, unos ojos, sus colores y el símbolo de su familia en la tripa. La respiración y el parpadeo también salen del código.</p>
+  </section>
+
+  <section aria-labelledby="mas-t">
+    <h2 id="mas-t">Criaturas nuevas mezclando piezas</h2>
+    <div class="cards mini" id="random"></div>
+    <div class="row"><button id="mezclar" type="button">Mezclar piezas</button></div>
+    <p>Con 4 cuerpos, 7 cosas en la cabeza, 3 tipos de ojos y 7 colores salen más de 500 combinaciones. Cada pieza nueva las multiplica.</p>
+  </section>
+
+  <section aria-labelledby="reglas-t">
+    <h2 id="reglas-t">Las reglas de estilo</h2>
+    <ol class="rules">
+      <li><b>Pocos colores.</b> Cada material tiene su escala de 4 o 5 tonos, siempre los mismos.</li>
+      <li><b>Luz desde arriba a la izquierda.</b> Todo se ilumina igual, así parece hecho por la misma persona.</li>
+      <li><b>Contorno oscuro.</b> Las criaturas y los objetos llevan borde, para que se lean bien en un móvil.</li>
+      <li><b>Tamaños fijos.</b> Casillas de 16 píxeles; criaturas de 32, que ocupan dos casillas de alto.</li>
+      <li><b>Sin letras en los dibujos.</b> Los números y textos van aparte, en letra redonda y clara.</li>
+    </ol>
+    <div class="ramps" id="ramps"></div>
+  </section>
+
+  <section class="ask" aria-labelledby="ask-t">
+    <h2 id="ask-t">Lo que necesito de ti</h2>
+    <p>Dime si este estilo te vale como punto de partida. Si te vale, la #10 deja de ser «comprar un pack» y pasa a ser «generador de dibujos», y lo iremos puliendo a medida que crezca el juego.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+  // ---------- utilidades ----------
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const newGrid = (w, h) => ({ w, h, c: new Array(w * h).fill(null) });
+  const set = (g, x, y, col) => { x = Math.floor(x); y = Math.floor(y); if (x >= 0 && y >= 0 && x < g.w && y < g.h) g.c[y * g.w + x] = col; };
+  const rgbCache = {};
+  function rgb(hex) {
+    if (!rgbCache[hex]) rgbCache[hex] = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+    return rgbCache[hex];
+  }
+  function gridCanvas(g) {
+    const c = document.createElement('canvas');
+    c.width = g.w; c.height = g.h;
+    const ctx = c.getContext('2d');
+    const img = ctx.createImageData(g.w, g.h);
+    for (let i = 0; i < g.c.length; i++) {
+      const col = g.c[i];
+      if (!col) continue;
+      const [r, gg, b] = rgb(col);
+      img.data[i * 4] = r; img.data[i * 4 + 1] = gg; img.data[i * 4 + 2] = b; img.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    return c;
+  }
+  // Pinta una forma con su contorno: lo de dentro con colorAt, el borde con outline.
+  function shape(g, ox, oy, w, h, inside, colorAt, outline) {
+    const m = new Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) m[y * w + x] = inside(x + 0.5, y + 0.5);
+    const In = (x, y) => x >= 0 && y >= 0 && x < w && y < h && m[y * w + x];
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      if (!In(x, y)) continue;
+      const edge = !In(x - 1, y) || !In(x + 1, y) || !In(x, y - 1) || !In(x, y + 1);
+      set(g, ox + x, oy + y, edge && outline ? outline : colorAt(x + 0.5, y + 0.5, x, y));
+    }
+  }
+  // Luz fija desde arriba a la izquierda: devuelve el índice de tono 0 (luz) a 3 (sombra).
+  function light(u, v, px, py) {
+    const nz = Math.sqrt(Math.max(0, 1 - u * u - v * v));
+    let d = -0.45 * u - 0.55 * v + 0.7 * nz;
+    d += ((px + py) % 2 ? 0.02 : -0.02);
+    return d > 0.82 ? 0 : d > 0.42 ? 1 : d > 0.08 ? 2 : 3;
+  }
+
+  // ---------- paleta (regla 1) ----------
+  const OUT = '#1c2430';
+  const P = {
+    hierba: ['#a6e264', '#72c24c', '#4f9d3e', '#357343'],
+    agua: ['#c6efff', '#7cc8f2', '#3f93d8', '#2c64a8'],
+    arena: ['#f6e6b0', '#e4c98a'],
+    tierra: ['#e2bd86', '#c99d5e', '#a87d45', '#7d5a32'],
+    hoja: ['#8fd96d', '#52b350', '#2f8340', '#1f5a2f'],
+    corteza: ['#a8763f', '#7c5530', '#563a20'],
+    piedra: ['#e1e4e8', '#b2b8c0', '#848c96', '#5b636d'],
+    tejado: ['#f58b6c', '#de5a4c', '#ad3c36', '#742a28'],
+    pared: ['#fbf0d6', '#ecdab2', '#cdb98e'],
+  };
+  const FOAM = '#eefbff';
+  const RAMPS = {
+    verde: ['#d6f69c', '#9fdc5e', '#66b244', '#428635', '#1f4a22'],
+    azul: ['#daf4ff', '#92d4f7', '#53a8e4', '#3274b9', '#1a3d6b'],
+    gris: ['#f6f8fb', '#d4d9e1', '#a6afbc', '#788291', '#3b4250'],
+    rosa: ['#ffe2ee', '#ffb0cb', '#f07ea6', '#c4517e', '#6b2442'],
+    naranja: ['#ffe9bc', '#ffc062', '#f29233', '#c26722', '#5e2e10'],
+    morado: ['#ecdcff', '#c6a4f3', '#9a74d8', '#6c4caa', '#33215a'],
+    amarillo: ['#fff8c6', '#ffe470', '#f3c435', '#c99b20', '#5c4410'],
+  };
+
+  // ---------- mapa ----------
+  const W = 16, H = 10, T = 16;
+  function makeNoise(r, cell) {
+    const gw = Math.ceil(W / cell) + 2, gh = Math.ceil(H / cell) + 2;
+    const v = Array.from({ length: gw * gh }, () => r());
+    const s = (t) => t * t * (3 - 2 * t);
+    const lerp = (a, b, t) => a + (b - a) * t;
+    return (x, y) => {
+      const fx = x / cell, fy = y / cell, x0 = Math.floor(fx), y0 = Math.floor(fy);
+      const tx = s(fx - x0), ty = s(fy - y0);
+      const a = v[y0 * gw + x0], b = v[y0 * gw + x0 + 1], c = v[(y0 + 1) * gw + x0], d = v[(y0 + 1) * gw + x0 + 1];
+      return lerp(lerp(a, b, tx), lerp(c, d, tx), ty);
+    };
+  }
+
+  function genLayout(seed) {
+    const r = mulberry32(seed * 7919 + 1);
+    const k = Array.from({ length: H }, () => Array(W).fill('g'));
+    const inMap = (x, y) => x >= 0 && y >= 0 && x < W && y < H;
+    const nPond = makeNoise(r, 2), nTree = makeNoise(r, 3), nTall = makeNoise(r, 3);
+
+    // Casa (2×2) arriba a la izquierda.
+    const hx = 2 + Math.floor(r() * 2), hy = 1;
+    for (let y = hy; y < hy + 2; y++) for (let x = hx; x < hx + 2; x++) k[y][x] = 'h';
+
+    // Estanque a la derecha, con borde irregular.
+    const pcx = 10 + r() * 3, pcy = 3 + r() * 4, prx = 2.6 + r() * 1.1, pry = 1.9 + r() * 0.8;
+    for (let y = 0; y < H; y++) for (let x = 6; x < W; x++) {
+      const dx = (x + 0.5 - pcx) / prx, dy = (y + 0.5 - pcy) / pry;
+      if (dx * dx + dy * dy + (nPond(x, y) - 0.5) * 0.7 < 1) k[y][x] = 'w';
+    }
+
+    // Camino: de la puerta baja, cruza el mapa y para en la orilla.
+    const dx0 = hx + 1, py = 6 + Math.floor(r() * 2);
+    for (let y = hy + 2; y <= py; y++) if (k[y][dx0] === 'g') k[y][dx0] = 'p';
+    for (let x = dx0; x >= 0; x--) if (k[py][x] === 'g') k[py][x] = 'p';
+    for (let x = dx0; x < W; x++) { if (k[py][x] === 'w') break; k[py][x] = 'p'; }
+    const bx = dx0 + 3 + Math.floor(r() * 3);
+    for (let y = py; y < H; y++) { if (k[y][bx] === 'w') break; k[y][bx] = 'p'; }
+
+    const nearBusy = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => inMap(x + a, y + b) && (k[y + b][x + a] === 'p' || k[y + b][x + a] === 'h'));
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (k[y][x] !== 'g') continue;
+      const edge = y === 0 || y === H - 1 || x === 0 || x === W - 1;
+      if (!nearBusy(x, y) && (nTree(x, y) > 0.6 || (edge && r() < 0.4))) k[y][x] = 't';
+    }
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (k[y][x] !== 'g') continue;
+      if (nTall(x, y) > 0.56) k[y][x] = 'tall';
+      else { const v = r(); if (v < 0.09) k[y][x] = 'flor'; else if (v < 0.12) k[y][x] = 'roca'; }
+    }
+
+    // Sitios para las criaturas: en hierba alta si se puede.
+    const spots = [];
+    const cand = [];
+    for (let y = 1; y < H; y++) for (let x = 1; x < W - 1; x++) if (k[y][x] === 'tall' || k[y][x] === 'g' || k[y][x] === 'flor') cand.push({ x, y, pref: k[y][x] === 'tall' ? 0 : 1, r: r() });
+    cand.sort((a, b) => a.pref - b.pref || a.r - b.r);
+    for (const c of cand) {
+      if (spots.length === 3) break;
+      if (k[c.y - 1][c.x] === 't' || k[c.y - 1][c.x] === 'h') continue;
+      if (spots.some((s) => Math.abs(s.x - c.x) < 2 && Math.abs(s.y - c.y) < 3)) continue;
+      spots.push(c);
+    }
+    return { k, hx, hy, spots };
+  }
+
+  function drawMap(layout, seed, frame) {
+    const { k, hx, hy } = layout;
+    const g = newGrid(W * T, H * T);
+    const kind = (x, y) => (x < 0 || y < 0 || x >= W || y >= H ? null : k[y][x]);
+    const G = P.hierba;
+
+    function grass(ox, oy, rr) {
+      for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) {
+        const v = rr();
+        set(g, ox + x, oy + y, v < 0.07 ? G[0] : v < 0.2 ? G[2] : G[1]);
+      }
+      for (let i = 0; i < 2; i++) {
+        const tx = 2 + Math.floor(rr() * 12), ty = 3 + Math.floor(rr() * 11);
+        set(g, ox + tx, oy + ty, G[3]); set(g, ox + tx - 1, oy + ty - 1, G[2]); set(g, ox + tx + 1, oy + ty - 1, G[2]); set(g, ox + tx, oy + ty - 1, G[0]);
+      }
+    }
+    // Distancia de un píxel al borde con casillas de otro tipo (lados y esquinas).
+    function edgeDist(x, y, px, py, same) {
+      const n = !same(x, y - 1), s = !same(x, y + 1), w = !same(x - 1, y), e = !same(x + 1, y);
+      let d = 99;
+      if (n) d = Math.min(d, py); if (s) d = Math.min(d, 15 - py); if (w) d = Math.min(d, px); if (e) d = Math.min(d, 15 - px);
+      if (!same(x - 1, y - 1)) d = Math.min(d, Math.max(px, py));
+      if (!same(x + 1, y - 1)) d = Math.min(d, Math.max(15 - px, py));
+      if (!same(x - 1, y + 1)) d = Math.min(d, Math.max(px, 15 - py));
+      if (!same(x + 1, y + 1)) d = Math.min(d, Math.max(15 - px, 15 - py));
+      // Esquinas exteriores redondeadas.
+      const R = 5;
+      const round = (cx, cy) => R - Math.hypot(cx, cy);
+      if (n && w && px < R && py < R) d = Math.min(d, round(R - px, R - py));
+      if (n && e && px > 15 - R && py < R) d = Math.min(d, round(px - (15 - R), R - py));
+      if (s && w && px < R && py > 15 - R) d = Math.min(d, round(R - px, py - (15 - R)));
+      if (s && e && px > 15 - R && py > 15 - R) d = Math.min(d, round(px - (15 - R), py - (15 - R)));
+      return d;
+    }
+    function water(x, y, ox, oy, rr) {
+      const same = (a, b) => { const t = kind(a, b); return t === null || t === 'w'; };
+      const hsh = (x * 5 + y * 3) % 7;
+      for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) {
+        const d = edgeDist(x, y, px, py, same);
+        let col;
+        if (d < 1) col = P.arena[1];
+        else if (d < 2) col = P.arena[0];
+        else if (d < 3) col = (px + py + frame) % 3 === 0 ? P.agua[1] : FOAM;
+        else if (d < 4) col = P.agua[1];
+        else {
+          col = P.agua[2];
+          const wx = ox + px, wy = oy + py;
+          if ((wy + hsh) % 6 === 2 && ((wx + frame * 2 + hsh * 3) % 11) < 3) col = P.agua[1];
+          if ((wy + hsh) % 6 === 3 && ((wx + frame * 2 + hsh * 3) % 11) === 1) col = P.agua[0];
+          if (py > 11 && d > 5 && (wx + wy) % 4 === 0) col = P.agua[3];
+        }
+        set(g, ox + px, oy + py, col);
+      }
+    }
+    function path(x, y, ox, oy, rr) {
+      const same = (a, b) => { const t = kind(a, b); return t === null || t === 'p' || (t === 'h' && b === y - 1 && a === hx + 1); };
+      for (let py = 0; py < T; py++) for (let px = 0; px < T; px++) {
+        const d = edgeDist(x, y, px, py, same);
+        const v = rr();
+        const ew = 1 + (((ox + px) * 7 + (oy + py) * 3) % 5 < 2 ? 1 : 0);
+        let col;
+        if (d < ew) col = v < 0.5 ? G[1] : G[2];
+        else if (d < ew + 1) col = P.tierra[2];
+        else col = v < 0.1 ? P.tierra[0] : v < 0.22 ? P.tierra[2] : P.tierra[1];
+        set(g, ox + px, oy + py, col);
+      }
+      for (let i = 0; i < 2; i++) {
+        const px = 4 + Math.floor(rr() * 8), py = 4 + Math.floor(rr() * 8);
+        set(g, ox + px, oy + py, P.piedra[1]); set(g, ox + px + 1, oy + py, P.piedra[2]); set(g, ox + px, oy + py + 1, P.tierra[3]); set(g, ox + px + 1, oy + py + 1, P.tierra[3]);
+      }
+    }
+    function tree(ox, oy) {
+      // sombra
+      for (let py = 12; py < 16; py++) for (let px = 1; px < 16; px++) {
+        const u = (px + 0.5 - 8.5) / 6.5, v = (py + 0.5 - 14) / 2;
+        if (u * u + v * v <= 1) set(g, ox + px, oy + py, G[3]);
+      }
+      shape(g, ox, oy, 16, 16, (x, y) => x >= 6.5 && x <= 9.5 && y >= 10 && y <= 15,
+        (x) => (x < 8 ? P.corteza[0] : P.corteza[1]), OUT);
+      const blobs = [[8, 5.5, 5.6], [4.8, 8, 3.6], [11.2, 8, 3.6], [8, 9, 4]];
+      shape(g, ox, oy, 16, 16,
+        (x, y) => blobs.some(([cx, cy, r]) => (x - cx) ** 2 + (y - cy) ** 2 <= r * r),
+        (x, y, px, py) => {
+          const i = light((x - 8) / 7.2, (y - 7.4) / 6.4, px, py);
+          return P.hoja[i];
+        }, OUT);
+    }
+    function tall(ox, oy, rr) {
+      for (const base of [8, 15]) {
+        for (let bx = (base === 8 ? 1 : 0); bx < T; bx += 2) {
+          const h = 3 + Math.floor(rr() * 3), lean = rr() < 0.5 ? 0 : 1;
+          for (let i = 0; i < h; i++) {
+            const col = i === 0 ? G[3] : i === h - 1 ? G[0] : G[2];
+            set(g, ox + bx + (i > h / 2 ? lean : 0), oy + base - i, col);
+          }
+        }
+      }
+    }
+    function flowers(ox, oy, rr) {
+      const cols = ['#ff9ed2', '#ffffff', '#ffd84d'];
+      for (let i = 0; i < 3; i++) {
+        const fx = 3 + Math.floor(rr() * 10), fy = 3 + Math.floor(rr() * 10), c = cols[Math.floor(rr() * cols.length)];
+        set(g, ox + fx, oy + fy + 1, G[3]);
+        set(g, ox + fx - 1, oy + fy, c); set(g, ox + fx + 1, oy + fy, c); set(g, ox + fx, oy + fy - 1, c); set(g, ox + fx, oy + fy + 1, c);
+        set(g, ox + fx, oy + fy, c === '#ffd84d' ? '#f08f2e' : '#ffd84d');
+      }
+    }
+    function rock(ox, oy) {
+      shape(g, ox, oy, 16, 16, (x, y) => ((x - 8) / 5.5) ** 2 + ((y - 10) / 4.2) ** 2 <= 1,
+        (x, y, px, py) => P.piedra[light((x - 8) / 5.5, (y - 10) / 4.2, px, py)], OUT);
+    }
+    function house(ox, oy) {
+      // paredes
+      shape(g, ox, oy, 32, 32, (x, y) => x >= 4 && x <= 28 && y >= 15 && y <= 31,
+        (x, y) => (y > 29 ? P.piedra[2] : x > 24 ? P.pared[2] : x < 7 ? P.pared[0] : P.pared[1]), OUT);
+      // tejado
+      shape(g, ox, oy, 32, 32, (x, y) => { if (y < 3 || y > 17) return false; const hw = 7 + (y - 3) * 0.68; return Math.abs(x - 16) <= hw; },
+        (x, y) => { const row = Math.floor(y) % 3 === 0; if (x < 12) return row ? P.tejado[1] : P.tejado[0]; if (x > 22) return row ? P.tejado[3] : P.tejado[2]; return row ? P.tejado[2] : P.tejado[1]; }, OUT);
+      // chimenea
+      shape(g, ox, oy, 32, 32, (x, y) => x >= 21 && x <= 25 && y >= 1 && y <= 8, (x) => (x < 23 ? P.piedra[1] : P.piedra[2]), OUT);
+      // puerta
+      shape(g, ox, oy, 32, 32, (x, y) => x >= 18 && x <= 25 && y >= 21 && y <= 31, (x) => (x < 21 ? P.corteza[0] : P.corteza[1]), OUT);
+      set(g, ox + 23, oy + 26, '#ffd84d');
+      // ventana
+      shape(g, ox, oy, 32, 32, (x, y) => x >= 7 && x <= 14 && y >= 19 && y <= 26,
+        (x, y) => (Math.floor(x) === 10 || Math.floor(y) === 22 ? OUT : (x + y < 26 ? P.agua[0] : P.agua[1])), OUT);
+    }
+
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const rr = mulberry32(seed * 1000 + y * 97 + x * 13 + 7);
+      const ox = x * T, oy = y * T, t = k[y][x];
+      if (t === 'w') water(x, y, ox, oy, rr);
+      else if (t === 'p') path(x, y, ox, oy, rr);
+      else {
+        grass(ox, oy, rr);
+        if (t === 't') tree(ox, oy);
+        else if (t === 'tall') tall(ox, oy, rr);
+        else if (t === 'flor') flowers(ox, oy, rr);
+        else if (t === 'roca') rock(ox, oy);
+      }
+    }
+    house(hx * T, hy * T);
+    return gridCanvas(g);
+  }
+
+  // ---------- criaturas por piezas ----------
+  const BREATH = [1, 0.97, 0.94, 0.97, 1, 1.02, 1.03, 1.02];
+  const NAMES = {
+    body: { round: 'redondo', drop: 'gota', pear: 'pera', bean: 'alubia' },
+    top: { sprout: 'brote', droplet: 'gotita', puff: 'nube', ears: 'orejas', horns: 'cuernos', antenna: 'antena', none: 'nada' },
+    eyes: { big: 'ojos grandes', small: 'ojos pequeños', sleepy: 'ojos dormilones' },
+  };
+  function tri(ax, ay, bx, by, cx, cy) {
+    return (x, y) => {
+      const s = (p1x, p1y, p2x, p2y) => (x - p2x) * (p1y - p2y) - (p1x - p2x) * (y - p2y);
+      const d1 = s(ax, ay, bx, by), d2 = s(bx, by, cx, cy), d3 = s(cx, cy, ax, ay);
+      return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+    };
+  }
+
+  function creatureFrame(spec, f) {
+    const R = RAMPS[spec.ramp];
+    const g = newGrid(32, 32);
+    const sy = BREATH[f];
+    const blink = f === 6;
+    const Hb = (spec.body === 'drop' ? 21 : spec.body === 'bean' ? 17 : 19) * sy;
+    const Wb = (spec.body === 'bean' ? 25 : spec.body === 'drop' ? 20 : 22) / Math.sqrt(sy);
+    const cx = 16, bottom = 29, cy = bottom - Hb / 2, top = Math.round(cy - Hb / 2);
+    const wf = (v) => (spec.body === 'drop' ? (v < 0 ? 0.12 + 0.88 * Math.sqrt(1 + v) : 1) : spec.body === 'pear' ? (v < 0 ? 0.78 + 0.22 * (1 + v) : 1) : 1);
+    const uv = (x, y) => { const u = (x - cx) / (Wb / 2), v = (y - cy) / (Hb / 2); return [u / wf(v), v, u]; };
+    const shaded = (ramp, cxx, cyy, rx, ry) => (x, y, px, py) => ramp[light((x - cxx) / rx, (y - cyy) / ry, px, py)];
+
+    // pies
+    for (const fx of [cx - 5.5, cx + 5.5]) {
+      shape(g, 0, 0, 32, 32, (x, y) => ((x - fx) / 3.4) ** 2 + ((y - 29.5) / 2.2) ** 2 <= 1, () => R[2], R[4]);
+    }
+    // piezas detrás del cuerpo
+    if (spec.top === 'puff') {
+      for (const [px, dy, r] of [[9.5, 3, 4.2], [16, 0.5, 5], [22.5, 3, 4.2]]) {
+        shape(g, 0, 0, 32, 32, (x, y) => (x - px) ** 2 + (y - (top + dy)) ** 2 <= r * r,
+          (x, y, qx, qy) => R[Math.max(0, light((x - px) / r, (y - top - dy) / r, qx, qy) - 1)], R[4]);
+      }
+    }
+    if (spec.top === 'ears') {
+      const l = tri(7, top - 4, 8, top + 7, 14, top + 3), r = tri(25, top - 4, 24, top + 7, 18, top + 3);
+      shape(g, 0, 0, 32, 32, (x, y) => l(x, y) || r(x, y), (x) => (x < 16 ? R[1] : R[2]), R[4]);
+      const li = tri(8.5, top - 0.5, 9.5, top + 5, 12, top + 3), ri = tri(23.5, top - 0.5, 22.5, top + 5, 20, top + 3);
+      shape(g, 0, 0, 32, 32, (x, y) => li(x, y) || ri(x, y), () => '#ff9bb5', null);
+    }
+    if (spec.top === 'horns') {
+      const l = tri(9, top - 4, 9, top + 4, 14, top + 3), r = tri(23, top - 4, 23, top + 4, 18, top + 3);
+      shape(g, 0, 0, 32, 32, (x, y) => l(x, y) || r(x, y), (x, y) => (y < top ? '#fff6dc' : '#ead7a4'), OUT);
+    }
+    // cuerpo
+    shape(g, 0, 0, 32, 32, (x, y) => { const [uu, v] = uv(x, y); return uu * uu + v * v <= 1; },
+      (x, y, px, py) => {
+        const [uu, v, u] = uv(x, y);
+        if ((u * u) / 0.3 + ((v - 0.45) ** 2) / 0.17 <= 1) return v > 0.78 ? R[1] : R[0];
+        if (spec.spots && [[-0.55, -0.15], [0.55, 0.05], [0.15, -0.6]].some(([a, b]) => (uu - a) ** 2 + (v - b) ** 2 < 0.03)) return R[3];
+        return R[light(uu, v, px, py)];
+      }, R[4]);
+    // símbolo de la familia en la tripa
+    const sx = 16, sY = Math.round(cy + Hb * 0.25);
+    for (let i = -2; i <= 2; i++) set(g, sx + i, sY, R[4]);
+    if (spec.sign === '+') for (let i = -2; i <= 2; i++) set(g, sx, sY + i, R[4]);
+    // ojos
+    const ey = Math.round(cy - Hb * 0.12), ex = [11, 20];
+    for (const x0 of ex) {
+      if (blink || spec.eyes === 'sleepy') {
+        for (let i = 0; i < 3; i++) set(g, x0 + i, ey + 1, OUT);
+        if (!blink) { set(g, x0 - 1, ey, OUT); set(g, x0 + 3, ey, OUT); }
+      } else if (spec.eyes === 'big') {
+        for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 3; dx++) set(g, x0 + dx, ey - 1 + dy, OUT);
+        set(g, x0, ey - 1, '#ffffff'); set(g, x0 + 2, ey + 2, '#5d6b80');
+      } else {
+        for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) set(g, x0 + 1 + dx, ey + dy, OUT);
+        set(g, x0 + 1, ey, '#ffffff');
+      }
+      if (spec.cheeks) { set(g, x0 + (x0 < 16 ? -2 : 3), ey + 3, '#ff8fab'); set(g, x0 + (x0 < 16 ? -1 : 4), ey + 3, '#ff8fab'); }
+    }
+    // boca
+    set(g, 15, ey + 4, R[4]); set(g, 16, ey + 5, R[4]); set(g, 17, ey + 4, R[4]);
+    // piezas delante
+    const sway = [0, 0, 1, 1, 0, 0, -1, -1][f];
+    if (spec.top === 'sprout') {
+      for (let i = 0; i < 4; i++) set(g, 16 + (i > 2 ? sway : 0), top - i, '#2f6b2a');
+      const leaf = RAMPS.verde;
+      shape(g, 0, 0, 32, 32, (x, y) => ((x - (12.5 + sway)) / 3.2) ** 2 + ((y - (top - 4.5)) / 1.7) ** 2 <= 1, () => leaf[1], leaf[4]);
+      shape(g, 0, 0, 32, 32, (x, y) => ((x - (19.5 + sway)) / 3.2) ** 2 + ((y - (top - 5.5)) / 1.7) ** 2 <= 1, () => leaf[2], leaf[4]);
+    }
+    if (spec.top === 'antenna') {
+      for (let i = 1; i < 5; i++) set(g, 16 + (i > 3 ? sway : 0), top - i, R[4]);
+      shape(g, 0, 0, 32, 32, (x, y) => (x - (16 + sway)) ** 2 + (y - (top - 6)) ** 2 <= 3.2, () => '#ffe470', OUT);
+    }
+    if (spec.top === 'droplet') {
+      const bob = [0, 0, -1, -1, -1, 0, 0, 0][f], dx = 25, dy = top + 1 + bob;
+      shape(g, 0, 0, 32, 32, (x, y) => { const u = (x - dx) / 2.6, v = (y - dy) / 3.4; const w = v < 0 ? 0.15 + 0.85 * Math.sqrt(Math.max(0, 1 + v)) : 1; return (u / w) ** 2 + v * v <= 1; },
+        (x, y) => (x < dx && y < dy + 1 ? RAMPS.azul[0] : RAMPS.azul[1]), RAMPS.azul[4]);
+    }
+    return gridCanvas(g);
+  }
+  const makeCreature = (spec) => BREATH.map((_, f) => creatureFrame(spec, f));
+
+  function randomSpec(r) {
+    const pick = (a) => a[Math.floor(r() * a.length)];
+    return {
+      ramp: pick(Object.keys(RAMPS)),
+      body: pick(Object.keys(NAMES.body)),
+      top: pick(Object.keys(NAMES.top)),
+      eyes: pick(Object.keys(NAMES.eyes)),
+      cheeks: r() < 0.5,
+      spots: r() < 0.35,
+      sign: r() < 0.5 ? '+' : '-',
+    };
+  }
+  const describe = (s) => `cuerpo ${NAMES.body[s.body]} · ${NAMES.top[s.top]} · ${NAMES.eyes[s.eyes]} · ${s.ramp}`;
+
+  const NAMED = [
+    { name: 'Sumus Brote', spec: { ramp: 'verde', body: 'round', top: 'sprout', eyes: 'big', cheeks: true, spots: false, sign: '+' } },
+    { name: 'Restus Gota', spec: { ramp: 'azul', body: 'drop', top: 'droplet', eyes: 'big', cheeks: false, spots: false, sign: '-' } },
+    { name: 'Restus Bruma', spec: { ramp: 'gris', body: 'bean', top: 'puff', eyes: 'sleepy', cheeks: true, spots: false, sign: '-' } },
+  ];
+  NAMED.forEach((n) => { n.frames = makeCreature(n.spec); });
+
+  // ---------- pintar en pantalla ----------
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const animated = []; // { ctx, frames, scale, ox, oy, phase }
+
+  function cardCanvas(frames, scale) {
+    const c = document.createElement('canvas');
+    c.width = 32 * scale; c.height = 32 * scale;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(frames[0], 0, 0, c.width, c.height);
+    return { c, ctx };
+  }
+  function makeCard(parent, frames, title, chip, parts, scale) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const { c, ctx } = cardCanvas(frames, scale);
+    c.setAttribute('role', 'img');
+    c.setAttribute('aria-label', title || parts);
+    card.appendChild(c);
+    if (title) { const n = document.createElement('div'); n.className = 'name'; n.textContent = title; card.appendChild(n); }
+    const ch = document.createElement('span'); ch.className = 'chip'; ch.textContent = chip; card.appendChild(ch);
+    const p = document.createElement('div'); p.className = 'parts'; p.textContent = parts; card.appendChild(p);
+    parent.appendChild(card);
+    return { ctx, frames, size: c.width, phase: Math.floor(Math.random() * 8) };
+  }
+  const familyChip = (s) => (s.sign === '+' ? 'Sumus · suma' : 'Restus · resta');
+  const shortChip = (s) => (s.sign === '+' ? 'Sumus' : 'Restus');
+
+  const namedEl = document.getElementById('named');
+  const namedCards = NAMED.map((n) => makeCard(namedEl, n.frames, n.name, familyChip(n.spec), describe(n.spec), 6));
+
+  const randomEl = document.getElementById('random');
+  let randomCards = [];
+  let mixSeed = 7;
+  function mix() {
+    randomEl.textContent = '';
+    const r = mulberry32(mixSeed++ * 4241);
+    randomCards = Array.from({ length: 6 }, () => {
+      const s = randomSpec(r);
+      return makeCard(randomEl, makeCreature(s), '', shortChip(s), describe(s), 4);
+    });
+  }
+  mix();
+  document.getElementById('mezclar').addEventListener('click', mix);
+
+  // mapa
+  const mapCanvas = document.getElementById('map');
+  const mctx = mapCanvas.getContext('2d');
+  let seed = 42, layout, mapFrames, scale = 4;
+  function buildMap() {
+    layout = genLayout(seed);
+    mapFrames = [0, 1, 2].map((f) => drawMap(layout, seed, f));
+    document.getElementById('seed-label').textContent = 'Semilla ' + seed;
+    sizeMap();
+  }
+  function sizeMap() {
+    const cssW = mapCanvas.parentElement.clientWidth || 320;
+    const dpr = window.devicePixelRatio || 1;
+    scale = Math.max(2, Math.ceil((cssW * dpr) / (W * T)));
+    mapCanvas.width = W * T * scale; mapCanvas.height = H * T * scale;
+    mctx.imageSmoothingEnabled = false;
+  }
+  function renderMap(t) {
+    mctx.imageSmoothingEnabled = false;
+    mctx.drawImage(mapFrames[Math.floor(t / 3) % 3], 0, 0, mapCanvas.width, mapCanvas.height);
+    const list = layout.spots.map((s, i) => ({ s, n: NAMED[i] })).sort((a, b) => a.s.y - b.s.y);
+    for (const { s, n } of list) {
+      const fr = n.frames[(t + s.x) % 8];
+      mctx.drawImage(fr, (s.x * T - 8) * scale, (s.y * T - 16 + 1) * scale, 32 * scale, 32 * scale);
+    }
+  }
+  buildMap();
+  document.getElementById('otro-mapa').addEventListener('click', () => {
+    seed = 1 + Math.floor(Math.random() * 9999);
+    buildMap();
+    renderMap(tick);
+  });
+  window.addEventListener('resize', () => { sizeMap(); renderMap(tick); });
+
+  function renderCards(t) {
+    for (const c of [...namedCards, ...randomCards]) {
+      c.ctx.imageSmoothingEnabled = false;
+      c.ctx.clearRect(0, 0, c.size, c.size);
+      c.ctx.drawImage(c.frames[(t + c.phase) % 8], 0, 0, c.size, c.size);
+    }
+  }
+  let tick = 0;
+  renderMap(0); renderCards(0);
+  if (!reduce) {
+    setInterval(() => { tick++; renderMap(tick); renderCards(tick); }, 170);
+  }
+
+  // escalas de color
+  const rampsEl = document.getElementById('ramps');
+  const show = { 'Hierba': P.hierba, 'Agua': P.agua, 'Tierra': P.tierra, 'Hojas': P.hoja, 'Tejado': P.tejado, 'Verde': RAMPS.verde, 'Azul': RAMPS.azul, 'Gris': RAMPS.gris };
+  for (const [label, cols] of Object.entries(show)) {
+    const row = document.createElement('div'); row.className = 'ramp';
+    const l = document.createElement('span'); l.className = 'label'; l.textContent = label; row.appendChild(l);
+    const sw = document.createElement('div'); sw.className = 'swatches';
+    cols.forEach((c) => { const i = document.createElement('i'); i.style.background = c; sw.appendChild(i); });
+    row.appendChild(sw); rampsEl.appendChild(row);
+  }
+})();
+</script>
+</body>
+</html>
