@@ -50,12 +50,13 @@ jobs:
       issues: write
       id-token: write
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 20
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -91,7 +92,7 @@ jobs:
       github.event.label.name == 'dev' &&
       github.event.sender.login == 'Mijusk'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 65
     steps:
       - uses: actions/checkout@v4
         with:
@@ -102,6 +103,7 @@ jobs:
           cache: npm
       - run: npm ci
       - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 60
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -127,16 +129,16 @@ jobs:
           gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
 
   retomar:
-    # Luis contesta en una issue en la que Claude estaba esperando.
+    # Luis contesta en una issue en desarrollo en la que Claude estaba esperando.
     if: >-
       github.event_name == 'issue_comment' &&
       github.event.issue.pull_request == null &&
       github.event.comment.user.login == 'Mijusk' &&
       !contains(github.event.comment.body, '@claude') &&
       contains(github.event.issue.labels.*.name, 'necesita a Luis') &&
-      (contains(github.event.issue.labels.*.name, 'plan') || contains(github.event.issue.labels.*.name, 'dev'))
+      contains(github.event.issue.labels.*.name, 'dev')
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 65
     steps:
       - uses: actions/checkout@v4
         with:
@@ -147,6 +149,7 @@ jobs:
           cache: npm
       - run: npm ci
       - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 60
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -157,13 +160,55 @@ jobs:
             Lee `CLAUDE.md` y `.claude/modo-github.md` y síguelos.
 
             Luis acaba de contestar en la issue #${{ github.event.issue.number }}, que estaba esperando una decisión suya. Lee el hilo entero (`gh issue view ${{ github.event.issue.number }} --comments`) y quita `necesita a Luis`.
-            - Si la issue tiene la etiqueta `dev`: sigue implementándola con `.claude/skills/desarrollar/SKILL.md`. Si ya existe la rama `tarea/${{ github.event.issue.number }}-…` o su PR, continúa sobre ella en vez de empezar de cero.
-            - Si solo tiene `plan`: actualiza el plan con su respuesta en un comentario nuevo y corto. No escribas código. Termina recordando que, si le vale, cambie `plan` por `dev`.
+            Sigue implementándola con `.claude/skills/desarrollar/SKILL.md`. Si ya existe la rama `tarea/${{ github.event.issue.number }}-…` o su PR, continúa sobre ella en vez de empezar de cero.
       - name: Avisar si algo ha fallado
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
           NUMERO: ${{ github.event.issue.number || github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
+          gh issue edit "$NUMERO" --repo "$GITHUB_REPOSITORY" --add-label "necesita a Luis"
+
+  retomar-plan:
+    # Igual, pero en una issue que solo está en plan: mismos límites que `plan`.
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request == null &&
+      github.event.comment.user.login == 'Mijusk' &&
+      !contains(github.event.comment.body, '@claude') &&
+      contains(github.event.issue.labels.*.name, 'necesita a Luis') &&
+      contains(github.event.issue.labels.*.name, 'plan') &&
+      !contains(github.event.issue.labels.*.name, 'dev')
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 20
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: --allowedTools "Read,Glob,Grep,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(gh issue list:*)" --max-turns 30
+          prompt: |
+            Repositorio: ${{ github.repository }}. Issue: #${{ github.event.issue.number }}.
+
+            Lee `CLAUDE.md` y `.claude/modo-github.md` y síguelos.
+
+            Luis acaba de contestar en la issue #${{ github.event.issue.number }}, que estaba esperando una decisión suya para el plan. Lee el hilo entero (`gh issue view ${{ github.event.issue.number }} --comments`) y quita `necesita a Luis`.
+            Actualiza el plan con su respuesta en un comentario nuevo y corto. No escribas código. Termina recordando que, si le vale, cambie `plan` por `dev`.
+      - name: Avisar si algo ha fallado
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMERO: ${{ github.event.issue.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           gh issue comment "$NUMERO" --repo "$GITHUB_REPOSITORY" --body "La ejecución de Claude ha fallado antes de terminar: $RUN_URL"
@@ -179,7 +224,7 @@ jobs:
       github.event.review.body != '' &&
       startsWith(github.event.pull_request.head.ref, 'tarea/')
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
         with:
@@ -191,6 +236,7 @@ jobs:
           cache: npm
       - run: npm ci
       - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 45
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -222,7 +268,7 @@ jobs:
       github.event.comment.user.login == 'Mijusk' &&
       contains(github.event.comment.body, '@claude')
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
         with:
@@ -233,6 +279,7 @@ jobs:
           cache: npm
       - run: npm ci
       - uses: anthropics/claude-code-action@v1
+        timeout-minutes: 45
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
