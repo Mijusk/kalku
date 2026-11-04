@@ -2,6 +2,17 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-04 · Claude trabaja desde las issues de GitHub
+
+- Las etiquetas hacen de cola: `plan` (Claude comenta un plan, sin código) y `dev` (implementa con `/desarrollar` y abre el PR). Lo lanza el workflow `.github/workflows/claude.yml` con la Claude Code GitHub Action.
+- Cuando hace falta una decisión, Claude la pregunta en la issue, pone `necesita a Luis` y para. Al contestar Luis en la issue, retoma. Así a Luis solo le llegan notificaciones cuando le toca decidir o revisar.
+- Tras cada revisión de CodeRabbit en una rama `tarea/…`, Claude sigue `/revisar`, con un máximo de dos rondas de arreglos.
+- Solo las acciones de Luis (y las revisiones de CodeRabbit) lanzan el workflow; los comentarios de Claude no, para que no se encadene solo. Cada ejecución tiene tope de turnos y de tiempo.
+
+**Por qué:** Luis tiene unas 3 horas al día y quiere avanzar desde el móvil sin abrir Claude Code ni vigilar cada paso.
+
+**Descartado:** que Claude coja la siguiente issue sola al fusionar un PR (se puede añadir más adelante si el flujo funciona bien).
+
 ## 2026-11-03 · Camino y lugares hechos a mano (`generateRegion`)
 
 - Los lugares (pueblo, arena del jefe) son piezas de texto con una leyenda de una letra por casilla (`PIECE_LEGEND`). Se colocan encima del terreno y quedan exactamente como están escritos: el camino y la limpieza no los tocan.

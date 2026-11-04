@@ -50,6 +50,18 @@ El trabajo se organiza en [issues de GitHub](https://github.com/Mijusk/kalku/iss
 
 Cada PR lo revisa CodeRabbit automáticamente (configuración en `.coderabbit.yaml`). Sus comentarios son sugerencias que hay que comprobar, no órdenes. Luis fusiona.
 
+### Desde GitHub, sin abrir Claude Code
+
+El workflow `.github/workflows/claude.yml` lanza los mismos comandos desde las issues, para que Luis trabaje desde el móvil:
+
+- Etiqueta **`plan`** en una issue: Claude comenta un plan de implementación, sin código.
+- Etiqueta **`dev`**: Claude sigue `/desarrollar` y abre el PR.
+- Si necesita una decisión, la pregunta en la issue y pone **`necesita a Luis`**. Cuando Luis contesta allí, retoma solo.
+- Cuando CodeRabbit revisa un PR de una rama `tarea/…`, Claude sigue `/revisar` (como mucho dos rondas).
+- **`@claude`** en un comentario de Luis, para cualquier encargo puntual.
+
+Las reglas de cómo preguntar y avisar en ese modo están en `.claude/modo-github.md`. Solo Luis puede lanzarlo.
+
 Si te piden algo fuera de estos comandos y es más que un arreglo pequeño, propón crear una issue con `/planificar` en vez de hacerlo directamente.
 
 ## Arquitectura en una frase
