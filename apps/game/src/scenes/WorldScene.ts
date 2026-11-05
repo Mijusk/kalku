@@ -21,6 +21,13 @@ import { ANIMATION_MS, buildingTexture, TILE_SIZE, TILESET_KEYS } from '../art/t
 /** Semilla fija de Pradera Uno: todos los niños ven el mismo mapa. */
 const PRADERA_UNO_SEED = 42;
 
+/**
+ * Tamaño de las criaturas en el mapa: se dibujan a 32 px para el combate y
+ * aquí se ven a 3/4 (24 px): algo más grandes que el personaje, pero sin
+ * perder el contorno, que a la mitad se pierde en la hierba alta.
+ */
+const WILD_SCALE = 0.75;
+
 /** Lo que tarda el personaje en pasar de una casilla a la siguiente (ms). */
 const STEP_MS = 150;
 
@@ -208,7 +215,7 @@ export class WorldScene extends Phaser.Scene {
       const sprite = this.wild.get(w.id);
       if (!sprite) {
         const texture = getCreature(w.data.creature).sprite;
-        this.wild.set(w.id, this.add.image(x, y, texture).setDepth(1).setData('dest', `${x},${y}`));
+        this.wild.set(w.id, this.add.image(x, y, texture).setScale(WILD_SCALE).setDepth(1).setData('dest', `${x},${y}`));
       } else if (sprite.getData('dest') !== `${x},${y}`) {
         // Un tween por cambio de casilla, no uno por frame.
         sprite.setData('dest', `${x},${y}`);
