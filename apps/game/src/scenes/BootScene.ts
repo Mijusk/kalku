@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { createPixelTexture, HERO, PALETTE } from '../art/pixelArt';
 import { createArtTextures } from '../art/textures';
+import { loadProgress } from '../progress';
 
 /** Carga (o genera) todas las texturas antes de empezar. */
 export class BootScene extends Phaser.Scene {
@@ -15,6 +16,8 @@ export class BootScene extends Phaser.Scene {
 
     // El juego empieza en el mapa. Para desarrollo, el combate de prueba sigue en ?combate.
     const battle = new URLSearchParams(window.location.search).has('combate');
-    this.scene.start(battle ? 'battle' : 'world');
+    // La primera vez, una prueba corta de nivel (?combate se la salta).
+    const placement = !battle && !loadProgress().placementDone;
+    this.scene.start(battle ? 'battle' : placement ? 'placement' : 'world');
   }
 }
