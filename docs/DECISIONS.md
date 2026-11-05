@@ -2,6 +2,20 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-04 · Dibujos generados por código, sin pack
+
+Sustituye a la idea de comprar un pack de pixel art (#10). El mundo y las criaturas se dibujan por código con unas reglas de estilo fijas:
+
+- **Pocos colores:** cada material (hierba, agua, tierra, hojas, tejado…) y cada criatura tiene su escala de 4 o 5 tonos.
+- **Luz desde arriba a la izquierda** en todo, y **contorno oscuro** en criaturas y objetos.
+- **Tamaños fijos:** casillas de 16 px y criaturas de 32 px (dos casillas de alto). Sin letras dentro de los dibujos.
+- **Criaturas por piezas:** cuerpo, algo en la cabeza, ojos, colores y el símbolo de su familia (+ o −) en la tripa. Añadir una criatura es una línea de datos. La respiración y el parpadeo también salen del código.
+- **Mundo por reglas con semilla:** orillas, bordes del camino, árboles, hierba alta, flores y piedras con variaciones.
+
+**Por qué:** Luis vio la maqueta (`docs/maquetas/dibujos-por-codigo.html`) y le gustó todo menos la casa, que hay que rehacer. Así se pueden crear muchos mapas y criaturas a medida que crece el juego, con un estilo coherente y criaturas propias.
+
+**Descartado:** comprar un pack (mezclar packs no pega y sus criaturas no serían nuestras) y encargar un ilustrador por ahora.
+
 ## 2026-11-04 · Claude trabaja desde las issues de GitHub
 
 - Las etiquetas hacen de cola: `plan` (Claude comenta un plan, sin código) y `dev` (implementa con `/desarrollar` y abre el PR). Lo lanza el workflow `.github/workflows/claude.yml` con la Claude Code GitHub Action.
@@ -62,6 +76,14 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 - La semilla del mapa se pasa a `generateTerrain`; de ella salen las semillas de cada capa.
 
 **Por qué:** cortar el ruido por un umbral fijo da proporciones distintas en cada semilla; ordenar por ruido las garantiza sin perder la forma de las manchas.
+
+## 2026-11-04 · Estilo visual: pixel art con letra clara
+
+Se mantiene el pixel art para el mundo, pero todo lo que hay que leer va en letra redonda y clara, nunca en fuente pixel: números del ejercicio, nombres, vida, mensajes y botones. La fuente pixel queda solo para detalles decorativos cortos. Escala de píxel grande y criaturas grandes y animadas en el combate.
+
+**Por qué:** Luis temía que el pixel art pareciera antiguo y comparó una maqueta pixel con otra cartoon. Ganó el pixel porque se genera mucho mejor por código y hay muchos packs coherentes; el problema que vio fue la claridad de letras y números, y se resuelve separando la letra del arte. Maqueta: https://claude.ai/artifact/TPKQ9cesx3rHzgZCEgPoWn
+
+**Descartado:** estilo cartoon vectorial (difícil mantener un estilo igual sin ilustrador y peor para mapas generados).
 
 ## 2026-11-03 · Tareas en GitHub Issues y revisión con CodeRabbit
 

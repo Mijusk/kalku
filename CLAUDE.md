@@ -76,8 +76,9 @@ Si te piden algo fuera de estos comandos y es más que un arreglo pequeño, prop
 - **`@kalku/exercises` no depende del navegador ni de Phaser.** Nada de `window`, `document`, `localStorage` ni imports de `phaser` ahí dentro; tiene que poder correr en el servidor.
 - **Funciones puras para la lógica.** `applyAnswer` devuelve un perfil nuevo; no muta el que recibe.
 - **Contenido como datos, no como código suelto.** Habilidades en `skills.ts`; más adelante, criaturas, objetos y regiones en ficheros de datos. Añadir una criatura no debería tocar lógica.
-- **Nada de editor visual.** Mapas generados por código con semilla, lugares especiales escritos como texto, sprites provisionales como texto (`apps/game/src/art/pixelArt.ts`). No añadir Tiled ni editores de niveles.
+- **Nada de editor visual.** Mapas generados por código con semilla, lugares especiales escritos como texto, dibujos generados por código con reglas de estilo fijas (ver `docs/maquetas/dibujos-por-codigo.html`). No añadir Tiled, editores de niveles ni packs de gráficos comprados.
 - **Interfaz de ejercicios en HTML, el mundo en Phaser.** Los números del ejercicio van en HTML con letra grande; el pixel art, en el canvas.
+- **Letra clara siempre.** El mundo es pixel art, pero números, nombres, vida, mensajes y botones van en letra redonda y legible, nunca en fuente pixel (ver `docs/DECISIONS.md`).
 - **Accesible para niños de 6 años:** botones de al menos 48 px, teclado numérico en pantalla, textos cortos.
 - Commits en castellano, en imperativo y cortos: «Añade generador de restas llevando».
 
@@ -92,7 +93,7 @@ Si te piden algo fuera de estos comandos y es más que un arreglo pequeño, prop
 
 - **Una habilidad nueva:** su id en `SkillId` (`types.ts`), su definición en `SKILLS` (`skills.ts`, en orden de currículo), su generador en `GENERATORS` (`generators.ts`), sus pistas en `hints.ts` y tests de sus reglas.
 - **Un texto de interfaz:** en `apps/game/src/i18n.ts`, con `es` y `ca`.
-- **Un sprite provisional:** como texto en `apps/game/src/art/pixelArt.ts` y registrarlo en `BootScene`. Cuando haya pack de pixel art, se carga el PNG con la misma clave.
+- **Un dibujo nuevo:** se genera por código siguiendo las reglas de estilo (paleta por material, luz desde arriba a la izquierda, contorno oscuro, casillas de 16 px y criaturas de 32 px). Una criatura nueva es una combinación de piezas en datos, no un dibujo suelto.
 
 ## Estado actual
 
