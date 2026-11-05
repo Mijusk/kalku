@@ -171,8 +171,11 @@ export class WorldScene extends Phaser.Scene {
       const sprite = this.wild.get(w.id);
       if (!sprite) {
         const texture = getCreature(w.data.creature).sprite;
-        this.wild.set(w.id, this.add.image(x, y, texture).setDepth(1));
-      } else if (sprite.x !== x || sprite.y !== y) {
+        this.wild.set(w.id, this.add.image(x, y, texture).setDepth(1).setData('dest', `${x},${y}`));
+      } else if (sprite.getData('dest') !== `${x},${y}`) {
+        // Un tween por cambio de casilla, no uno por frame.
+        sprite.setData('dest', `${x},${y}`);
+        this.tweens.killTweensOf(sprite);
         this.tweens.add({ targets: sprite, x, y, duration: 300 });
       }
     }
