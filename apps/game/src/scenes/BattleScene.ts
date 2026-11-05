@@ -202,6 +202,7 @@ export class BattleScene extends Phaser.Scene {
     // Combate de prueba (?combate): una criatura cualquiera. Desde el mapa, la del encuentro.
     if (!this.encounter) this.creature = this.rng.pick(CREATURES);
     this.enemy.sprite.setTexture(this.creature?.sprite ?? 'hero', 0).setAlpha(1);
+    this.enemy.maxHp = this.creature?.hp ?? BATTLE.enemyHp;
     this.countEncounter();
     this.enemy.hp = this.enemy.maxHp;
     this.player.hp = this.player.maxHp;
