@@ -18,6 +18,7 @@ const STRINGS = {
   victory: { es: '¡Has ganado!', ca: 'Has guanyat!' },
   defeat: { es: '¡Uf! Descansa y vuelve a intentarlo.', ca: 'Uf! Descansa i torna-ho a provar.' },
   nextBattle: { es: 'Siguiente combate', ca: 'Següent combat' },
+  backToMap: { es: 'Seguir explorando', ca: 'Seguir explorant' },
   coins: { es: 'Cifras', ca: 'Xifres' },
   mastery: { es: 'Dominio', ca: 'Domini' },
   gem: { es: '¡Gema de dominio!', ca: 'Gemma de domini!' },

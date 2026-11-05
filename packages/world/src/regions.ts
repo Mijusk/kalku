@@ -21,6 +21,13 @@ export const PRADERA_UNO: RegionSpec = {
     { piece: PUEBLO_PRADERA, x: 22, y: 6 },
     { piece: ARENA_PRADERA, x: 50, y: 26 },
   ],
+  wildlife: {
+    max: 3,
+    moveEveryMs: 700,
+    respawnMs: 6000,
+    graceMs: 2000,
+    minSpawnDistance: 8,
+  },
 };
 
 /** Todas las regiones, en orden de currículo. */

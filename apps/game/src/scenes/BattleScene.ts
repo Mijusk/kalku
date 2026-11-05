@@ -18,13 +18,15 @@ import {
   type Rng,
   type Slot,
 } from '@kalku/exercises';
-import { CREATURES, type CreatureDefinition } from '@kalku/content';
+import { CREATURES, getCreature, type CreatureDefinition } from '@kalku/content';
+import { endEncounter, PRADERA_UNO } from '@kalku/world';
 import { ANIMATION_MS, TILESET_KEYS } from '../art/textures';
 import { tr } from '../i18n';
 import { applyTextSize, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { ExercisePanel } from '../ui/ExercisePanel';
 import { Hud } from '../ui/Hud';
 import { SettingsPanel } from '../ui/SettingsPanel';
+import { WORLD_STATE_KEY, type EncounterData, type WorldState } from '../worldState';
 
 export const GAME_WIDTH = 480;
 export const GAME_HEIGHT = 270;
@@ -71,20 +73,33 @@ export class BattleScene extends Phaser.Scene {
   private turn: Turn | undefined;
   private streak = 0;
   private busy = false;
+  /** Con datos, el combate viene del mapa: vuelve a él al terminar. Sin datos es el combate de prueba. */
+  private encounter: EncounterData | undefined;
   private creature: CreatureDefinition | undefined;
 
   constructor() {
     super('battle');
   }
 
-  create(): void {
+  create(data?: EncounterData): void {
+    this.encounter = data?.data ? data : undefined;
+    this.creature = this.encounter ? getCreature(this.encounter.data.creature) : undefined;
+    this.turn = undefined;
+    this.streak = 0;
+    this.settingsOpen = false;
     this.progress = loadProgress();
     this.rng = createRng(randomSeed());
     applyTextSize(this.progress.settings);
 
     this.drawBackground();
     this.player = this.createFighter('hero', 120, 190, 4, BATTLE.playerHp);
-    this.enemy = this.createFighter(CREATURES[0]?.sprite ?? 'hero', 360, 150, 4, BATTLE.enemyHp);
+    this.enemy = this.createFighter(
+      this.creature?.sprite ?? CREATURES[0]?.sprite ?? 'hero',
+      360,
+      150,
+      4,
+      this.creature?.hp ?? BATTLE.enemyHp,
+    );
     this.animateEnemy();
 
     const ui = document.getElementById('ui');
@@ -95,7 +110,7 @@ export class BattleScene extends Phaser.Scene {
       onAction: (a) => this.startTurn(a === 'strong'),
       onSubmit: (answer) => this.submit(answer),
       onHint: () => this.showNextHint(),
-      onNext: () => this.startBattle(),
+      onNext: () => (this.encounter ? this.returnToWorld() : this.startBattle()),
       onOpenSettings: () => this.openSettings(),
     });
     this.panel.setLocale(this.progress.locale);
@@ -147,8 +162,9 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private startBattle(): void {
-    this.creature = this.rng.pick(CREATURES);
-    this.enemy.sprite.setTexture(this.creature.sprite, 0).setAlpha(1);
+    // Combate de prueba (?combate): una criatura cualquiera. Desde el mapa, la del encuentro.
+    if (!this.encounter) this.creature = this.rng.pick(CREATURES);
+    this.enemy.sprite.setTexture(this.creature?.sprite ?? 'hero', 0).setAlpha(1);
     this.enemy.hp = this.enemy.maxHp;
     this.player.hp = this.player.maxHp;
     this.drawBar(this.enemy);
@@ -162,9 +178,12 @@ export class BattleScene extends Phaser.Scene {
   private startTurn(strong: boolean): void {
     if (this.busy) return;
     const profile = this.progress.profile;
+    const fromCreature = this.encounter?.data;
     const pick = strong
       ? { skill: challengeSkill(profile) ?? currentSkill(profile), slot: 'challenge' as const }
-      : pickSkill(profile, this.rng);
+      : fromCreature
+        ? { skill: fromCreature.skill, slot: fromCreature.slot }
+        : pickSkill(profile, this.rng);
     const exercise = generateExercise(pick.skill, this.rng);
     this.turn = { exercise, slot: pick.slot, strong, tries: 0, hintLevel: 0, startedAt: performance.now() };
 
@@ -269,7 +288,18 @@ export class BattleScene extends Phaser.Scene {
     this.panel.showResult(
       won ? tr('victory', locale) : tr('defeat', locale),
       `${this.progress.coins} ${tr('coins', locale)}`,
+      this.encounter ? tr('backToMap', locale) : tr('nextBattle', locale),
     );
+  }
+
+  /** Vuelve al mapa, a la casilla donde saltó el combate. Ganar o perder da igual: no se quita nada. */
+  private returnToWorld(): void {
+    const encounter = this.encounter;
+    const world = this.registry.get(WORLD_STATE_KEY) as WorldState | undefined;
+    if (encounter && world) {
+      world.wildlife = endEncounter(PRADERA_UNO.wildlife, world.wildlife, encounter.wandererId);
+    }
+    this.scene.start('world');
   }
 
   private settingsOpen = false;

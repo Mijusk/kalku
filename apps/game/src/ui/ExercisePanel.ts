@@ -99,12 +99,12 @@ export class ExercisePanel {
     this.renderAnswer();
   }
 
-  showResult(title: string, detail: string, nextLabel = tr('nextBattle', this.locale)): void {
+  showResult(title: string, detail: string, buttonLabel: string = tr('nextBattle', this.locale)): void {
     this.root.dataset.state = 'result';
     this.root.replaceChildren(
       el('p', 'panel-title', title),
       el('p', 'panel-feedback', detail),
-      button(nextLabel, 'btn btn-primary', () => this.callbacks.onNext()),
+      button(buttonLabel, 'btn btn-primary', () => this.callbacks.onNext()),
     );
   }
 
