@@ -301,6 +301,35 @@ body {
   color: #fff;
 }
 
+.creature-name,
+.creature-weakness {
+  position: absolute;
+  right: 8px;
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  background: rgb(27 42 31 / 0.8);
+  color: #fff;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.creature-name {
+  /* Abajo, para no taparse con el marcador de arriba en pantallas estrechas. */
+  bottom: 48px;
+  font-size: 1.1rem;
+}
+
+.creature-weakness {
+  bottom: 8px;
+  font-size: 1rem;
+  color: #f4c542;
+}
+
+.creature-name:empty,
+.creature-weakness:empty {
+  display: none;
+}
+
 /* Prueba de nivel: barra de avance y botón discreto. */
 .progress-bar {
   width: min(320px, 80%);

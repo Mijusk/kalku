@@ -70,7 +70,8 @@ kalku/
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
-│       │   └── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
+│       │   ├── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
+│       │   └── weakness.ts     Debilidad por operación inversa (damageMultiplier) y contador de encuentros para el cartel
 │       └── test/             Tests con vitest
 │
 └── apps/
