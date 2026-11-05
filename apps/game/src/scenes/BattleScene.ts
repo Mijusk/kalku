@@ -126,6 +126,7 @@ export class BattleScene extends Phaser.Scene {
       onOpenSettings: () => this.openSettings(),
     });
     this.panel.setLocale(this.progress.locale);
+    document.querySelectorAll('#game .creature-name, #game .creature-weakness').forEach((e) => e.remove());
     this.nameLabel = this.createLabel('creature-name');
     this.weaknessLabel = this.createLabel('creature-weakness');
     this.startBattle();
@@ -134,7 +135,8 @@ export class BattleScene extends Phaser.Scene {
   private createLabel(className: string): HTMLElement {
     const el = document.createElement('div');
     el.className = className;
-    document.getElementById('ui')?.append(el);
+    // Dentro de #game (el área del combate), no de #ui: en horizontal #ui es el panel de ejercicios.
+    document.getElementById('game')?.append(el);
     return el;
   }
 

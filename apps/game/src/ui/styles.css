@@ -285,7 +285,7 @@ body {
 
 .creature-name,
 .creature-weakness {
-  position: fixed;
+  position: absolute;
   right: 8px;
   padding: 4px 12px;
   border-radius: var(--radius);
@@ -296,12 +296,12 @@ body {
 }
 
 .creature-name {
-  top: 64px;
+  top: 8px;
   font-size: 1.1rem;
 }
 
 .creature-weakness {
-  top: 104px;
+  top: 48px;
   font-size: 1rem;
   color: #f4c542;
 }
