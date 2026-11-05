@@ -165,3 +165,8 @@ export function validateCreatures(creatures: readonly CreatureDefinition[]): str
   }
   return errors;
 }
+
+/** Las criaturas con las que se practica una habilidad (puede haber varias). */
+export function creaturesForSkill(skill: SkillId): CreatureDefinition[] {
+  return CREATURES.filter((c) => c.skill === skill);
+}

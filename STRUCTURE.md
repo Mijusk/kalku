@@ -53,7 +53,8 @@ kalku/
 │   │   │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
 │   │   │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
 │   │   │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla (16 o 47 variantes)
-│   │   │   └── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
+│   │   │   ├── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
+│   │   │   └── wildlife.ts     Criaturas visibles en la hierba alta: aparecer, andar, combate al coincidir, reaparecer
 │   │   └── test/             Tests con vitest
 │   ├── art/                  @kalku/art: dibujos generados por código con reglas de estilo fijas, TypeScript puro
 │   │   ├── src/
@@ -68,7 +69,7 @@ kalku/
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
-│       │   └── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno con sus piezas (`look`); validateCreatures
+│       │   └── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
 │       └── test/             Tests con vitest
 │
 └── apps/
@@ -80,12 +81,13 @@ kalku/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
             ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage)
+            ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
             ├── art/
             │   ├── pixelArt.ts El personaje, dibujado como texto (provisional hasta que se haga por capas)
             │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets (uno por fotograma del agua), criaturas y edificios
             ├── scenes/         Escenas de Phaser
             │   ├── BootScene.ts    Genera las texturas (mundo, criaturas) y elige escena: mapa, o combate con ?combate
-            │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, teclado y toque, cámara
+            │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara
             │   └── BattleScene.ts  Combate por turnos de prueba, con una criatura generada que respira y parpadea
             └── ui/             Interfaz HTML encima del canvas
                 ├── ExercisePanel.ts  Ejercicio, teclado numérico, pistas
