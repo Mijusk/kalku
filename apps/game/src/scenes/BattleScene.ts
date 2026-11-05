@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { CREATURE_FRAMES, flowerFrame, FLOWER_VARIANTS, grassFrame, GRASS_VARIANTS } from '@kalku/art';
 import {
   applyAnswer,
   challengeSkill,
@@ -17,6 +18,8 @@ import {
   type Rng,
   type Slot,
 } from '@kalku/exercises';
+import { CREATURES, type CreatureDefinition } from '@kalku/content';
+import { ANIMATION_MS, TILESET_KEYS } from '../art/textures';
 import { tr } from '../i18n';
 import { applyTextSize, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { ExercisePanel } from '../ui/ExercisePanel';
@@ -68,6 +71,7 @@ export class BattleScene extends Phaser.Scene {
   private turn: Turn | undefined;
   private streak = 0;
   private busy = false;
+  private creature: CreatureDefinition | undefined;
 
   constructor() {
     super('battle');
@@ -80,8 +84,8 @@ export class BattleScene extends Phaser.Scene {
 
     this.drawBackground();
     this.player = this.createFighter('hero', 120, 190, 4, BATTLE.playerHp);
-    this.enemy = this.createFighter('creature-add', 360, 150, 5, BATTLE.enemyHp);
-    this.tweens.add({ targets: this.enemy.sprite, y: '-=4', duration: 600, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    this.enemy = this.createFighter(CREATURES[0]?.sprite ?? 'hero', 360, 150, 4, BATTLE.enemyHp);
+    this.animateEnemy();
 
     const ui = document.getElementById('ui');
     if (!ui) throw new Error('Falta el contenedor #ui');
@@ -103,8 +107,9 @@ export class BattleScene extends Phaser.Scene {
     const bg = createRng(2026);
     for (let y = 0; y < GAME_HEIGHT; y += 16) {
       for (let x = 0; x < GAME_WIDTH; x += 16) {
-        const key = bg.chance(0.12) ? 'tile-flowers' : 'tile-grass';
-        this.add.image(x, y, key).setOrigin(0).setScale(2);
+        // Hierba generada; de vez en cuando, flores.
+        const frame = bg.chance(0.12) ? flowerFrame(bg.int(0, FLOWER_VARIANTS - 1)) : grassFrame(bg.int(0, GRASS_VARIANTS - 1));
+        this.add.image(x, y, TILESET_KEYS[0] ?? '', frame).setOrigin(0);
       }
     }
   }
@@ -115,6 +120,20 @@ export class BattleScene extends Phaser.Scene {
     const fighter = { sprite, hp, maxHp: hp, bar };
     this.drawBar(fighter);
     return fighter;
+  }
+
+  /** La criatura respira y parpadea (fotogramas del generador); con «reducir movimiento» se queda quieta. */
+  private animateEnemy(): void {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let frame = 0;
+    this.time.addEvent({
+      delay: ANIMATION_MS,
+      loop: true,
+      callback: () => {
+        frame = (frame + 1) % CREATURE_FRAMES;
+        if (this.creature) this.enemy.sprite.setFrame(frame);
+      },
+    });
   }
 
   private drawBar(f: Fighter): void {
@@ -128,8 +147,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private startBattle(): void {
-    const type = this.rng.chance(0.5) ? 'creature-add' : 'creature-sub';
-    this.enemy.sprite.setTexture(type).setAlpha(1);
+    this.creature = this.rng.pick(CREATURES);
+    this.enemy.sprite.setTexture(this.creature.sprite, 0).setAlpha(1);
     this.enemy.hp = this.enemy.maxHp;
     this.player.hp = this.player.maxHp;
     this.drawBar(this.enemy);

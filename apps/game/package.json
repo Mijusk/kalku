@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@kalku/art": "0.1.0",
     "@kalku/content": "0.1.0",
     "@kalku/exercises": "0.1.0",
     "@kalku/world": "0.1.0",

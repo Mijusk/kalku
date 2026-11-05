@@ -1,3 +1,4 @@
+import { validateLook, type CreatureLook } from '@kalku/art';
 import { getSkill, SKILL_IDS, type Localized, type Operator, type SkillId } from '@kalku/exercises';
 
 /**
@@ -36,15 +37,17 @@ export interface CreatureDefinition {
   /** Una frase corta para el niño. */
   description: Localized;
   hp: number;
-  /** Clave de la textura (sprite provisional en apps/game/src/art/pixelArt.ts). */
+  /** Clave de la textura que el juego genera a partir de `look`. */
   sprite: string;
+  /** Sus piezas: cuerpo, cabeza, ojos y colores. El dibujo sale de aquí (`@kalku/art`). */
+  look: CreatureLook;
   /** Nombre pendiente de aprobar por Luis. */
   provisional: boolean;
 }
 
 /**
  * Criaturas de Pradera Uno, una por habilidad y en orden de currículo.
- * Añadir una criatura es añadir una entrada aquí (y su sprite); no toca lógica.
+ * Añadir una criatura es añadir una entrada aquí, con sus piezas en `look`; no toca lógica.
  */
 export const CREATURES: readonly CreatureDefinition[] = [
   {
@@ -55,6 +58,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Cada vez que suma, le sale una hoja.', ca: 'Cada cop que suma, li surt una fulla.' },
     hp: 20,
     sprite: 'creature-sumus-brote',
+    look: { ramp: 'verde', body: 'round', top: 'sprout', eyes: 'big', cheeks: true, sign: '+' },
     provisional: false,
   },
   {
@@ -65,6 +69,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Gotea y se hace pequeñito.', ca: 'Degota i es fa petitet.' },
     hp: 20,
     sprite: 'creature-restus-gota',
+    look: { ramp: 'azul', body: 'drop', top: 'droplet', eyes: 'big', sign: '-' },
     provisional: false,
   },
   {
@@ -75,6 +80,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Junta hojas hasta llegar a veinte.', ca: 'Ajunta fulles fins a arribar a vint.' },
     hp: 30,
     sprite: 'creature-sumus-trebol',
+    look: { ramp: 'verde', body: 'pear', top: 'ears', eyes: 'small', spots: true, sign: '+' },
     provisional: false,
   },
   {
@@ -85,6 +91,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Esconde números entre la niebla.', ca: 'Amaga nombres dins la boira.' },
     hp: 30,
     sprite: 'creature-restus-bruma',
+    look: { ramp: 'gris', body: 'bean', top: 'puff', eyes: 'sleepy', cheeks: true, sign: '-' },
     provisional: false,
   },
   {
@@ -95,6 +102,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Fuerte y viejo: siempre se lleva una.', ca: 'Fort i vell: sempre en porta una.' },
     hp: 40,
     sprite: 'creature-sumus-roble',
+    look: { ramp: 'marron', body: 'bean', top: 'sprout', eyes: 'small', spots: true, sign: '+' },
     provisional: false,
   },
   {
@@ -105,6 +113,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     description: { es: 'Pide prestado a la decena de al lado.', ca: 'Demana prestat a la desena del costat.' },
     hp: 40,
     sprite: 'creature-restus-sombra',
+    look: { ramp: 'morado', body: 'pear', top: 'horns', eyes: 'small', sign: '-' },
     provisional: false,
   },
 ];
@@ -147,6 +156,10 @@ export function validateCreatures(creatures: readonly CreatureDefinition[]): str
       else if (family.operator !== getSkill(c.skill).operator) {
         errors.push(`${c.id}: un ${c.family} no puede ir con la habilidad «${c.skill}»`);
       }
+    }
+    for (const problem of validateLook(c.look)) errors.push(`${c.id}: ${problem}`);
+    if (c.look.sign !== FAMILIES.find((f) => f.id === c.family)?.operator) {
+      errors.push(`${c.id}: el símbolo «${c.look.sign}» no es el de la familia ${c.family}`);
     }
     if (!Number.isInteger(c.hp) || c.hp <= 0) errors.push(`${c.id}: la vida tiene que ser un entero positivo`);
   }

@@ -134,8 +134,26 @@ function basicTable(id: string, kind: TileKind): AutotileTable {
 }
 
 /**
- * Tablas PROVISIONALES para los sprites de texto: una variante por máscara
- * de lados. Cuando haya pack (#10), se escribe su tabla y se cambia aquí.
+ * Tablas de 16 variantes (solo lados): una variante por máscara de lados.
+ * Las más sencillas; el juego usa las de 47 (`WATER_TILES_8`, `PATH_TILES_8`).
  */
 export const WATER_TILES = basicTable('agua-basica', 'water');
 export const PATH_TILES = basicTable('camino-basico', 'path');
+
+/**
+ * Tabla de 47 variantes (modo 8): la variante es el lugar de la máscara en
+ * `validMasks(8)`, de menor a mayor. Cada variante lleva sus lados y sus
+ * esquinas, que es lo que necesita el generador de dibujos (`@kalku/art`).
+ */
+function fullTable(id: string, kind: TileKind): AutotileTable {
+  const masks = validMasks(8);
+  const variants: Record<number, number> = {};
+  masks.forEach((mask, index) => {
+    variants[mask] = index;
+  });
+  return { id, kind, mode: 8, variants, fallback: masks.length - 1 };
+}
+
+/** Tablas de agua y camino que usa el juego con los dibujos generados. */
+export const WATER_TILES_8 = fullTable('agua-47', 'water');
+export const PATH_TILES_8 = fullTable('camino-47', 'path');

@@ -2,6 +2,18 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-05 · Paquete `@kalku/art`: cómo se generan los dibujos
+
+Implementa la decisión de abajo (#10). Los dibujos salen de `packages/art` (TypeScript puro, sin Phaser) y `apps/game` solo los pasa a texturas.
+
+- **Casillas de 16 px a tamaño real** (antes eran sprites de 8 px al doble). Cada material tiene su escala de 4–5 tonos en `palette.ts`; luz desde arriba a la izquierda; contorno oscuro.
+- **Agua y camino con 47 variantes** (autotile en modo 8, tablas `WATER_TILES_8` y `PATH_TILES_8`), para que las esquinas de la orilla salgan bien. Las tablas de 16 variantes siguen existiendo, pero el juego ya no las usa.
+- **Agua animada con 3 tilemaps iguales** y un tileset por fotograma; solo se ve uno y un temporizador cambia cuál (cada ~340 ms). Así no se toca ninguna casilla por fotograma. Con «reducir movimiento» del sistema el agua y las criaturas se quedan quietas.
+- **Casas y tienda como edificio entero**, no casilla a casilla: `findBuildings` agrupa las casillas `house`/`shop` en rectángulos y `drawBuilding` dibuja cada uno a su tamaño (el pueblo tiene casas de 3×2). Debajo hay hierba. Dos casas del mismo tipo pegadas se dibujarían como una sola grande.
+- **Hierba con variantes** elegidas por casilla y semilla, y alguna piedrecita (sin obstáculo: se puede pisar). No hay un tipo de casilla «roca» en el mundo.
+- **Criaturas por piezas en datos:** `CreatureDefinition.look` (cuerpo, cabeza, ojos, color, símbolo). `validateCreatures` comprueba que las piezas existen y que el símbolo (+/−) es el de su familia. 8 fotogramas: respirar, mecer la pieza de la cabeza y parpadear.
+- **El personaje del jugador sigue siendo un sprite en texto** (pixelArt.ts): va por capas en otra tarea.
+
 ## 2026-11-04 · Dibujos generados por código, sin pack
 
 Sustituye a la idea de comprar un pack de pixel art (#10). El mundo y las criaturas se dibujan por código con unas reglas de estilo fijas:

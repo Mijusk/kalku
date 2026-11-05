@@ -1,0 +1,21 @@
+{
+  "name": "@kalku/art",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generador de dibujos por código: casillas del mundo, casas y criaturas por piezas. Código puro, sin navegador ni Phaser.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@kalku/exercises": "0.1.0",
+    "@kalku/world": "0.1.0"
+  }
+}
