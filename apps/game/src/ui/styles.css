@@ -282,3 +282,31 @@ body {
   background: var(--primary);
   color: #fff;
 }
+
+.creature-name,
+.creature-weakness {
+  position: fixed;
+  right: 8px;
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  background: rgb(27 42 31 / 0.8);
+  color: #fff;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.creature-name {
+  top: 64px;
+  font-size: 1.1rem;
+}
+
+.creature-weakness {
+  top: 104px;
+  font-size: 1rem;
+  color: #f4c542;
+}
+
+.creature-name:empty,
+.creature-weakness:empty {
+  display: none;
+}

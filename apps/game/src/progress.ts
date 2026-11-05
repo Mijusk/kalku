@@ -1,3 +1,4 @@
+import { parseEncounters, type EncounterCounts } from '@kalku/content';
 import { createProfile, SKILL_IDS, type Locale, type MasteryProfile } from '@kalku/exercises';
 
 /**
@@ -39,12 +40,14 @@ export interface PlayerProgress {
   /** Habilidades por las que ya se ha dado la gema de dominio. */
   gems: string[];
   settings: Settings;
+  /** Encuentros por familia de criatura (para retirar el cartel de debilidad). */
+  encounters: EncounterCounts;
 }
 
 const STORAGE_KEY = 'kalku:progress';
 
 export function defaultProgress(): PlayerProgress {
-  return { version: 1, locale: 'es', coins: 0, profile: createProfile(), gems: [], settings: { ...DEFAULT_SETTINGS } };
+  return { version: 1, locale: 'es', coins: 0, profile: createProfile(), gems: [], settings: { ...DEFAULT_SETTINGS }, encounters: {} };
 }
 
 export function loadProgress(): PlayerProgress {
@@ -59,7 +62,7 @@ export function loadProgress(): PlayerProgress {
     // Datos guardados a mano o corruptos: solo se aceptan textos.
     const gems = Array.isArray(parsed.gems) ? parsed.gems.filter((g): g is string => typeof g === 'string') : [];
     const locale: Locale = parsed.locale === 'ca' ? 'ca' : 'es';
-    return { ...defaultProgress(), ...parsed, locale, profile, gems, settings: parseSettings(parsed.settings) };
+    return { ...defaultProgress(), ...parsed, locale, profile, gems, settings: parseSettings(parsed.settings), encounters: parseEncounters(parsed.encounters) };
   } catch {
     return defaultProgress();
   }

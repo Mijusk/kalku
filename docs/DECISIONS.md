@@ -41,6 +41,15 @@ Sustituye a la idea de comprar un pack de pixel art (#10). El mundo y las criatu
 
 **Descartado:** comprar un pack (mezclar packs no pega y sus criaturas no serían nuestras) y encargar un ilustrador por ahora.
 
+## 2026-11-05 · Debilidades por operación inversa en el combate
+
+- Una criatura es débil a la operación inversa a la de su familia (restus → suma, sumus → resta). El ataque de esa operación hace ×1,5 de daño (`WEAKNESS_MULTIPLIER`, un solo sitio), que se multiplica con el ataque fuerte (×2,25 como máximo). Es un bonus: nunca resta.
+- `pickSkill` y `challengeSkill` no cambian: el niño no elige la habilidad.
+- El cartel «Débil a la suma» y el aviso al golpear salen solo las 5 primeras veces (`WEAKNESS_HINT_ENCOUNTERS`) que el niño se encuentra con una criatura de esa familia. Después se retira a propósito, para que se acuerde de que suma y resta son inversas; el daño extra se sigue aplicando. El contador por familia se guarda en el progreso (`encounters`).
+- Esto sustituye a lo apuntado antes de que las debilidades quedaban para las criaturas compañeras y como bonus no obligatorio.
+
+**Por qué:** Luis, 5 nov 2026, al planificar la issue #9.
+
 ## 2026-11-04 · Claude trabaja desde las issues de GitHub
 
 - Las etiquetas hacen de cola: `plan` (Claude comenta un plan, sin código) y `dev` (implementa con `/desarrollar` y abre el PR). Lo lanza el workflow `.github/workflows/claude.yml` con la Claude Code GitHub Action.

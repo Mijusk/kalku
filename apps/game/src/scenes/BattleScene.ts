@@ -18,7 +18,15 @@ import {
   type Rng,
   type Slot,
 } from '@kalku/exercises';
-import { CREATURES, getCreature, type CreatureDefinition } from '@kalku/content';
+import {
+  countEncounter,
+  CREATURES,
+  damageMultiplier,
+  getCreature,
+  shouldShowWeaknessHint,
+  weakOperator,
+  type CreatureDefinition,
+} from '@kalku/content';
 import { endEncounter, PRADERA_UNO } from '@kalku/world';
 import { ANIMATION_MS, TILESET_KEYS } from '../art/textures';
 import { tr } from '../i18n';
@@ -76,6 +84,10 @@ export class BattleScene extends Phaser.Scene {
   /** Con datos, el combate viene del mapa: vuelve a él al terminar. Sin datos es el combate de prueba. */
   private encounter: EncounterData | undefined;
   private creature: CreatureDefinition | undefined;
+  /** Si en este combate se enseña el cartel de debilidad (los primeros encuentros con la familia). */
+  private showWeakness = false;
+  private weaknessLabel: HTMLElement | undefined;
+  private nameLabel: HTMLElement | undefined;
 
   constructor() {
     super('battle');
@@ -114,7 +126,30 @@ export class BattleScene extends Phaser.Scene {
       onOpenSettings: () => this.openSettings(),
     });
     this.panel.setLocale(this.progress.locale);
+    this.nameLabel = this.createLabel('creature-name');
+    this.weaknessLabel = this.createLabel('creature-weakness');
     this.startBattle();
+  }
+
+  private createLabel(className: string): HTMLElement {
+    const el = document.createElement('div');
+    el.className = className;
+    document.getElementById('ui')?.append(el);
+    return el;
+  }
+
+  /** Nombre de la criatura y, los primeros encuentros, su debilidad. Texto HTML, no pixel. */
+  private refreshCreatureLabels(): void {
+    const locale = this.progress.locale;
+    const creature = this.creature;
+    if (this.nameLabel) this.nameLabel.textContent = creature ? creature.name[locale] : '';
+    if (!this.weaknessLabel) return;
+    if (creature && this.showWeakness) {
+      const add = weakOperator(creature) === '+';
+      this.weaknessLabel.textContent = `${add ? '+' : '−'} ${tr(add ? 'weakToAdd' : 'weakToSub', locale)}`;
+    } else {
+      this.weaknessLabel.textContent = '';
+    }
   }
 
   private drawBackground(): void {
@@ -165,6 +200,7 @@ export class BattleScene extends Phaser.Scene {
     // Combate de prueba (?combate): una criatura cualquiera. Desde el mapa, la del encuentro.
     if (!this.encounter) this.creature = this.rng.pick(CREATURES);
     this.enemy.sprite.setTexture(this.creature?.sprite ?? 'hero', 0).setAlpha(1);
+    this.countEncounter();
     this.enemy.hp = this.enemy.maxHp;
     this.player.hp = this.player.maxHp;
     this.drawBar(this.enemy);
@@ -173,6 +209,19 @@ export class BattleScene extends Phaser.Scene {
     this.busy = false;
     this.refreshHud();
     this.panel.showActions();
+  }
+
+  /** Cuenta el encuentro una sola vez por combate, al empezar, y decide si sale el cartel. */
+  private countEncounter(): void {
+    const creature = this.creature;
+    if (!creature) {
+      this.showWeakness = false;
+      return;
+    }
+    this.progress.encounters = countEncounter(this.progress.encounters, creature.family);
+    saveProgress(this.progress);
+    this.showWeakness = shouldShowWeaknessHint(this.progress.encounters[creature.family] ?? 0);
+    this.refreshCreatureLabels();
   }
 
   private startTurn(strong: boolean): void {
@@ -250,7 +299,15 @@ export class BattleScene extends Phaser.Scene {
     const locale = this.progress.locale;
     if (correct) {
       this.panel.showFeedback(`${tr('correct', locale)} +${score.total} ${tr('coins', locale)}`, 'good');
-      const damage = Math.round(score.total * (turn.strong ? BATTLE.strongMultiplier : 1));
+      const operator = getSkill(skill).operator;
+      const weak = this.creature ? damageMultiplier(this.creature, operator) : 1;
+      const damage = Math.round(score.total * (turn.strong ? BATTLE.strongMultiplier : 1) * weak);
+      if (weak > 1 && this.showWeakness) {
+        this.panel.showFeedback(
+          `${tr('correct', locale)} +${score.total} ${tr('coins', locale)} · ${tr(operator === '+' ? 'weakHitAdd' : 'weakHitSub', locale)}`,
+          'good',
+        );
+      }
       this.hit(this.enemy, damage);
     }
     if (isMastered(this.progress.profile[skill]) && !this.progress.gems.includes(skill)) {
@@ -312,6 +369,7 @@ export class BattleScene extends Phaser.Scene {
         applyTextSize(this.progress.settings);
         saveProgress(this.progress);
         this.panel.setLocale(this.progress.locale);
+        this.refreshCreatureLabels();
         this.refreshHud();
       },
       onClose: () => {
