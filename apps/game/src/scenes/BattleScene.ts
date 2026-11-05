@@ -17,11 +17,14 @@ import {
   type Rng,
   type Slot,
 } from '@kalku/exercises';
+import { getCreature, type CreatureDefinition } from '@kalku/content';
+import { endEncounter, PRADERA_UNO } from '@kalku/world';
 import { tr } from '../i18n';
 import { applyTextSize, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { ExercisePanel } from '../ui/ExercisePanel';
 import { Hud } from '../ui/Hud';
 import { SettingsPanel } from '../ui/SettingsPanel';
+import { WORLD_STATE_KEY, type EncounterData, type WorldState } from '../worldState';
 
 export const GAME_WIDTH = 480;
 export const GAME_HEIGHT = 270;
@@ -68,19 +71,33 @@ export class BattleScene extends Phaser.Scene {
   private turn: Turn | undefined;
   private streak = 0;
   private busy = false;
+  /** Con datos, el combate viene del mapa: vuelve a él al terminar. Sin datos es el combate de prueba. */
+  private encounter: EncounterData | undefined;
+  private creature: CreatureDefinition | undefined;
 
   constructor() {
     super('battle');
   }
 
-  create(): void {
+  create(data?: EncounterData): void {
+    this.encounter = data?.data ? data : undefined;
+    this.creature = this.encounter ? getCreature(this.encounter.data.creature) : undefined;
+    this.turn = undefined;
+    this.streak = 0;
+    this.settingsOpen = false;
     this.progress = loadProgress();
     this.rng = createRng(randomSeed());
     applyTextSize(this.progress.settings);
 
     this.drawBackground();
     this.player = this.createFighter('hero', 120, 190, 4, BATTLE.playerHp);
-    this.enemy = this.createFighter('creature-add', 360, 150, 5, BATTLE.enemyHp);
+    this.enemy = this.createFighter(
+      this.creature?.sprite ?? 'creature-add',
+      360,
+      150,
+      5,
+      this.creature?.hp ?? BATTLE.enemyHp,
+    );
     this.tweens.add({ targets: this.enemy.sprite, y: '-=4', duration: 600, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 
     const ui = document.getElementById('ui');
@@ -91,7 +108,7 @@ export class BattleScene extends Phaser.Scene {
       onAction: (a) => this.startTurn(a === 'strong'),
       onSubmit: (answer) => this.submit(answer),
       onHint: () => this.showNextHint(),
-      onNext: () => this.startBattle(),
+      onNext: () => (this.encounter ? this.returnToWorld() : this.startBattle()),
       onOpenSettings: () => this.openSettings(),
     });
     this.panel.setLocale(this.progress.locale);
@@ -128,7 +145,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private startBattle(): void {
-    const type = this.rng.chance(0.5) ? 'creature-add' : 'creature-sub';
+    const type = this.creature?.sprite ?? (this.rng.chance(0.5) ? 'creature-add' : 'creature-sub');
     this.enemy.sprite.setTexture(type).setAlpha(1);
     this.enemy.hp = this.enemy.maxHp;
     this.player.hp = this.player.maxHp;
@@ -143,9 +160,12 @@ export class BattleScene extends Phaser.Scene {
   private startTurn(strong: boolean): void {
     if (this.busy) return;
     const profile = this.progress.profile;
+    const fromCreature = this.encounter?.data;
     const pick = strong
       ? { skill: challengeSkill(profile) ?? currentSkill(profile), slot: 'challenge' as const }
-      : pickSkill(profile, this.rng);
+      : fromCreature
+        ? { skill: fromCreature.skill, slot: fromCreature.slot }
+        : pickSkill(profile, this.rng);
     const exercise = generateExercise(pick.skill, this.rng);
     this.turn = { exercise, slot: pick.slot, strong, tries: 0, hintLevel: 0, startedAt: performance.now() };
 
@@ -248,7 +268,18 @@ export class BattleScene extends Phaser.Scene {
     this.panel.showResult(
       won ? tr('victory', locale) : tr('defeat', locale),
       `${this.progress.coins} ${tr('coins', locale)}`,
+      this.encounter ? tr('backToMap', locale) : tr('nextBattle', locale),
     );
+  }
+
+  /** Vuelve al mapa, a la casilla donde saltó el combate. Ganar o perder da igual: no se quita nada. */
+  private returnToWorld(): void {
+    const encounter = this.encounter;
+    const world = this.registry.get(WORLD_STATE_KEY) as WorldState | undefined;
+    if (encounter && world) {
+      world.wildlife = endEncounter(PRADERA_UNO.wildlife, world.wildlife, encounter.wandererId);
+    }
+    this.scene.start('world');
   }
 
   private settingsOpen = false;

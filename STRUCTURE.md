@@ -53,12 +53,13 @@ kalku/
 │   │   │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
 │   │   │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
 │   │   │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla por pack
-│   │   │   └── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
+│   │   │   ├── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
+│   │   │   └── wildlife.ts     Criaturas visibles en la hierba alta: aparecer, andar, combate al coincidir, reaparecer
 │   │   └── test/             Tests con vitest
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
-│       │   └── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno; validateCreatures
+│       │   └── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno; creaturesForSkill; validateCreatures
 │       └── test/             Tests con vitest
 │
 └── apps/
@@ -70,12 +71,13 @@ kalku/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
             ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage)
+            ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
             ├── art/
             │   ├── pixelArt.ts Sprites provisionales dibujados como texto (también las 16 orillas de agua y camino)
             │   └── tiles.ts    Tileset del mapa: orden de las casillas y fotograma de cada una (con autotile)
             ├── scenes/         Escenas de Phaser
             │   ├── BootScene.ts    Crea o carga texturas (también el tileset) y elige escena: mapa, o combate con ?combate
-            │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap, personaje, teclado y toque, cámara
+            │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap, personaje, criaturas visibles, teclado y toque, cámara
             │   └── BattleScene.ts  Combate por turnos de prueba
             └── ui/             Interfaz HTML encima del canvas
                 ├── ExercisePanel.ts  Ejercicio, teclado numérico, pistas

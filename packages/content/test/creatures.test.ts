@@ -1,6 +1,6 @@
 import { SKILL_IDS, type SkillId } from '@kalku/exercises';
 import { describe, expect, it } from 'vitest';
-import { CREATURES, FAMILIES, getCreature, validateCreatures, type CreatureDefinition } from '../src/index.js';
+import { CREATURES, creaturesForSkill, FAMILIES, getCreature, validateCreatures, type CreatureDefinition } from '../src/index.js';
 
 const base = getCreature('sumus-brote');
 
@@ -59,5 +59,15 @@ describe('validateCreatures', () => {
 
   it('falla si la vida no es un entero positivo', () => {
     expect(validateCreatures([broken({ hp: 0 })])).toContain('sumus-brote: la vida tiene que ser un entero positivo');
+  });
+});
+
+describe('creaturesForSkill', () => {
+  it('cada habilidad tiene al menos una criatura que la practica', () => {
+    for (const skill of SKILL_IDS) {
+      const found = creaturesForSkill(skill);
+      expect(found.length).toBeGreaterThan(0);
+      for (const c of found) expect(c.skill).toBe(skill);
+    }
   });
 });

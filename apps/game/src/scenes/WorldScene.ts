@@ -1,5 +1,20 @@
 import Phaser from 'phaser';
-import { generateRegion, pathTo, PRADERA_UNO, step, type Direction, type Point, type RegionMap } from '@kalku/world';
+import { creaturesForSkill, getCreature } from '@kalku/content';
+import { createRng, pickSkill, randomSeed, type Rng } from '@kalku/exercises';
+import {
+  createWildlife,
+  findCollision,
+  generateRegion,
+  pathTo,
+  PRADERA_UNO,
+  step,
+  tickWildlife,
+  type Direction,
+  type Point,
+  type RegionMap,
+} from '@kalku/world';
+import { loadProgress } from '../progress';
+import { WORLD_STATE_KEY, type EncounterData, type WildData, type WorldState } from '../worldState';
 import { TILE_SIZE, TILESET_KEY, tilemapData } from '../art/tiles';
 
 /** Semilla fija de Pradera Uno: todos los niños ven el mismo mapa. */
@@ -22,6 +37,9 @@ export class WorldScene extends Phaser.Scene {
   private keys!: Record<Direction, Phaser.Input.Keyboard.Key[]>;
   /** Última dirección pulsada, para que un toque rápido de tecla dé al menos un paso. */
   private queued: Direction | undefined;
+  private state!: WorldState;
+  private wild = new Map<number, Phaser.GameObjects.Image>();
+  private encounterStarted = false;
 
   constructor() {
     super('world');
@@ -37,8 +55,22 @@ export class WorldScene extends Phaser.Scene {
     if (tileset === null) throw new Error('No se pudo crear el tileset del mapa');
     tilemap.createLayer(0, tileset, 0, 0);
 
-    this.tile = { ...this.region.entrance };
-    this.hero = this.add.image(this.centerOf(this.tile).x, this.centerOf(this.tile).y, 'hero');
+    this.encounterStarted = false;
+    this.wild = new Map();
+    const saved = this.registry.get(WORLD_STATE_KEY) as WorldState | undefined;
+    if (saved) {
+      this.state = saved;
+    } else {
+      const rng = createRng(randomSeed());
+      const entrance = { ...this.region.entrance };
+      this.state = {
+        tile: entrance,
+        rng,
+        wildlife: createWildlife(this.region, PRADERA_UNO.wildlife, entrance, rng, (r) => this.assignCreature(r)),
+      };
+    }
+    this.tile = { ...this.state.tile };
+    this.hero = this.add.image(this.centerOf(this.tile).x, this.centerOf(this.tile).y, 'hero').setDepth(2);
 
     const camera = this.cameras.main;
     camera.setBounds(0, 0, this.region.width * TILE_SIZE, this.region.height * TILE_SIZE);
@@ -48,10 +80,25 @@ export class WorldScene extends Phaser.Scene {
     this.setupKeyboard();
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
       const target = { x: Math.floor(pointer.worldX / TILE_SIZE), y: Math.floor(pointer.worldY / TILE_SIZE) };
-      this.route = pathTo(this.region, this.tile, target);    });
+      this.route = pathTo(this.region, this.tile, target);
+    });
+    this.syncWild();
   }
 
-  override update(): void {
+  override update(_time: number, delta: number): void {
+    if (this.encounterStarted) return;
+    // Las criaturas andan despacio mientras el niño anda o espera.
+    this.state.wildlife = tickWildlife(
+      this.region,
+      PRADERA_UNO.wildlife,
+      this.state.wildlife,
+      delta,
+      this.tile,
+      this.state.rng,
+      (r) => this.assignCreature(r),
+    );
+    this.syncWild();
+    if (this.checkEncounter()) return;
     if (this.moving) return;
     const pressed = this.pressedDirection() ?? this.queued;
     this.queued = undefined;
@@ -102,8 +149,51 @@ export class WorldScene extends Phaser.Scene {
       duration: STEP_MS,
       onComplete: () => {
         this.moving = false;
+        this.checkEncounter();
       },
     });
+  }
+
+  /** Qué criatura sale: la habilidad la elige pickSkill, así que esquivarlas no ayuda. */
+  private assignCreature(rng: Rng): WildData {
+    const pick = pickSkill(loadProgress().profile, rng);
+    const creature = rng.pick(creaturesForSkill(pick.skill));
+    return { creature: creature.id, skill: pick.skill, slot: pick.slot };
+  }
+
+  /** Pone cada criatura en su casilla (con un pequeño paso animado) y quita las que ya no están. */
+  private syncWild(): void {
+    const alive = new Set<number>();
+    for (const w of this.state.wildlife.wanderers) {
+      alive.add(w.id);
+      const { x, y } = this.centerOf(w.tile);
+      const sprite = this.wild.get(w.id);
+      if (!sprite) {
+        const texture = getCreature(w.data.creature).sprite;
+        this.wild.set(w.id, this.add.image(x, y, texture).setDepth(1));
+      } else if (sprite.x !== x || sprite.y !== y) {
+        this.tweens.add({ targets: sprite, x, y, duration: 300 });
+      }
+    }
+    for (const [id, sprite] of this.wild) {
+      if (alive.has(id)) continue;
+      sprite.destroy();
+      this.wild.delete(id);
+    }
+  }
+
+  /** Si el personaje y una criatura coinciden, guarda el mapa y empieza el combate. */
+  private checkEncounter(): boolean {
+    if (this.encounterStarted) return false;
+    const hit = findCollision(this.state.wildlife, this.tile);
+    if (!hit) return false;
+    this.encounterStarted = true;
+    this.route = [];
+    this.state.tile = { ...this.tile };
+    this.registry.set(WORLD_STATE_KEY, this.state);
+    const data: EncounterData = { wandererId: hit.id, data: hit.data };
+    this.scene.start('battle', data);
+    return true;
   }
 
   private centerOf(p: Point): Point {

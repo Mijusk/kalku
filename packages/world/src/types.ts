@@ -67,6 +67,24 @@ export interface PlaceSpec {
 export interface RegionSpec extends TerrainSpec {
   readonly entrance: Point;
   readonly places: readonly PlaceSpec[];
+  readonly wildlife: WildlifeSpec;
+}
+
+/**
+ * Criaturas visibles de una región (en la hierba alta). Todos los tiempos
+ * son en milisegundos.
+ */
+export interface WildlifeSpec {
+  /** Máximo de criaturas a la vez en el mapa. */
+  readonly max: number;
+  /** Cada cuánto da un paso una criatura (andan despacio). */
+  readonly moveEveryMs: number;
+  /** Lo que tarda en salir otra después de un combate. */
+  readonly respawnMs: number;
+  /** Margen tras volver de un combate en el que no empieza otro. */
+  readonly graceMs: number;
+  /** Distancia mínima (en casillas, en cruz) al personaje para aparecer. */
+  readonly minSpawnDistance: number;
 }
 
 /** Un lugar ya colocado en el mapa, con su enlace en coordenadas del mapa. */

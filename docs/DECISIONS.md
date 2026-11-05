@@ -2,6 +2,19 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-05 · Encuentros con criaturas visibles, no al azar por paso
+
+Los combates de la hierba alta empiezan al tocar una criatura que se ve en el mapa, en vez de tirar un dado en cada paso. Se sigue la mecánica de los juegos recientes del género, sin copiar nada suyo (nombres, criaturas, dibujos ni sistemas reconocibles).
+
+- Las criaturas salen solo en casillas `tallGrass`, con un máximo por región (3 en Pradera Uno), y andan despacio sin salir de la hierba alta.
+- Cada criatura lleva la habilidad elegida con `pickSkill` al aparecer (60/25/15) y el sprite de una criatura de esa habilidad: esquivarlas no sirve para saltarse lo que le cuesta al niño.
+- El combate empieza cuando personaje y criatura coinciden en la misma casilla. Después la criatura desaparece, otra sale a los 6 s lejos del personaje (8 casillas o más) y hay 2 s de margen sin combates.
+- Los valores (`max`, `moveEveryMs`, `respawnMs`, `graceMs`, `minSpawnDistance`) están en `RegionSpec.wildlife`, en `regions.ts`.
+- Ganar o perder vuelve a la casilla donde saltó el combate y perder no quita nada. No se puede huir.
+- La lógica es pura y con semilla (`packages/world/src/wildlife.ts`). El estado del mapa (posición y criaturas) se guarda en memoria entre mapa y combate; no se persiste al cerrar el juego.
+
+**Por qué:** el niño ve lo que viene y decide a qué se acerca, y no hay combates por sorpresa. **Descartado:** probabilidad por paso con pasos de gracia (el plan inicial de #8).
+
 ## 2026-11-04 · Dibujos generados por código, sin pack
 
 Sustituye a la idea de comprar un pack de pixel art (#10). El mundo y las criaturas se dibujan por código con unas reglas de estilo fijas:
