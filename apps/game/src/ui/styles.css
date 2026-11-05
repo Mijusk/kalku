@@ -40,6 +40,9 @@ body {
 #game {
   flex: 1 1 auto;
   min-height: 0;
+  /* Sin esto el canvas no deja encoger el juego y empuja el panel fuera de la pantalla. */
+  min-width: 0;
+  overflow: hidden;
   position: relative;
 }
 
@@ -103,6 +106,7 @@ body {
   margin: 0;
   font-size: 1.375rem;
   font-weight: 700;
+  text-align: center;
 }
 
 .panel-tag {
@@ -143,6 +147,9 @@ body {
   font-weight: 800;
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .answer {
@@ -231,10 +238,21 @@ body {
   }
 
   .panel {
-    height: 100%;
-    justify-content: center;
+    min-height: 100%;
+    /* «safe»: si no cabe en alto, se puede bajar con scroll sin que se corte por arriba. */
+    justify-content: safe center;
     border-top: 0;
     border-left: 4px solid var(--ink);
+  }
+
+  /* El panel mide como mucho 360 px: el ejercicio tiene que caber entero
+     («13 + 3 = □» sin cortarse), así que su letra sigue al ancho del panel. */
+  .exercise {
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
+  }
+
+  .panel-title {
+    font-size: 1.125rem;
   }
 
   .hud {
@@ -296,12 +314,13 @@ body {
 }
 
 .creature-name {
-  top: 8px;
+  /* Abajo, para no taparse con el marcador de arriba en pantallas estrechas. */
+  bottom: 48px;
   font-size: 1.1rem;
 }
 
 .creature-weakness {
-  top: 48px;
+  bottom: 8px;
   font-size: 1rem;
   color: #f4c542;
 }
@@ -309,4 +328,37 @@ body {
 .creature-name:empty,
 .creature-weakness:empty {
   display: none;
+}
+
+/* Prueba de nivel: barra de avance y botón discreto. */
+.progress-bar {
+  width: min(320px, 80%);
+  height: 12px;
+  border-radius: 999px;
+  background: #d9d2bd;
+  overflow: hidden;
+}
+
+.progress-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+}
+
+.panel-progress {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.btn-quiet {
+  min-height: 48px;
+  padding: 0 16px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 1rem;
+  text-decoration: underline;
+  cursor: pointer;
 }

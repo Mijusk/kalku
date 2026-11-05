@@ -287,6 +287,7 @@ export class BattleScene extends Phaser.Scene {
     const helped = turn.tries > 0 || turn.hintLevel > 0;
     const skill = turn.exercise.skill;
 
+    const wasMastered = isMastered(this.progress.profile[skill]);
     this.progress.profile = applyAnswer(this.progress.profile, skill, { correct, helped, slot: turn.slot });
     const score = scoreAnswer({
       correct,
@@ -313,7 +314,8 @@ export class BattleScene extends Phaser.Scene {
       }
       this.hit(this.enemy, damage);
     }
-    if (isMastered(this.progress.profile[skill]) && !this.progress.gems.includes(skill)) {
+    // La gema se gana al cruzar el umbral jugando: lo que da la prueba de nivel no cuenta.
+    if (!wasMastered && isMastered(this.progress.profile[skill]) && !this.progress.gems.includes(skill)) {
       this.progress.gems.push(skill);
       this.panel.showFeedback(`${tr('gem', locale)} ${getSkill(skill).name[locale]}`, 'good');
     }

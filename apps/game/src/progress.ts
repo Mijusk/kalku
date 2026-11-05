@@ -42,12 +42,23 @@ export interface PlayerProgress {
   settings: Settings;
   /** Encuentros por familia de criatura (para retirar el cartel de debilidad). */
   encounters: EncounterCounts;
+  /** La prueba de nivel inicial ya se hizo (o se saltó). Solo sale la primera vez. */
+  placementDone: boolean;
 }
 
 const STORAGE_KEY = 'kalku:progress';
 
 export function defaultProgress(): PlayerProgress {
-  return { version: 1, locale: 'es', coins: 0, profile: createProfile(), gems: [], settings: { ...DEFAULT_SETTINGS }, encounters: {} };
+  return {
+    version: 1,
+    locale: 'es',
+    coins: 0,
+    profile: createProfile(),
+    gems: [],
+    settings: { ...DEFAULT_SETTINGS },
+    encounters: {},
+    placementDone: false,
+  };
 }
 
 export function loadProgress(): PlayerProgress {
@@ -62,7 +73,10 @@ export function loadProgress(): PlayerProgress {
     // Datos guardados a mano o corruptos: solo se aceptan textos.
     const gems = Array.isArray(parsed.gems) ? parsed.gems.filter((g): g is string => typeof g === 'string') : [];
     const locale: Locale = parsed.locale === 'ca' ? 'ca' : 'es';
-    return { ...defaultProgress(), ...parsed, locale, profile, gems, settings: parseSettings(parsed.settings), encounters: parseEncounters(parsed.encounters) };
+    // Un guardado antiguo con intentos cuenta como hecho: no se molesta a quien ya juega.
+    const hasPlayed = SKILL_IDS.some((id) => profile[id].attempts > 0);
+    const placementDone = typeof parsed.placementDone === 'boolean' ? parsed.placementDone : hasPlayed;
+    return { ...defaultProgress(), ...parsed, locale, profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters) };
   } catch {
     return defaultProgress();
   }

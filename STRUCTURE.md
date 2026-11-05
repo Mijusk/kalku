@@ -40,6 +40,7 @@ kalku/
 │   │   │   ├── check.ts        Corrección de respuestas
 │   │   │   ├── hints.ts        Pistas en 3 niveles, es/ca
 │   │   │   ├── mastery.ts      Dominio 0–100 por habilidad (+8/+5/−6/−3)
+│   │   │   ├── placement.ts    Prueba de nivel: sube/baja por el currículo y da el dominio inicial (sin tiempo, sin quitar nada)
 │   │   │   ├── selection.ts    Qué habilidad toca: 60 % actual, 25 % repaso, 15 % reto
 │   │   │   └── scoring.ts      Puntos (Cifras): dificultad, racha, rapidez sin penalizar
 │   │   └── test/             Tests con vitest
@@ -81,13 +82,14 @@ kalku/
         └── src/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
-            ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage)
+            ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage), incluido placementDone (tests en apps/game/test/)
             ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
             ├── art/
             │   ├── pixelArt.ts El personaje, dibujado como texto (provisional hasta que se haga por capas)
             │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets (uno por fotograma del agua), criaturas y edificios
             ├── scenes/         Escenas de Phaser
-            │   ├── BootScene.ts    Genera las texturas (mundo, criaturas) y elige escena: mapa, o combate con ?combate
+            │   ├── BootScene.ts    Genera las texturas (mundo, criaturas) y elige escena: prueba de nivel la primera vez, si no el mapa, o combate con ?combate
+            │   ├── PlacementScene.ts Prueba de nivel de la primera vez («¡Vamos a ver qué sabes!»), con «Ahora no»
             │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara
             │   └── BattleScene.ts  Combate por turnos de prueba, con una criatura generada que respira y parpadea
             └── ui/             Interfaz HTML encima del canvas
