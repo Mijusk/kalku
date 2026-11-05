@@ -14,7 +14,20 @@ export interface PanelCallbacks {
   onOpenSettings(): void;
 }
 
+/** Cabecera opcional del ejercicio (la usa la prueba de nivel). */
+export interface ExerciseChrome {
+  title: string;
+  /** Texto de la barra de avance, por ejemplo «Ejercicio 3 / 10». */
+  progressLabel: string;
+  /** 0–1. */
+  progress: number;
+  skipLabel: string;
+  onSkip(): void;
+}
+
 export class ExercisePanel {
+  private readonly keyListener = (e: KeyboardEvent): void => this.onKey(e);
+
   private readonly root: HTMLElement;
   private answer = '';
   private locale: Locale = 'es';
@@ -23,7 +36,13 @@ export class ExercisePanel {
     this.root = document.createElement('div');
     this.root.className = 'panel';
     container.append(this.root);
-    window.addEventListener('keydown', (e) => this.onKey(e));
+    window.addEventListener('keydown', this.keyListener);
+  }
+
+  /** Quita el panel y deja de escuchar el teclado (al salir de la escena). */
+  destroy(): void {
+    window.removeEventListener('keydown', this.keyListener);
+    this.root.remove();
   }
 
   setLocale(locale: Locale): void {
@@ -43,7 +62,7 @@ export class ExercisePanel {
     );
   }
 
-  showExercise(exercise: Exercise, tag?: string): void {
+  showExercise(exercise: Exercise, tag?: string, chrome?: ExerciseChrome): void {
     this.answer = '';
     this.root.dataset.state = 'exercise';
     const keypad = el('div', 'keypad');
@@ -53,6 +72,7 @@ export class ExercisePanel {
       keypad.append(button(key, key === '✓' ? 'key key-ok' : 'key', action, key === '⌫' ? tr('erase', this.locale) : undefined));
     }
     this.root.replaceChildren(
+      ...(chrome ? headerOf(chrome) : []),
       tag ? el('p', 'panel-tag', tag) : el('span'),
       el('p', 'exercise', formatExercise(exercise, '▢')),
       el('p', 'answer', ''),
@@ -62,6 +82,7 @@ export class ExercisePanel {
         button(tr('hint', this.locale), 'btn btn-small', () => this.callbacks.onHint()),
         button(tr('check', this.locale), 'btn btn-primary', () => this.submit()),
       ),
+      ...(chrome ? [button(chrome.skipLabel, 'btn btn-quiet', () => chrome.onSkip())] : []),
     );
     this.renderAnswer();
   }
@@ -78,12 +99,12 @@ export class ExercisePanel {
     this.renderAnswer();
   }
 
-  showResult(title: string, detail: string): void {
+  showResult(title: string, detail: string, nextLabel = tr('nextBattle', this.locale)): void {
     this.root.dataset.state = 'result';
     this.root.replaceChildren(
       el('p', 'panel-title', title),
       el('p', 'panel-feedback', detail),
-      button(tr('nextBattle', this.locale), 'btn btn-primary', () => this.callbacks.onNext()),
+      button(nextLabel, 'btn btn-primary', () => this.callbacks.onNext()),
     );
   }
 
@@ -121,6 +142,19 @@ function el(tag: string, className = '', text = ''): HTMLElement {
   if (className) node.className = className;
   if (text) node.textContent = text;
   return node;
+}
+
+function headerOf(chrome: ExerciseChrome): HTMLElement[] {
+  const bar = el('div', 'progress-bar');
+  bar.setAttribute('role', 'progressbar');
+  bar.setAttribute('aria-label', chrome.progressLabel);
+  bar.setAttribute('aria-valuemin', '0');
+  bar.setAttribute('aria-valuemax', '100');
+  bar.setAttribute('aria-valuenow', String(Math.round(chrome.progress * 100)));
+  const fill = el('span');
+  fill.style.width = `${Math.round(chrome.progress * 100)}%`;
+  bar.append(fill);
+  return [el('p', 'panel-title', chrome.title), bar, el('p', 'panel-progress', chrome.progressLabel)];
 }
 
 function row(...children: HTMLElement[]): HTMLElement {

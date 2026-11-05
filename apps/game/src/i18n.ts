@@ -33,6 +33,11 @@ const STRINGS = {
   off: { es: 'No', ca: 'No' },
   normal: { es: 'Normal', ca: 'Normal' },
   large: { es: 'Grande', ca: 'Gran' },
+  placementTitle: { es: '¡Vamos a ver qué sabes!', ca: 'Anem a veure què saps!' },
+  placementProgress: { es: 'Ejercicio', ca: 'Exercici' },
+  placementSkip: { es: 'Ahora no', ca: 'Ara no' },
+  placementDone: { es: '¡Listo! Ya sé por dónde empezar.', ca: 'Fet! Ja sé per on començar.' },
+  placementGo: { es: 'A jugar', ca: 'A jugar' },
   language: { es: 'Català', ca: 'Castellano' },
 } as const satisfies Record<string, Record<Locale, string>>;
 

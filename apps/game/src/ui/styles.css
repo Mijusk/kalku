@@ -282,3 +282,36 @@ body {
   background: var(--primary);
   color: #fff;
 }
+
+/* Prueba de nivel: barra de avance y botón discreto. */
+.progress-bar {
+  width: min(320px, 80%);
+  height: 12px;
+  border-radius: 999px;
+  background: #d9d2bd;
+  overflow: hidden;
+}
+
+.progress-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+}
+
+.panel-progress {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.btn-quiet {
+  min-height: 48px;
+  padding: 0 16px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 1rem;
+  text-decoration: underline;
+  cursor: pointer;
+}

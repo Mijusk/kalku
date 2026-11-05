@@ -2,6 +2,19 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-05 · Prueba de nivel al empezar (#36)
+
+- **Una sola vez, corta, como un juego:** «¡Vamos a ver qué sabes!», barra de avance, sin notas, sin tiempo. 10 ejercicios, tope duro de 12 (`PLACEMENT_LENGTH`, `PLACEMENT_MAX`). Termina antes si el nivel rebota entre dos habilidades vecinas o toca techo o suelo dos veces seguidas.
+- **Cómo avanza:** empieza a mitad del currículo; sube un puesto en `SKILLS` al acertar y baja uno al fallar. Cuenta como acierto solo si se responde sin fallos ni pistas; fallar da la pista habitual y no quita nada. La lógica no recibe el tiempo de respuesta: ser lento no cambia el resultado.
+- **Dominio inicial (decidido con Luis):** por debajo del nivel detectado, 80 con 10 intentos «de prueba»; el nivel, 40; por encima, 0. El nivel detectado es la habilidad siguiente a la más alta en la que se acertó más de lo que se falló. Si no se acierta nada, todo queda en 0. `applyPlacement` nunca baja nada y no muta el perfil.
+- **Sin gemas:** la gema se da al cruzar el umbral de dominio jugando, no por tenerlo ya (`BattleScene` mira si ya estaba dominada antes de responder), así que la prueba no las otorga (regla 1).
+- **«Ahora no»:** botón discreto que deja todo en 0 y marca la prueba como hecha.
+- **Solo la primera vez:** `placementDone` en el progreso. Un guardado antiguo sin el campo y con intentos cuenta como hecho, para no molestar a quien ya juega. `?combate` se salta la prueba.
+
+**Por qué:** que cada niño empiece a su nivel (regla 4) y no por «sumas hasta 10». Idea tomada de la prueba de nivel de Prodigy, pero en una sola sesión corta para niños de 6 años.
+
+**Pendiente (fuera de alcance):** repetirla en enero o septiembre, que el docente cambie el nivel (fase 2) y guardarla en el servidor.
+
 ## 2026-11-05 · Paquete `@kalku/art`: cómo se generan los dibujos
 
 Implementa la decisión de abajo (#10). Los dibujos salen de `packages/art` (TypeScript puro, sin Phaser) y `apps/game` solo los pasa a texturas.
