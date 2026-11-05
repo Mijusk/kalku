@@ -19,6 +19,7 @@ import {
 import { tr } from '../i18n';
 import { applyTextSize, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { ExercisePanel } from '../ui/ExercisePanel';
+import { SettingsPanel } from '../ui/SettingsPanel';
 
 /** Intentos por ejercicio antes de enseñar la respuesta y seguir. */
 const MAX_TRIES = 3;
@@ -66,7 +67,7 @@ export class PlacementScene extends Phaser.Scene {
       onSubmit: (answer) => this.submit(answer),
       onHint: () => this.showNextHint(),
       onNext: () => this.leave(),
-      onOpenSettings: () => undefined,
+      onOpenSettings: () => this.openSettings(),
     });
     this.panel.setLocale(this.progress.locale);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.panel.destroy());
@@ -79,6 +80,10 @@ export class PlacementScene extends Phaser.Scene {
     const exercise = generateExercise(skill, this.rng);
     this.question = { exercise, tries: 0, hintLevel: 0 };
     this.busy = false;
+    this.presentQuestion(exercise);
+  }
+
+  private presentQuestion(exercise: Exercise): void {
     const locale = this.progress.locale;
     const total = PLACEMENT_LENGTH;
     this.panel.showExercise(exercise, undefined, {
@@ -86,7 +91,29 @@ export class PlacementScene extends Phaser.Scene {
       progressLabel: `${tr('placementProgress', locale)} ${this.state.asked + 1} / ${total}`,
       progress: this.state.asked / total,
       skipLabel: tr('placementSkip', locale),
-      onSkip: () => this.finish(true),
+      onSkip: () => {
+        if (!this.busy) this.finish(true);
+      },
+    });
+  }
+
+  private settingsOpen = false;
+
+  private openSettings(): void {
+    const ui = document.getElementById('ui');
+    if (!ui || this.settingsOpen || this.busy) return;
+    this.settingsOpen = true;
+    new SettingsPanel(ui, this.progress, {
+      onChange: () => {
+        applyTextSize(this.progress.settings);
+        saveProgress(this.progress);
+        this.panel.setLocale(this.progress.locale);
+      },
+      onClose: () => {
+        this.settingsOpen = false;
+        // Mismo ejercicio, con el idioma nuevo.
+        if (this.question) this.presentQuestion(this.question.exercise);
+      },
     });
   }
 
