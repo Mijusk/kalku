@@ -1,0 +1,19 @@
+# Cabeceras de Cloudflare Pages.
+# El service worker, la página y el manifiesto se comprueban siempre, para que
+# una versión nueva llegue en la siguiente visita. Los ficheros de assets/
+# llevan su huella en el nombre y no cambian nunca: se guardan un año.
+
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

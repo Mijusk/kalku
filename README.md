@@ -2,6 +2,8 @@
 
 Aventura de matemáticas en pixel art para niños de 6 a 12 años: cada ataque se gana resolviendo un ejercicio. En castellano y catalán, alineado con la LOMLOE, gratis para el niño y sin anuncios.
 
+**Jugar:** https://kalku-6ty.pages.dev (se actualiza sola al fusionar en `main`; cada pull request tiene su propia vista previa).
+
 ## Arrancar
 
 Necesitas Node 22.
