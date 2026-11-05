@@ -53,7 +53,11 @@ describe('casillas del mundo', () => {
     const frames = Array.from({ length: WATER_FRAMES }, (_, f) => drawWater(255, f));
     expect(same(frames[0] as Grid, frames[1] as Grid)).toBe(false);
     expect(same(frames[1] as Grid, frames[2] as Grid)).toBe(false);
-    expect(same(tilesetGrids(0)[TILESET_SIZE - 1] as Grid, tilesetGrids(WATER_FRAMES)[TILESET_SIZE - 1] as Grid)).toBe(true);
+    const first = tilesetGrids(0);
+    const looped = tilesetGrids(WATER_FRAMES);
+    expect(first.every((g, i) => same(g, looped[i] as Grid))).toBe(true);
+    const next = tilesetGrids(1);
+    expect(first.some((g, i) => !same(g, next[i] as Grid))).toBe(true);
   });
 
   it('el agua con orilla es distinta del agua rodeada de agua', () => {

@@ -109,7 +109,7 @@ export class BattleScene extends Phaser.Scene {
       for (let x = 0; x < GAME_WIDTH; x += 16) {
         // Hierba generada; de vez en cuando, flores.
         const frame = bg.chance(0.12) ? flowerFrame(bg.int(0, FLOWER_VARIANTS - 1)) : grassFrame(bg.int(0, GRASS_VARIANTS - 1));
-        this.add.image(x, y, TILESET_KEYS[0] ?? '', frame).setOrigin(0).setScale(2);
+        this.add.image(x, y, TILESET_KEYS[0] ?? '', frame).setOrigin(0);
       }
     }
   }
