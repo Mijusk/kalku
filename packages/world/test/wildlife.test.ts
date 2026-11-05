@@ -60,7 +60,10 @@ describe('criaturas visibles', () => {
     }
     const later = run(3, 100);
     const start = createWildlife(map, spec, hero, createRng(3), assign);
-    expect(later.wanderers.some((w) => w.tile !== start.wanderers.find((s) => s.id === w.id)?.tile)).toBe(true);
+    expect(later.wanderers.some((w) => {
+        const first = start.wanderers.find((s) => s.id === w.id);
+        return first !== undefined && (w.tile.x !== first.tile.x || w.tile.y !== first.tile.y);
+      })).toBe(true);
   });
 
   it('es determinista con la misma semilla', () => {

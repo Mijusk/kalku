@@ -98,8 +98,9 @@ export class WorldScene extends Phaser.Scene {
       (r) => this.assignCreature(r),
     );
     this.syncWild();
-    if (this.checkEncounter()) return;
+    // El encuentro se comprueba al llegar, para no cortar la animación del paso.
     if (this.moving) return;
+    if (this.checkEncounter()) return;
     const pressed = this.pressedDirection() ?? this.queued;
     this.queued = undefined;
     if (pressed !== undefined) {
