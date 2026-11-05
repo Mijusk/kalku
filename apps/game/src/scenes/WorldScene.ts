@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { generateRegion, pathTo, PRADERA_UNO, step, type Direction, type Point, type RegionMap } from '@kalku/world';
-import { TILE_SIZE, TILESET_KEY, tilemapData } from '../art/tiles';
+import { findBuildings, tilemapData } from '@kalku/art';
+import { ANIMATION_MS, buildingTexture, TILE_SIZE, TILESET_KEYS } from '../art/textures';
 
 /** Semilla fija de Pradera Uno: todos los niños ven el mismo mapa. */
 const PRADERA_UNO_SEED = 42;
@@ -32,13 +33,11 @@ export class WorldScene extends Phaser.Scene {
     document.getElementById('ui')?.replaceChildren();
 
     this.region = generateRegion(PRADERA_UNO, PRADERA_UNO_SEED);
-    const tilemap = this.make.tilemap({ data: tilemapData(this.region), tileWidth: TILE_SIZE, tileHeight: TILE_SIZE });
-    const tileset = tilemap.addTilesetImage(TILESET_KEY, TILESET_KEY, TILE_SIZE, TILE_SIZE, 0, 0);
-    if (tileset === null) throw new Error('No se pudo crear el tileset del mapa');
-    tilemap.createLayer(0, tileset, 0, 0);
+    this.createGround();
+    this.createBuildings();
 
     this.tile = { ...this.region.entrance };
-    this.hero = this.add.image(this.centerOf(this.tile).x, this.centerOf(this.tile).y, 'hero');
+    this.hero = this.add.image(this.centerOf(this.tile).x, this.centerOf(this.tile).y, 'hero').setDepth(2);
 
     const camera = this.cameras.main;
     camera.setBounds(0, 0, this.region.width * TILE_SIZE, this.region.height * TILE_SIZE);
@@ -48,7 +47,46 @@ export class WorldScene extends Phaser.Scene {
     this.setupKeyboard();
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
       const target = { x: Math.floor(pointer.worldX / TILE_SIZE), y: Math.floor(pointer.worldY / TILE_SIZE) };
-      this.route = pathTo(this.region, this.tile, target);    });
+      this.route = pathTo(this.region, this.tile, target);
+    });
+  }
+
+  /**
+   * El suelo: un tilemap por fotograma del agua (mismos datos, otro tileset)
+   * y solo se ve uno. Cambiar cuál se ve cada rato anima el agua sin tocar
+   * ninguna casilla. Con «reducir movimiento» el agua se queda quieta.
+   */
+  private createGround(): void {
+    const data = tilemapData(this.region, PRADERA_UNO_SEED);
+    const layers = TILESET_KEYS.map((key, i) => {
+      const tilemap = this.make.tilemap({ data, tileWidth: TILE_SIZE, tileHeight: TILE_SIZE });
+      const tileset = tilemap.addTilesetImage(key, key, TILE_SIZE, TILE_SIZE, 0, 0);
+      if (tileset === null) throw new Error('No se pudo crear el tileset del mapa');
+      const layer = tilemap.createLayer(0, tileset, 0, 0);
+      if (layer === null) throw new Error('No se pudo crear la capa del mapa');
+      return layer.setVisible(i === 0);
+    });
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let shown = 0;
+    this.time.addEvent({
+      delay: ANIMATION_MS * 2,
+      loop: true,
+      callback: () => {
+        layers[shown]?.setVisible(false);
+        shown = (shown + 1) % layers.length;
+        layers[shown]?.setVisible(true);
+      },
+    });
+  }
+
+  /** Casas y tienda: cada edificio entero encima del suelo (el suelo de debajo es hierba). */
+  private createBuildings(): void {
+    for (const building of findBuildings(this.region)) {
+      this.add
+        .image(building.x * TILE_SIZE, building.y * TILE_SIZE, buildingTexture(this, building))
+        .setOrigin(0)
+        .setDepth(1);
+    }
   }
 
   override update(): void {

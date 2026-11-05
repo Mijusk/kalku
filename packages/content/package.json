@@ -15,6 +15,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@kalku/art": "0.1.0",
     "@kalku/exercises": "0.1.0"
   }
 }
