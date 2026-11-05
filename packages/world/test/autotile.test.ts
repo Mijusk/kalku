@@ -5,11 +5,13 @@ import {
   MASK,
   neighborMask,
   PATH_TILES,
+  PATH_TILES_8,
   PRADERA_UNO,
   validateTable,
   validMasks,
   variantFor,
   WATER_TILES,
+  WATER_TILES_8,
   type AutotileTable,
   type TileKind,
   type WorldMap,
@@ -200,5 +202,17 @@ describe('autotile', () => {
     // El centro tiene las 8 vecinas de agua, pero en modo 4 solo salen los lados.
     expect(neighborMask(lake, 2, 2, 4)).toBe(N | E | S | W);
     expect(neighborMask(lake, 2, 2, 4) & (NE | SE | SW | NW)).toBe(0);
+  });
+});
+
+describe('tablas de 47 variantes (las del juego)', () => {
+  it('son válidas y dan una variante distinta a cada máscara posible', () => {
+    for (const table of [WATER_TILES_8, PATH_TILES_8]) {
+      validateTable(table);
+      const masks = validMasks(8);
+      expect(masks).toHaveLength(47);
+      expect(new Set(masks.map((m) => variantFor(m, table))).size).toBe(47);
+      expect(Math.max(...masks.map((m) => variantFor(m, table)))).toBe(46);
+    }
   });
 });

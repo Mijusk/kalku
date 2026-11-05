@@ -12,7 +12,7 @@ Bloques de desarrollo: 1 Publicar · 2 Mapa · 3 Encuentros · 4 Gráficos y tie
 - [x] Paquete de ejercicios: sumas y restas hasta 20, corrección y pistas
 - [x] Motor de dominio (0–100) y mezcla 60/25/15
 - [x] Combate de prueba con ataque rápido y fuerte, puntos y gemas
-- [ ] Generador de dibujos por código: mundo por reglas y semilla, criaturas por piezas, sin pack (#10)
+- [x] Generador de dibujos por código: mundo por reglas y semilla, criaturas por piezas, sin pack (#10)
 - [x] Generador de mapas: una zona de Pradera Uno con semilla fija y un lugar especial en texto
 - [ ] Moverse por el mapa y encontrar criaturas
 - [ ] Tienda de 5 objetos cosméticos

@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/exercises" },
     { "path": "packages/world" },
+    { "path": "packages/art" },
     { "path": "packages/content" },
     { "path": "apps/game" }
   ]

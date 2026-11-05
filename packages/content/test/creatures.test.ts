@@ -1,3 +1,4 @@
+import { drawCreature, type CreatureLook } from '@kalku/art';
 import { SKILL_IDS, type SkillId } from '@kalku/exercises';
 import { describe, expect, it } from 'vitest';
 import { CREATURES, creaturesForSkill, FAMILIES, getCreature, validateCreatures, type CreatureDefinition } from '../src/index.js';
@@ -69,5 +70,35 @@ describe('creaturesForSkill', () => {
       expect(found.length).toBeGreaterThan(0);
       for (const c of found) expect(c.skill).toBe(skill);
     }
+  });
+});
+
+describe('piezas de las criaturas', () => {
+  it('falla si el símbolo no es el de su familia', () => {
+    const c = broken({ look: { ...base.look, sign: '-' } });
+    expect(validateCreatures([c])).toContain('sumus-brote: el símbolo «-» no es el de la familia sumus');
+  });
+
+  it('falla si una pieza no existe', () => {
+    const c = broken({ look: { ...base.look, body: 'cubo' } });
+    expect(validateCreatures([c])).toContain('sumus-brote: el cuerpo «cubo» no existe');
+  });
+
+  it('las 6 criaturas se dibujan y no hay dos iguales', () => {
+    const drawings = CREATURES.map((c) => drawCreature(c.look)[0]?.px.join(',') ?? '');
+    expect(new Set(drawings).size).toBe(CREATURES.length);
+  });
+
+  it('añadir una criatura es solo añadir datos: se valida y se dibuja sin tocar lógica', () => {
+    const look: CreatureLook = { ramp: 'rosa', body: 'drop', top: 'antenna', eyes: 'sleepy', cheeks: true, sign: '+' };
+    const nueva = broken({
+      id: 'sumus-nuevo',
+      sprite: 'creature-sumus-nuevo',
+      name: { es: 'Sumus Nuevo', ca: 'Sumus Nou' },
+      description: { es: 'Una prueba.', ca: 'Una prova.' },
+      look,
+    });
+    expect(validateCreatures([...CREATURES, nueva])).toEqual([]);
+    expect(drawCreature(nueva.look)).toHaveLength(8);
   });
 });

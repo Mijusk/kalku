@@ -52,14 +52,24 @@ kalku/
 │   │   │   ├── pieces.ts       Lugares hechos a mano como texto (leyenda, pueblo y arena provisionales)
 │   │   │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
 │   │   │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
-│   │   │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla por pack
+│   │   │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla (16 o 47 variantes)
 │   │   │   ├── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
 │   │   │   └── wildlife.ts     Criaturas visibles en la hierba alta: aparecer, andar, combate al coincidir, reaparecer
+│   │   └── test/             Tests con vitest
+│   ├── art/                  @kalku/art: dibujos generados por código con reglas de estilo fijas, TypeScript puro
+│   │   ├── src/
+│   │   │   ├── index.ts        Exporta todo el paquete
+│   │   │   ├── grid.ts         Rejilla de píxeles, contorno, luz desde arriba a la izquierda, paso a RGBA y tiras
+│   │   │   ├── palette.ts      Escalas de color por material y por criatura (datos)
+│   │   │   ├── tiles.ts        Casillas de 16 px: hierba, flores, hierba alta, piedra, árbol, jefe, agua animada y camino
+│   │   │   ├── tileset.ts      Orden del tileset y fotograma de cada casilla del mapa (con autotile de 47 variantes)
+│   │   │   ├── buildings.ts    findBuildings (agrupa casillas) y drawBuilding: casa y tienda de cualquier tamaño
+│   │   │   └── creatures.ts    CreatureLook (piezas como datos) y drawCreature: 8 fotogramas de 32 px
 │   │   └── test/             Tests con vitest
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
-│       │   └── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno; creaturesForSkill; validateCreatures
+│       │   └── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
 │       └── test/             Tests con vitest
 │
 └── apps/
@@ -73,12 +83,12 @@ kalku/
             ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage)
             ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
             ├── art/
-            │   ├── pixelArt.ts Sprites provisionales dibujados como texto (también las 16 orillas de agua y camino)
-            │   └── tiles.ts    Tileset del mapa: orden de las casillas y fotograma de cada una (con autotile)
+            │   ├── pixelArt.ts El personaje, dibujado como texto (provisional hasta que se haga por capas)
+            │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets (uno por fotograma del agua), criaturas y edificios
             ├── scenes/         Escenas de Phaser
-            │   ├── BootScene.ts    Crea o carga texturas (también el tileset) y elige escena: mapa, o combate con ?combate
-            │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap, personaje, criaturas visibles, teclado y toque, cámara
-            │   └── BattleScene.ts  Combate por turnos de prueba
+            │   ├── BootScene.ts    Genera las texturas (mundo, criaturas) y elige escena: mapa, o combate con ?combate
+            │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara
+            │   └── BattleScene.ts  Combate por turnos de prueba, con una criatura generada que respira y parpadea
             └── ui/             Interfaz HTML encima del canvas
                 ├── ExercisePanel.ts  Ejercicio, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio

@@ -8,5 +8,5 @@
     "types": []
   },
   "include": ["src"],
-  "references": [{ "path": "../exercises" }]
+  "references": [{ "path": "../exercises" }, { "path": "../art" }]
 }
