@@ -5,7 +5,7 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 ## 2026-11-06 · Rescatar criaturas débiles (#37)
 
 - **Cuándo sale «Rescatar»:** con el 25 % de vida o menos (`RESCUE_HP_RATIO`) y más de 0, y nunca con un jefe (`boss: true` en la criatura; hoy no hay ninguno, un test avisa si cambia).
-- **Rescatar es un ejercicio normal** de la habilidad de la criatura, con las mismas pistas y tres intentos. Al acertar, la criatura entra en la colección y el combate termina como victoria, con las monedas normales del ejercicio (decidido con Luis). Al fallar pasa lo de siempre: pista y turno; no se quita nada y la criatura no huye ni se cura.
+- **Rescatar es un ejercicio normal** de la habilidad de la criatura, con las mismas pistas y tres intentos. Al acertar, la criatura entra en la colección y el combate termina como victoria, con las monedas normales del ejercicio (decidido con Luis). Al fallar: pista y otra oportunidad; el enemigo no contraataca en un rescate fallido, así que el niño no puede perder el combate (y la criatura) por intentarlo.
 - **Solo coleccionar:** la colección se escribe desde el combate pero no se lee en él, así que no da ventaja (regla 1). Guarda solo id y fecha en el perfil local (`collection`); `parseCollection` descarta ids desconocidos y datos corruptos.
 - **Repetidas:** una criatura ya rescatada se puede volver a encontrar y el botón sigue saliendo (siempre hay combate que practicar), pero no se duplica y conserva la fecha del primer rescate.
 - **Dónde se ve:** botón «Colección» en el mapa (no en el combate). Las que faltan salen en silueta y sin nombre.

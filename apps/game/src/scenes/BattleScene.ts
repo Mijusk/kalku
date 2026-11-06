@@ -350,6 +350,14 @@ export class BattleScene extends Phaser.Scene {
 
     this.time.delayedCall(900, () => {
       if (this.rescuedNow || this.enemy.hp <= 0) return this.endBattle(true);
+      // Fallar un rescate no cuesta nada: el enemigo no contraataca, así la criatura no huye
+      // y se puede volver a intentar.
+      if (turn.rescue && !correct) {
+        this.busy = false;
+        this.turn = undefined;
+        this.showActions();
+        return;
+      }
       this.hit(this.player, BATTLE.enemyDamage);
       this.time.delayedCall(600, () => {
         if (this.player.hp <= 0) return this.endBattle(false);
