@@ -103,6 +103,7 @@ export class BattleScene extends Phaser.Scene {
     this.turn = undefined;
     this.streak = 0;
     this.rescuedNow = undefined;
+    this.revealed = undefined;
     this.settingsOpen = false;
     this.progress = loadProgress();
     this.rng = createRng(randomSeed());
@@ -215,6 +216,7 @@ export class BattleScene extends Phaser.Scene {
     this.drawBar(this.player);
     this.turn = undefined;
     this.rescuedNow = undefined;
+    this.revealed = undefined;
     this.busy = false;
     this.refreshHud();
     this.showActions();
@@ -223,7 +225,7 @@ export class BattleScene extends Phaser.Scene {
   /** Muestra los ataques; «Rescatar» solo si a la criatura le queda poca vida y no es un jefe. */
   private showActions(): void {
     const rescuable = this.creature !== undefined && canRescue(this.creature, this.enemy.hp, this.enemy.maxHp);
-    this.panel.showActions(undefined, rescuable);
+    this.panel.showActions(this.revealed, rescuable);
   }
 
   /** Cuenta el encuentro una sola vez por combate, al empezar, y decide si sale el cartel. */
@@ -241,6 +243,7 @@ export class BattleScene extends Phaser.Scene {
 
   private startTurn(action: 'quick' | 'strong' | 'rescue'): void {
     if (this.busy) return;
+    this.revealed = undefined;
     const strong = action === 'strong';
     const rescue = action === 'rescue';
     // Por si el botón llega tarde: el rescate se vuelve a comprobar con la vida actual.
@@ -281,7 +284,10 @@ export class BattleScene extends Phaser.Scene {
     turn.tries += 1;
     this.panel.clearAnswer();
     if (turn.tries >= BATTLE.maxTries) {
-      this.panel.showFeedback(`${tr('reveal', locale)} ${turn.exercise.answer}.`, 'info');
+      const reveal = `${tr('reveal', locale)} ${turn.exercise.answer}.`;
+      this.panel.showFeedback(reveal, 'info');
+      // Se queda en el panel de acciones hasta que el niño elija otra cosa, también tras los ajustes.
+      this.revealed = reveal;
       this.finishTurn(false);
       return;
     }
@@ -401,6 +407,8 @@ export class BattleScene extends Phaser.Scene {
   private settingsOpen = false;
   /** Si en este combate se ha rescatado a la criatura: nueva en la colección o ya la tenía. */
   private rescuedNow: 'new' | 'again' | undefined;
+  /** Respuesta revelada tras agotar los intentos; se muestra en las acciones hasta el siguiente turno. */
+  private revealed: string | undefined;
 
   private openSettings(): void {
     const ui = document.getElementById('ui');
