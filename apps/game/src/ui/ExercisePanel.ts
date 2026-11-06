@@ -7,7 +7,7 @@ import { tr } from '../i18n';
  * nítidos, con teclado numérico en pantalla para tablets.
  */
 export interface PanelCallbacks {
-  onAction(action: 'quick' | 'strong'): void;
+  onAction(action: 'quick' | 'strong' | 'rescue'): void;
   onSubmit(answer: string): void;
   onHint(): void;
   onNext(): void;
@@ -49,7 +49,7 @@ export class ExercisePanel {
     this.locale = locale;
   }
 
-  showActions(tag?: string): void {
+  showActions(tag?: string, canRescue = false): void {
     this.root.dataset.state = 'actions';
     this.root.replaceChildren(
       el('p', 'panel-title', tr('chooseAction', this.locale)),
@@ -57,6 +57,7 @@ export class ExercisePanel {
         button(tr('quickAttack', this.locale), 'btn btn-primary', () => this.callbacks.onAction('quick')),
         button(tr('strongAttack', this.locale), 'btn btn-danger', () => this.callbacks.onAction('strong')),
       ),
+      ...(canRescue ? [button(tr('rescue', this.locale), 'btn btn-rescue', () => this.callbacks.onAction('rescue'))] : []),
       tag ? el('p', 'panel-feedback', tag) : el('span'),
       button(tr('settings', this.locale), 'btn btn-small', () => this.callbacks.onOpenSettings()),
     );

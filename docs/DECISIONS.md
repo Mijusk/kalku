@@ -2,6 +2,16 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-06 · Rescatar criaturas débiles (#37)
+
+- **Cuándo sale «Rescatar»:** con el 25 % de vida o menos (`RESCUE_HP_RATIO`) y más de 0, y nunca con un jefe (`boss: true` en la criatura; hoy no hay ninguno, un test avisa si cambia).
+- **Rescatar es un ejercicio normal** de la habilidad de la criatura, con las mismas pistas y tres intentos. Al acertar, la criatura entra en la colección y el combate termina como victoria, con las monedas normales del ejercicio (decidido con Luis). Al fallar pasa lo de siempre: pista y turno; no se quita nada y la criatura no huye ni se cura.
+- **Solo coleccionar:** la colección se escribe desde el combate pero no se lee en él, así que no da ventaja (regla 1). Guarda solo id y fecha en el perfil local (`collection`); `parseCollection` descarta ids desconocidos y datos corruptos.
+- **Repetidas:** una criatura ya rescatada se puede volver a encontrar y el botón sigue saliendo (siempre hay combate que practicar), pero no se duplica y conserva la fecha del primer rescate.
+- **Dónde se ve:** botón «Colección» en el mapa (no en el combate). Las que faltan salen en silueta y sin nombre.
+
+**Por qué:** que el niño tenga ganas de seguir explorando y practicando. Idea tomada del rescate de Prodigy, con mecánica propia. **Pendiente (fuera de alcance):** combatir con las criaturas rescatadas, equipos y guardar la colección en el servidor.
+
 ## 2026-11-05 · Prueba de nivel al empezar (#36)
 
 - **Una sola vez, corta, como un juego:** «¡Vamos a ver qué sabes!», barra de avance, sin notas, sin tiempo. 10 ejercicios, tope duro de 12 (`PLACEMENT_LENGTH`, `PLACEMENT_MAX`). Termina antes si el nivel rebota entre dos habilidades vecinas o toca techo o suelo dos veces seguidas.
