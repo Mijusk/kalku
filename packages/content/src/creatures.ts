@@ -43,6 +43,8 @@ export interface CreatureDefinition {
   look: CreatureLook;
   /** Nombre pendiente de aprobar por Luis. */
   provisional: boolean;
+  /** Los jefes nunca se pueden rescatar. Ausente cuenta como false. */
+  boss?: boolean;
 }
 
 /**

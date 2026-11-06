@@ -46,3 +46,22 @@ describe('placementDone al cargar', () => {
     expect(loadProgress().placementDone).toBe(false);
   });
 });
+
+describe('colección al cargar', () => {
+  it('un guardado antiguo sin colección se carga con la colección vacía', () => {
+    const { collection: _omit, ...old } = defaultProgress();
+    stubStorage(old);
+    expect(loadProgress().collection).toEqual([]);
+  });
+
+  it('conserva las criaturas rescatadas y descarta las desconocidas', () => {
+    stubStorage({
+      ...defaultProgress(),
+      collection: [
+        { id: 'sumus-brote', date: '2026-11-06' },
+        { id: 'dragon', date: '2026-11-06' },
+      ],
+    });
+    expect(loadProgress().collection).toEqual([{ id: 'sumus-brote', date: '2026-11-06' }]);
+  });
+});

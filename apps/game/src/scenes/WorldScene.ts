@@ -13,6 +13,7 @@ import {
   type Point,
   type RegionMap,
 } from '@kalku/world';
+import { tr } from '../i18n';
 import { loadProgress } from '../progress';
 import { WORLD_STATE_KEY, type EncounterData, type WildData, type WorldState } from '../worldState';
 import { findBuildings, tilemapData } from '@kalku/art';
@@ -54,8 +55,8 @@ export class WorldScene extends Phaser.Scene {
   }
 
   create(): void {
-    // El mapa no usa la interfaz HTML (es para los ejercicios).
-    document.getElementById('ui')?.replaceChildren();
+    // El mapa solo usa la interfaz HTML para el botón de la colección.
+    this.createCollectionButton();
 
     this.region = generateRegion(PRADERA_UNO, PRADERA_UNO_SEED);
     this.createGround();
@@ -89,6 +90,29 @@ export class WorldScene extends Phaser.Scene {
       this.route = pathTo(this.region, this.tile, target);
     });
     this.syncWild();
+  }
+
+  /** Botón «Colección» arriba a la derecha. Se abre desde el mapa, no desde el combate. */
+  private createCollectionButton(): void {
+    const ui = document.getElementById('ui');
+    if (!ui) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn btn-small world-button';
+    button.textContent = tr('collection', loadProgress().locale);
+    // El toque en el botón no debe mover al personaje.
+    button.addEventListener('pointerdown', (e) => e.stopPropagation());
+    button.addEventListener('click', () => this.openCollection());
+    ui.replaceChildren(button);
+  }
+
+  private openCollection(): void {
+    if (this.encounterStarted) return;
+    // Se guarda dónde está el personaje y las criaturas para volver al mismo sitio.
+    this.state.tile = { ...this.tile };
+    this.registry.set(WORLD_STATE_KEY, this.state);
+    this.encounterStarted = true;
+    this.scene.start('collection');
   }
 
   /**

@@ -71,6 +71,7 @@ kalku/
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
 │       │   ├── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
+│       │   ├── collection.ts   Rescate y colección: canRescue (25 % de vida, nunca jefes), addToCollection sin mutar, parseCollection, collectionStatus
 │       │   └── weakness.ts     Debilidad por operación inversa (damageMultiplier) y contador de encuentros para el cartel
 │       └── test/             Tests con vitest
 │
@@ -91,7 +92,8 @@ kalku/
             │   ├── BootScene.ts    Genera las texturas (mundo, criaturas) y elige escena: prueba de nivel la primera vez, si no el mapa, o combate con ?combate
             │   ├── PlacementScene.ts Prueba de nivel de la primera vez («¡Vamos a ver qué sabes!»), con «Ahora no»
             │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara
-            │   └── BattleScene.ts  Combate por turnos de prueba, con una criatura generada que respira y parpadea
+            │   ├── BattleScene.ts  Combate por turnos de prueba, con una criatura generada que respira y parpadea; botón «Rescatar» con poca vida
+            │   └── CollectionScene.ts Colección: criaturas rescatadas y las que faltan en silueta (HTML), se abre desde el mapa
             └── ui/             Interfaz HTML encima del canvas
                 ├── ExercisePanel.ts  Ejercicio, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio
