@@ -39,9 +39,11 @@ export const HERO_KEY = 'hero';
 
 /** (Re)crea la textura del personaje con las piezas del atuendo. Llamar al cambiar de pieza. */
 export function createHeroTexture(scene: Phaser.Scene, outfit: Outfit): void {
-  if (scene.textures.exists(HERO_KEY)) scene.textures.remove(HERO_KEY);
+  // Primero se dibuja (puede lanzar si el atuendo no es válido) y solo después se sustituye la textura.
   const art = outfitPieces(outfit).map((p) => p.art);
-  addSheet(scene, HERO_KEY, toSheet(Array.from({ length: CHARACTER_FRAMES }, (_, f) => drawCharacter(art, f))));
+  const sheet = toSheet(Array.from({ length: CHARACTER_FRAMES }, (_, f) => drawCharacter(art, f)));
+  if (scene.textures.exists(HERO_KEY)) scene.textures.remove(HERO_KEY);
+  addSheet(scene, HERO_KEY, sheet);
 }
 
 /** Genera todas las texturas del mundo y las criaturas a partir de los datos. */
