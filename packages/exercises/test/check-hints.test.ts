@@ -111,7 +111,9 @@ describe('pistas de problemas', () => {
         const numbers = (getHint(ex, 3, locale).text.match(/\d+/g) ?? []).map(Number);
         const start = ex.operator === '+' ? Math.max(ex.a, ex.b) : ex.a;
         const direction = ex.operator === '+' ? 1 : -1;
+        const operand = ex.operator === '+' ? Math.min(ex.a, ex.b) : ex.b;
         expect(numbers[0]).toBe(start);
+        expect(numbers).toHaveLength(operand);
         for (const [index, value] of numbers.entries()) {
           expect(value).toBe(start + index * direction);
         }

@@ -33,7 +33,7 @@ function storyHint(ex: Exercise, level: Hint['level'], locale: Locale): string {
     const sign = ex.operator === '+' ? '+' : '−';
     return t(locale, `Es una ${ex.operator === '+' ? 'suma' : 'resta'}: ${ex.a} ${sign} ${ex.b}`, `És una ${ex.operator === '+' ? 'suma' : 'resta'}: ${ex.a} ${sign} ${ex.b}`);
   }
-  return resultHint(ex, 2, locale);
+  return resultHint(ex, 3, locale);
 }
 
 function resultHint(ex: Exercise, level: Hint['level'], locale: Locale): string {
