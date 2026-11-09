@@ -66,12 +66,14 @@ kalku/
 │   │   │   ├── tiles.ts        Casillas de 16 px: hierba, flores, hierba alta, piedra, árbol, jefe, agua animada y camino
 │   │   │   ├── tileset.ts      Orden del tileset y fotograma de cada casilla del mapa (con autotile de 47 variantes)
 │   │   │   ├── buildings.ts    findBuildings (agrupa casillas) y drawBuilding: casa y tienda de cualquier tamaño
-│   │   │   └── creatures.ts    CreatureLook (piezas como datos) y drawCreature: 8 fotogramas de 32 px
+│   │   │   ├── creatures.ts    CreatureLook (piezas como datos) y drawCreature: 8 fotogramas de 32 px
+│   │   │   └── character.ts    Personaje por capas: PieceArt (dibujo como texto) y drawCharacter: 4 fotogramas de 16 px (parado, paso, parado, paso)
 │   │   └── test/             Tests con vitest
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
 │       │   ├── creatures.ts    Familias (sumus, restus, problemus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
+│       │   ├── outfit.ts       Piezas del personaje como datos (cuerpo, pelo, ropa, accesorio), DEFAULT_OUTFIT, setPiece y parseOutfit
 │       │   ├── collection.ts   Rescate y colección: canRescue (25 % de vida, nunca jefes), addToCollection sin mutar, parseCollection, collectionStatus
 │       │   └── weakness.ts     Debilidad por operación inversa (damageMultiplier; los problemus no tienen) y contador de encuentros para el cartel
 │       └── test/             Tests con vitest
@@ -85,11 +87,10 @@ kalku/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
             ├── speech.ts       Envoltorio de speechSynthesis: hay voz, leer, parar (el texto sale de @kalku/exercises)
-            ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage), incluido placementDone (tests en apps/game/test/)
+            ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage), incluidos placementDone y outfit (tests en apps/game/test/)
             ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
             ├── art/
-            │   ├── pixelArt.ts El personaje, dibujado como texto (provisional hasta que se haga por capas)
-            │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets (uno por fotograma del agua), criaturas y edificios
+            │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets (uno por fotograma del agua), criaturas, edificios y el personaje (`createHeroTexture`)
             ├── scenes/         Escenas de Phaser
             │   ├── BootScene.ts    Genera las texturas (mundo, criaturas) y elige escena: prueba de nivel la primera vez, si no el mapa, o combate con ?combate
             │   ├── PlacementScene.ts Prueba de nivel de la primera vez («¡Vamos a ver qué sabes!»), con «Ahora no»

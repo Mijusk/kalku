@@ -57,7 +57,7 @@ export class PlacementScene extends Phaser.Scene {
     this.finished = false;
     applyTextSize(this.progress.settings);
 
-    this.add.image(240, 110, 'hero').setScale(6);
+    this.add.image(240, 110, 'hero', 0).setScale(6);
 
     const ui = document.getElementById('ui');
     if (!ui) throw new Error('Falta el contenedor #ui');

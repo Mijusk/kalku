@@ -40,6 +40,8 @@ const STEP_MS = 150;
 export class WorldScene extends Phaser.Scene {
   private region!: RegionMap;
   private hero!: Phaser.GameObjects.Image;
+  /** Último paso del personaje (1 o 3), para alternar. */
+  private stepFrame = 3;
   private tile!: Point;
   private route: Point[] = [];
   private moving = false;
@@ -77,7 +79,7 @@ export class WorldScene extends Phaser.Scene {
       };
     }
     this.tile = { ...this.state.tile };
-    this.hero = this.add.image(this.centerOf(this.tile).x, this.centerOf(this.tile).y, 'hero').setDepth(2);
+    this.hero = this.add.image(this.centerOf(this.tile).x, this.centerOf(this.tile).y, 'hero', 0).setDepth(2);
 
     const camera = this.cameras.main;
     camera.setBounds(0, 0, this.region.width * TILE_SIZE, this.region.height * TILE_SIZE);
@@ -210,6 +212,11 @@ export class WorldScene extends Phaser.Scene {
 
     this.tile = to;
     this.moving = true;
+    // Dos pasos alternados; con «reducir movimiento» se queda el fotograma parado.
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.stepFrame = this.stepFrame === 1 ? 3 : 1;
+      this.hero.setFrame(this.stepFrame);
+    }
     const { x, y } = this.centerOf(to);
     this.tweens.add({
       targets: this.hero,
@@ -218,6 +225,7 @@ export class WorldScene extends Phaser.Scene {
       duration: STEP_MS,
       onComplete: () => {
         this.moving = false;
+        this.hero.setFrame(0);
         this.checkEncounter();
       },
     });

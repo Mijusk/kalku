@@ -65,3 +65,29 @@ describe('colección al cargar', () => {
     expect(loadProgress().collection).toEqual([{ id: 'sumus-brote', date: '2026-11-06' }]);
   });
 });
+
+describe('outfit al cargar', () => {
+  it('sin guardado, el atuendo por defecto', () => {
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => undefined });
+    expect(loadProgress().outfit).toEqual(defaultProgress().outfit);
+  });
+
+  it('un guardado sin outfit carga el de por defecto', () => {
+    const { outfit: _omit, ...old } = defaultProgress();
+    stubStorage(old);
+    expect(loadProgress().outfit).toEqual(defaultProgress().outfit);
+  });
+
+  it('el atuendo guardado se carga', () => {
+    const outfit = { ...defaultProgress().outfit, body: 'piel-4', accessory: 'gafas' };
+    stubStorage({ ...defaultProgress(), outfit });
+    expect(loadProgress().outfit).toEqual(outfit);
+  });
+
+  it('piezas inventadas se sustituyen', () => {
+    stubStorage({ ...defaultProgress(), outfit: { body: 'x', hair: 'pelo-largo' } });
+    const o = loadProgress().outfit;
+    expect(o.hair).toBe('pelo-largo');
+    expect(o.body).toBe(defaultProgress().outfit.body);
+  });
+});

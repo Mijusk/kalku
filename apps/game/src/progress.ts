@@ -1,4 +1,4 @@
-import { parseCollection, parseEncounters, type Collection, type EncounterCounts } from '@kalku/content';
+import { DEFAULT_OUTFIT, parseCollection, parseEncounters, parseOutfit, type Collection, type EncounterCounts, type Outfit } from '@kalku/content';
 import { createProfile, SKILL_IDS, type Locale, type MasteryProfile } from '@kalku/exercises';
 
 /**
@@ -46,6 +46,8 @@ export interface PlayerProgress {
   placementDone: boolean;
   /** Criaturas rescatadas (id y fecha). Solo para coleccionar: no da ventaja en el combate. */
   collection: Collection;
+  /** Qué pieza lleva el personaje en cada capa (cuerpo, pelo, ropa, accesorio). Solo estética. */
+  outfit: Outfit;
 }
 
 const STORAGE_KEY = 'kalku:progress';
@@ -61,6 +63,7 @@ export function defaultProgress(): PlayerProgress {
     encounters: {},
     placementDone: false,
     collection: [],
+    outfit: { ...DEFAULT_OUTFIT },
   };
 }
 
@@ -79,7 +82,7 @@ export function loadProgress(): PlayerProgress {
     // Un guardado antiguo con intentos cuenta como hecho: no se molesta a quien ya juega.
     const hasPlayed = SKILL_IDS.some((id) => profile[id].attempts > 0);
     const placementDone = typeof parsed.placementDone === 'boolean' ? parsed.placementDone : hasPlayed;
-    return { ...defaultProgress(), ...parsed, locale, profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection) };
+    return { ...defaultProgress(), ...parsed, locale, profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), outfit: parseOutfit(parsed.outfit) };
   } catch {
     return defaultProgress();
   }

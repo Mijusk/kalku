@@ -2,6 +2,17 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-09 · Personaje por capas (#11)
+
+- **Cuatro capas, de abajo a arriba:** cuerpo, pelo, ropa, accesorio. La de arriba tapa a la de abajo. El progreso guarda el id de la pieza de cada capa (`outfit`); `parseOutfit` sustituye lo desconocido o de otra capa por la pieza por defecto, y los guardados antiguos reciben el atuendo por defecto.
+- **Cada pieza es una entrada de datos con su dibujo como texto** (un carácter por píxel), sin PNG, para respetar «dibujos por código» (decidido con Luis). Añadir una pieza = una entrada en `OUTFIT_PIECES` (`packages/content/src/outfit.ts`), sin tocar lógica. Los nombres van en es y ca para cuando la tienda (#12) las muestre.
+- **Piezas iniciales, gratis y sin condiciones:** 4 tonos de piel (para que más niños se vean reflejados), 3 peinados, 2 ropas y 2 accesorios (uno es «nada»). La tienda dará más.
+- **Dónde vive cada cosa:** el dibujo (`drawCharacter`, `PieceArt`) en `@kalku/art`; los datos de piezas en `@kalku/content`, que ya depende de art. Por eso `drawCharacter` recibe los dibujos de las piezas en orden y no el atuendo.
+- **Al andar:** 4 fotogramas (parado, paso, parado, paso); en los pasos solo se mueven las piernas un píxel. Con «reducir movimiento», siempre el parado.
+- **Solo estética:** el atuendo no da ventaja en el juego (regla 1).
+
+**Pendiente (fuera de alcance):** elegir piezas en una pantalla y la tienda (#12); hoy se cambia editando `outfit` en `localStorage`.
+
 ## 2026-11-09 · Problemas con enunciado y familia problemus (#28)
 
 - **Operador `'mixed'`** para la habilidad `word-problems-within-10` y la familia problemus. Cada ejercicio lleva su operación real (`+` o `−`) y un `story` en es/ca con el enunciado; `validateCreatures` exige que habilidad y familia coincidan (mixed con mixed) y que el símbolo sea `±`.

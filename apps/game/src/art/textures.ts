@@ -1,6 +1,8 @@
-import { CREATURES } from '@kalku/content';
+import { CREATURES, outfitPieces, type Outfit } from '@kalku/content';
 import {
+  CHARACTER_FRAMES,
   drawBuilding,
+  drawCharacter,
   drawCreature,
   TILE_PX,
   tilesetGrids,
@@ -30,6 +32,18 @@ function addSheet(scene: Phaser.Scene, key: string, sheet: Sheet): void {
   ctx.putImageData(image, 0, 0);
   texture.refresh();
   for (let i = 0; i < sheet.width / sheet.cell; i++) texture.add(i, 0, i * sheet.cell, 0, sheet.cell, sheet.height);
+}
+
+/** Clave de la textura del personaje: una tira con sus fotogramas (parado, paso, parado, paso). */
+export const HERO_KEY = 'hero';
+
+/** (Re)crea la textura del personaje con las piezas del atuendo. Llamar al cambiar de pieza. */
+export function createHeroTexture(scene: Phaser.Scene, outfit: Outfit): void {
+  // Primero se dibuja (puede lanzar si el atuendo no es válido) y solo después se sustituye la textura.
+  const art = outfitPieces(outfit).map((p) => p.art);
+  const sheet = toSheet(Array.from({ length: CHARACTER_FRAMES }, (_, f) => drawCharacter(art, f)));
+  if (scene.textures.exists(HERO_KEY)) scene.textures.remove(HERO_KEY);
+  addSheet(scene, HERO_KEY, sheet);
 }
 
 /** Genera todas las texturas del mundo y las criaturas a partir de los datos. */
