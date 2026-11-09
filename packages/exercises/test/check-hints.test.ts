@@ -90,3 +90,24 @@ describe('pistas de conteo', () => {
     expect(count(getHint(ex, 2, 'es').text)).toBeLessThan(count(getHint(ex, 3, 'es').text));
   });
 });
+
+describe('pistas de problemas', () => {
+  it('el nivel 1 ayuda a decidir la operación, sin cifras, en es y ca', () => {
+    const ex = generateExercise('word-problems-within-10', createRng(8));
+    expect(getHint(ex, 1, 'es').text).toContain('suma');
+    expect(getHint(ex, 1, 'ca').text).toContain('suma');
+    expect(getHint(ex, 1, 'es').text).not.toMatch(/\d/);
+  });
+
+  it('el nivel 2 dice la operación y el 3 ayuda a calcularla, sin dar la respuesta', () => {
+    const rng = createRng(9);
+    for (let i = 0; i < 200; i++) {
+      const ex = generateExercise('word-problems-within-10', rng);
+      const word = ex.operator === '+' ? 'suma' : 'resta';
+      expect(getHint(ex, 2, 'es').text).toContain(`Es una ${word}: ${ex.a}`);
+      expect(getHint(ex, 2, 'ca').text).toContain(`És una ${word}: ${ex.a}`);
+      expect(getHint(ex, 2, 'es').text).not.toContain(`= ${ex.answer}`);
+      expect(getHint(ex, 3, 'es').text.length).toBeGreaterThan(0);
+    }
+  });
+});

@@ -9,12 +9,32 @@ import type { Exercise, Hint, Locale } from './types.js';
  * Fallar nunca quita monedas: da una pista y otra oportunidad.
  */
 export function getHint(exercise: Exercise, level: Hint['level'], locale: Locale): Hint {
+  if (exercise.story) return { level, text: storyHint(exercise, level, locale) };
   const text =
     exercise.format === 'missing' ? missingHint(exercise, level, locale) : resultHint(exercise, level, locale);
   return { level, text };
 }
 
 const t = (locale: Locale, es: string, ca: string): string => (locale === 'ca' ? ca : es);
+
+/**
+ * Problemas con enunciado: primero ayudan a decidir la operación y solo
+ * después a calcularla.
+ */
+function storyHint(ex: Exercise, level: Hint['level'], locale: Locale): string {
+  if (level === 1) {
+    return t(
+      locale,
+      'Si te dan o juntas más, suma. Si se van o se quitan, resta.',
+      "Si te'n donen o n'ajuntes més, suma. Si se'n van o se'n treuen, resta.",
+    );
+  }
+  if (level === 2) {
+    const sign = ex.operator === '+' ? '+' : '−';
+    return t(locale, `Es una ${ex.operator === '+' ? 'suma' : 'resta'}: ${ex.a} ${sign} ${ex.b}`, `És una ${ex.operator === '+' ? 'suma' : 'resta'}: ${ex.a} ${sign} ${ex.b}`);
+  }
+  return resultHint(ex, 2, locale);
+}
 
 function resultHint(ex: Exercise, level: Hint['level'], locale: Locale): string {
   const { a, b } = ex;

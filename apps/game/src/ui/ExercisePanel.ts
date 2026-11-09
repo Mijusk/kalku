@@ -75,7 +75,7 @@ export class ExercisePanel {
     this.root.replaceChildren(
       ...(chrome ? headerOf(chrome) : []),
       tag ? el('p', 'panel-tag', tag) : el('span'),
-      el('p', 'exercise', formatExercise(exercise, '▢')),
+      el('p', exercise.story ? 'exercise exercise-story' : 'exercise', formatExercise(exercise, '▢', this.locale)),
       el('p', 'answer', ''),
       el('p', 'panel-feedback', ''),
       keypad,

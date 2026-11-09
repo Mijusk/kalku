@@ -1,16 +1,16 @@
 import { validateLook, type CreatureLook } from '@kalku/art';
-import { getSkill, SKILL_IDS, type Localized, type Operator, type SkillId } from '@kalku/exercises';
+import { getSkill, SKILL_IDS, type Localized, type SkillId, type SkillOperator } from '@kalku/exercises';
 
 /**
  * Familias de criaturas (kalkus). La familia decide la operación: a un
  * sumus se le gana sumando y a un restus, restando. Los problemus
- * (problemas con enunciado) llegarán con su propia habilidad.
+ * (problemas con enunciado) mezclan las dos y el niño decide cuál toca.
  */
-export type CreatureFamily = 'sumus' | 'restus';
+export type CreatureFamily = 'sumus' | 'restus' | 'problemus';
 
 export interface FamilyDefinition {
   id: CreatureFamily;
-  operator: Operator;
+  operator: SkillOperator;
   /** Invariable: «un sumus», «dos sumus». */
   name: Localized;
 }
@@ -18,6 +18,7 @@ export interface FamilyDefinition {
 export const FAMILIES: readonly FamilyDefinition[] = [
   { id: 'sumus', operator: '+', name: { es: 'sumus', ca: 'sumus' } },
   { id: 'restus', operator: '-', name: { es: 'restus', ca: 'restus' } },
+  { id: 'problemus', operator: 'mixed', name: { es: 'problemus', ca: 'problemus' } },
 ];
 
 export type CreatureId =
@@ -26,7 +27,8 @@ export type CreatureId =
   | 'sumus-roble'
   | 'restus-gota'
   | 'restus-bruma'
-  | 'restus-sombra';
+  | 'restus-sombra'
+  | 'problemus-cuentin';
 
 export interface CreatureDefinition {
   id: CreatureId;
@@ -118,6 +120,17 @@ export const CREATURES: readonly CreatureDefinition[] = [
     look: { ramp: 'morado', body: 'pear', top: 'horns', eyes: 'small', sign: '-' },
     provisional: false,
   },
+  {
+    id: 'problemus-cuentin',
+    family: 'problemus',
+    skill: 'word-problems-within-10',
+    name: { es: 'Problemus Cuentín', ca: 'Problemus Contin' },
+    description: { es: 'Siempre tiene una historia que contar.', ca: 'Sempre té una història per explicar.' },
+    hp: 25,
+    sprite: 'creature-problemus-cuentin',
+    look: { ramp: 'naranja', body: 'round', top: 'antenna', eyes: 'big', cheeks: true, sign: '±' },
+    provisional: true,
+  },
 ];
 
 export function getCreature(id: CreatureId): CreatureDefinition {
@@ -160,7 +173,8 @@ export function validateCreatures(creatures: readonly CreatureDefinition[]): str
       }
     }
     for (const problem of validateLook(c.look)) errors.push(`${c.id}: ${problem}`);
-    if (c.look.sign !== FAMILIES.find((f) => f.id === c.family)?.operator) {
+    const familyOperator = FAMILIES.find((f) => f.id === c.family)?.operator;
+    if (c.look.sign !== (familyOperator === 'mixed' ? '±' : familyOperator)) {
       errors.push(`${c.id}: el símbolo «${c.look.sign}» no es el de la familia ${c.family}`);
     }
     if (!Number.isInteger(c.hp) || c.hp <= 0) errors.push(`${c.id}: la vida tiene que ser un entero positivo`);

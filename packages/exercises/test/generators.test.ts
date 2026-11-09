@@ -123,3 +123,60 @@ describe('createRng', () => {
     expect(() => createRng(3).pick([])).toThrow(RangeError);
   });
 });
+
+describe('problemas con enunciado', () => {
+  const problems = () => {
+    const rng = createRng(2026);
+    return Array.from({ length: 5_000 }, () => generateExercise('word-problems-within-10', rng));
+  };
+  const numbersIn = (text: string) => (text.match(/\d+/g) ?? []).map(Number).sort((x, y) => x - y);
+
+  it('operandos y resultado entre 1 y 10; la resta nunca da 0 ni negativo', () => {
+    for (const ex of problems()) {
+      for (const n of [ex.a, ex.b, ex.c, ex.answer]) {
+        expect(n).toBeGreaterThanOrEqual(1);
+        expect(n).toBeLessThanOrEqual(10);
+      }
+      // Operandos de 2 o más: el texto nunca dice «1 manzanas».
+      expect(ex.a).toBeGreaterThanOrEqual(2);
+      expect(ex.b).toBeGreaterThanOrEqual(2);
+      expect(ex.c).toBe(ex.operator === '+' ? ex.a + ex.b : ex.a - ex.b);
+      expect(ex.format).toBe('result');
+      expect(ex.hidden).toBe('c');
+    }
+  });
+
+  it('el enunciado existe en es y ca y menciona los dos números en ambos idiomas', () => {
+    for (const ex of problems()) {
+      expect(ex.story).toBeDefined();
+      for (const locale of ['es', 'ca'] as const) {
+        const text = ex.story?.[locale] ?? '';
+        expect(text.trim().length).toBeGreaterThan(10);
+        expect(numbersIn(text)).toEqual([ex.a, ex.b].sort((x, y) => x - y));
+        expect(formatExercise(ex, '_', locale)).toBe(text);
+      }
+    }
+  });
+
+  it('salen sumas y restas a partes parecidas', () => {
+    const all = problems();
+    const adds = all.filter((e) => e.operator === '+').length / all.length;
+    expect(adds).toBeGreaterThan(0.45);
+    expect(adds).toBeLessThan(0.55);
+  });
+
+  it('es la única habilidad con enunciado', () => {
+    for (const skill of SKILLS) {
+      if (skill.id === 'word-problems-within-10') continue;
+      expect(sample(skill.id).every((e) => e.story === undefined)).toBe(true);
+    }
+  });
+
+  it('con la misma semilla salen los mismos problemas', () => {
+    const texts = (seed: number) => {
+      const rng = createRng(seed);
+      return Array.from({ length: 50 }, () => generateExercise('word-problems-within-10', rng).story);
+    };
+    expect(texts(5)).toEqual(texts(5));
+  });
+});

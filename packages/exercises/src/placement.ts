@@ -33,9 +33,12 @@ export interface PlacementState {
 
 const LAST_LEVEL = SKILLS.length - 1;
 
+/** Empieza en «Sumas hasta 20 sin llevar», a mitad de las sumas y restas; los problemas, al final, no desplazan el inicio. */
+const START_LEVEL = 2;
+
 /** Empieza a mitad del currículo, no en la primera habilidad. */
 export function startPlacement(): PlacementState {
-  return { asked: 0, level: Math.floor(LAST_LEVEL / 2), history: [] };
+  return { asked: 0, level: START_LEVEL, history: [] };
 }
 
 /** Ya está claro el nivel: rebota entre dos vecinas, o toca techo o suelo dos veces seguidas. */

@@ -140,6 +140,15 @@ body {
   color: var(--info);
 }
 
+/* Enunciado de un problema: letra redonda y grande, pero en varias líneas. */
+.exercise.exercise-story {
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: normal;
+  line-height: 1.3;
+  white-space: normal;
+}
+
 /* Los números del ejercicio: grandes y nítidos, para niños de 6 años. */
 .exercise {
   margin: 0;
