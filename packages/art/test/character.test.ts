@@ -58,4 +58,9 @@ describe('validatePiece', () => {
     expect(validatePiece({ rows: ['.'.repeat(17)], colors: {} })).toHaveLength(1);
     expect(validatePiece({ rows: Array<string>(17).fill(''), colors: {} })).toHaveLength(1);
   });
+  it('avisa de píxeles de las piernas en los bordes', () => {
+    const rows = Array<string>(16).fill('');
+    rows[13] = 'x' + '.'.repeat(15);
+    expect(validatePiece({ rows, colors: { x: 1 } })).toHaveLength(1);
+  });
 });

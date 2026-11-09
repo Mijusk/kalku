@@ -1,4 +1,4 @@
-import { CHARACTER_LAYERS, hex, validatePiece, type CharacterLayer, type PieceArt } from '@kalku/art';
+import { CHARACTER_LAYERS, hex, OUTLINE, validatePiece, type CharacterLayer, type PieceArt } from '@kalku/art';
 
 /** Las capas del personaje, de abajo a arriba. */
 export const OUTFIT_LAYERS = CHARACTER_LAYERS;
@@ -19,7 +19,6 @@ export interface OutfitPiece {
 /** Qué pieza lleva el personaje en cada capa (por id). */
 export type Outfit = Readonly<Record<OutfitLayer, string>>;
 
-const OUTLINE = hex('#1c2430');
 
 /** Cuerpo: cabeza, cara, brazos y piernas. Solo cambia el tono de piel. */
 const BODY_ROWS = [

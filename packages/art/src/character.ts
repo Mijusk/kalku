@@ -40,6 +40,11 @@ export function validatePiece(piece: PieceArt): string[] {
   piece.rows.forEach((row, y) => {
     if ([...row].length > CHARACTER_PX) errors.push(`la fila ${y} mide más de ${CHARACTER_PX}`);
     for (const ch of row) if (ch !== '.' && piece.colors[ch] === undefined) errors.push(`la letra «${ch}» no tiene color`);
+    // Al andar, las piernas se mueven un píxel: en los bordes se recortarían.
+    if (y >= LEGS_FROM) {
+      const chars = [...row];
+      if ((chars[0] ?? '.') !== '.' || (chars[CHARACTER_PX - 1] ?? '.') !== '.') errors.push(`la fila ${y} usa un borde y se recortaría al andar`);
+    }
   });
   return errors;
 }
