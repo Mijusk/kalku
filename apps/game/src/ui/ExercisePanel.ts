@@ -61,6 +61,9 @@ export class ExercisePanel {
 
   showActions(tag?: string, canRescue = false): void {
     this.root.dataset.state = 'actions';
+    // El ejercicio ya no está en pantalla: que no se lea ni al cargar voces tarde.
+    this.stopWatchingVoices?.();
+    stopSpeaking();
     this.root.replaceChildren(
       el('p', 'panel-title', tr('chooseAction', this.locale)),
       row(
