@@ -5,9 +5,9 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 ## 2026-11-09 · Leer el ejercicio en voz alta (#14)
 
 - **El texto sale de una función pura** (`speakExercise` en `@kalku/exercises`), con tests; el navegador solo lo pronuncia con `speechSynthesis` (`apps/game/src/speech.ts`). Signos y números van en palabras («cinco más tres son…», «siete más ¿cuánto falta para doce?») para que el motor de voz no los lea mal. En una resta con hueco no se dice «cuánto falta», sino «¿cuánto?» y el resultado.
-- **Sin voz, sin botón:** el altavoz solo aparece si el navegador tiene voz `es`/`ca`; si las voces cargan tarde (`voiceschanged`), aparece al llegar.
+- **Sin voz, sin botón:** el altavoz solo aparece si el navegador tiene voz `es`/`ca`; si las voces cargan tarde (`voiceschanged`), aparece al llegar (y, con voz automática, se lee entonces una vez).
 - **«Voz automática» conectada (decidido con Luis):** si está activa y hay voz, el ejercicio se lee solo al aparecer; si no, solo con el botón. Cambiarla en Ajustes aplica desde el siguiente ejercicio.
-- **Sin grabaciones ni reconocimiento de voz**, fuera de alcance. No se envía nada a terceros: la voz es la del propio dispositivo (regla 5).
+- **Sin grabaciones ni reconocimiento de voz**, fuera de alcance. No se envía nada a terceros: la voz es la del propio dispositivo (regla 5): se ignoran las voces remotas (`localService: false`), que enviarían el texto a un servidor.
 
 ## 2026-11-06 · Rescatar criaturas débiles (#37)
 

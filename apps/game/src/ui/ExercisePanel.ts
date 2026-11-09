@@ -88,13 +88,14 @@ export class ExercisePanel {
     const exerciseLine = el('div', 'exercise-line');
     exerciseLine.append(el('p', 'exercise', formatExercise(exercise, '▢')));
     // El altavoz solo aparece si el navegador tiene voz en este idioma (a veces carga tarde).
+    // Si la voz llega tarde y la voz automática está activa, se lee una sola vez, al aparecer el botón.
     const showSpeaker = (): void => {
       if (exerciseLine.querySelector('.btn-speaker') || !hasVoice(this.locale)) return;
       exerciseLine.append(button('🔊', 'btn-speaker', () => speak(text, this.locale), tr('listen', this.locale)));
+      if (this.autoVoice) speak(text, this.locale);
     };
     showSpeaker();
     this.stopWatchingVoices = onVoicesChanged(showSpeaker);
-    if (this.autoVoice && hasVoice(this.locale)) speak(text, this.locale);
 
     this.root.replaceChildren(
       ...(chrome ? headerOf(chrome) : []),

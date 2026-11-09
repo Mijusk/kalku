@@ -12,7 +12,8 @@ function synth(): SpeechSynthesis | undefined {
 }
 
 function voiceFor(locale: Locale): SpeechSynthesisVoice | undefined {
-  const voices = synth()?.getVoices() ?? [];
+  // Solo voces del dispositivo: una voz remota enviaría el texto a un tercero (regla 5).
+  const voices = (synth()?.getVoices() ?? []).filter((v) => v.localService);
   const lang = LANG[locale].toLowerCase();
   // Mejor la voz exacta (es-ES); si no, cualquier variante del idioma (es-MX).
   return (
