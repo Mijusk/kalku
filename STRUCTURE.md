@@ -42,6 +42,7 @@ kalku/
 │   │   │   ├── mastery.ts      Dominio 0–100 por habilidad (+8/+5/−6/−3)
 │   │   │   ├── placement.ts    Prueba de nivel: sube/baja por el currículo y da el dominio inicial (sin tiempo, sin quitar nada)
 │   │   │   ├── selection.ts    Qué habilidad toca: 60 % actual, 25 % repaso, 15 % reto
+│   │   │   ├── speech.ts       Texto para leer el ejercicio en voz alta («cinco más tres son…»), es/ca
 │   │   │   └── scoring.ts      Puntos (Cifras): dificultad, racha, rapidez sin penalizar
 │   │   └── test/             Tests con vitest
 │   ├── world/                @kalku/world: mundo generado por código con semilla, TypeScript puro
@@ -83,6 +84,7 @@ kalku/
         └── src/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
+            ├── speech.ts       Envoltorio de speechSynthesis: hay voz, leer, parar (el texto sale de @kalku/exercises)
             ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage), incluido placementDone (tests en apps/game/test/)
             ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
             ├── art/
@@ -95,7 +97,7 @@ kalku/
             │   ├── BattleScene.ts  Combate por turnos de prueba, con una criatura generada que respira y parpadea; botón «Rescatar» con poca vida
             │   └── CollectionScene.ts Colección: criaturas rescatadas y las que faltan en silueta (HTML), se abre desde el mapa
             └── ui/             Interfaz HTML encima del canvas
-                ├── ExercisePanel.ts  Ejercicio, teclado numérico, pistas
+                ├── ExercisePanel.ts  Ejercicio, altavoz, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio
                 ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz
                 └── styles.css
