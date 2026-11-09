@@ -27,15 +27,25 @@ describe('debilidad por operación inversa', () => {
   it('en todas las criaturas y habilidades solo sube con la operación inversa y nunca baja de 1', () => {
     for (const c of CREATURES) {
       for (const skill of SKILLS) {
-        const m = damageMultiplier(c, skill.operator);
+        const m = skill.operator === 'mixed' ? 1 : damageMultiplier(c, skill.operator);
         expect(m).toBeGreaterThanOrEqual(1);
-        expect(m > 1).toBe(skill.operator !== getFamily(c.family).operator);
+        const mixed = skill.operator === 'mixed' || getFamily(c.family).operator === 'mixed';
+        expect(m > 1).toBe(!mixed && skill.operator !== getFamily(c.family).operator);
       }
     }
   });
 
   it('weakOperator es el inverso de la familia', () => {
-    for (const c of CREATURES) expect(weakOperator(c)).not.toBe(getFamily(c.family).operator);
+    for (const c of CREATURES.filter((x) => x.family !== 'problemus')) {
+      expect(weakOperator(c)).not.toBe(getFamily(c.family).operator);
+    }
+  });
+
+  it('los problemus no tienen debilidad: el daño es siempre ×1', () => {
+    const cuentin = getCreature('problemus-cuentin');
+    expect(weakOperator(cuentin)).toBeUndefined();
+    expect(damageMultiplier(cuentin, '+')).toBe(1);
+    expect(damageMultiplier(cuentin, '-')).toBe(1);
   });
 
   it('el multiplicador es mayor que 1', () => {

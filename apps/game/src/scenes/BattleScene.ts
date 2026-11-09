@@ -132,6 +132,7 @@ export class BattleScene extends Phaser.Scene {
       onOpenSettings: () => this.openSettings(),
     });
     this.panel.setLocale(this.progress.locale);
+    this.panel.setAutoVoice(this.progress.settings.autoVoice);
     document.querySelectorAll('#game .creature-name, #game .creature-weakness').forEach((e) => e.remove());
     this.nameLabel = this.createLabel('creature-name');
     this.weaknessLabel = this.createLabel('creature-weakness');
@@ -152,8 +153,9 @@ export class BattleScene extends Phaser.Scene {
     const creature = this.creature;
     if (this.nameLabel) this.nameLabel.textContent = creature ? creature.name[locale] : '';
     if (!this.weaknessLabel) return;
-    if (creature && this.showWeakness) {
-      const add = weakOperator(creature) === '+';
+    const weak = creature ? weakOperator(creature) : undefined;
+    if (creature && weak && this.showWeakness) {
+      const add = weak === '+';
       this.weaknessLabel.textContent = `${add ? '+' : '−'} ${tr(add ? 'weakToAdd' : 'weakToSub', locale)}`;
     } else {
       this.weaknessLabel.textContent = '';
@@ -329,7 +331,7 @@ export class BattleScene extends Phaser.Scene {
     const locale = this.progress.locale;
     if (correct) {
       this.panel.showFeedback(`${tr('correct', locale)} +${score.total} ${tr('coins', locale)}`, 'good');
-      const operator = getSkill(skill).operator;
+      const operator = turn.exercise.operator;
       const weak = this.creature ? damageMultiplier(this.creature, operator) : 1;
       const damage = Math.round(score.total * (turn.strong ? BATTLE.strongMultiplier : 1) * weak);
       if (weak > 1 && this.showWeakness) {
@@ -422,6 +424,7 @@ export class BattleScene extends Phaser.Scene {
         applyTextSize(this.progress.settings);
         saveProgress(this.progress);
         this.panel.setLocale(this.progress.locale);
+        this.panel.setAutoVoice(this.progress.settings.autoVoice);
         this.refreshCreatureLabels();
         this.refreshHud();
       },

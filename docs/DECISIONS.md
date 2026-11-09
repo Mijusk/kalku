@@ -13,6 +13,20 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 
 **Pendiente (fuera de alcance):** elegir piezas en una pantalla y la tienda (#12); hoy se cambia editando `outfit` en `localStorage`.
 
+## 2026-11-09 · Problemas con enunciado y familia problemus (#28)
+
+- **Operador `'mixed'`** para la habilidad `word-problems-within-10` y la familia problemus. Cada ejercicio lleva su operación real (`+` o `−`) y un `story` en es/ca con el enunciado; `validateCreatures` exige que habilidad y familia coincidan (mixed con mixed) y que el símbolo sea `±`.
+- **Resultados hasta 10**, operandos de 2 o más (el texto nunca dice «1 manzanas»), siempre preguntando por el resultado: el niño decide la operación. Va **al final de `SKILLS`** para no mover la dificultad de las demás; la prueba de nivel la trata como la más difícil, pero sigue empezando en «Sumas hasta 20 sin llevar» (`START_LEVEL`).
+- **Problemus sin debilidad** (daño ×1), porque sus ejercicios mezclan operaciones. Pistas: nivel 1 ayuda a elegir la operación, el 2 la nombra, el 3 ayuda a calcularla.
+- **Cuentín** (`problemus-cuentin`) es un nombre provisional pendiente de aprobar por Luis.
+
+## 2026-11-09 · Leer el ejercicio en voz alta (#14)
+
+- **El texto sale de una función pura** (`speakExercise` en `@kalku/exercises`), con tests; el navegador solo lo pronuncia con `speechSynthesis` (`apps/game/src/speech.ts`). Signos y números van en palabras («cinco más tres son…», «siete más ¿cuánto falta para doce?») para que el motor de voz no los lea mal. En una resta con hueco no se dice «cuánto falta», sino «¿cuánto?» y el resultado.
+- **Sin voz, sin botón:** el altavoz solo aparece si el navegador tiene voz `es`/`ca`; si las voces cargan tarde (`voiceschanged`), aparece al llegar (y, con voz automática, se lee entonces una vez).
+- **«Voz automática» conectada (decidido con Luis):** si está activa y hay voz, el ejercicio se lee solo al aparecer; si no, solo con el botón. Cambiarla en Ajustes aplica desde el siguiente ejercicio.
+- **Sin grabaciones ni reconocimiento de voz**, fuera de alcance. No se envía nada a terceros: la voz es la del propio dispositivo (regla 5): se ignoran las voces remotas (`localService: false`), que enviarían el texto a un servidor.
+
 ## 2026-11-06 · Rescatar criaturas débiles (#37)
 
 - **Cuándo sale «Rescatar»:** con el 25 % de vida o menos (`RESCUE_HP_RATIO`) y más de 0, y nunca con un jefe (`boss: true` en la criatura; hoy no hay ninguno, un test avisa si cambia).

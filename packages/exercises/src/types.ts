@@ -14,9 +14,13 @@ export type SkillId =
   | 'add-within-20-no-carry'
   | 'sub-within-20-no-borrow'
   | 'add-within-20-carry'
-  | 'sub-within-20-borrow';
+  | 'sub-within-20-borrow'
+  | 'word-problems-within-10';
 
 export type Operator = '+' | '-';
+
+/** Operador de una habilidad: `mixed` si mezcla sumas y restas (problemas con enunciado). */
+export type SkillOperator = Operator | 'mixed';
 
 /**
  * Formato del ejercicio.
@@ -30,6 +34,7 @@ export interface Exercise {
   id: string;
   skill: SkillId;
   format: ExerciseFormat;
+  /** La operación real de este ejercicio (nunca `mixed`). */
   operator: Operator;
   /** Operandos tal como se muestran: a (op) b = c. */
   a: number;
@@ -39,7 +44,9 @@ export interface Exercise {
   hidden: 'a' | 'b' | 'c';
   /** La respuesta correcta (el valor de la posición oculta). */
   answer: number;
-  /** Dificultad: posición de la habilidad en el currículo (1–6), +0,5 si es de completar el hueco. */
+  /** Enunciado ya redactado (problemas con texto). Si existe, sustituye a la operación al mostrarlo. */
+  story?: Localized;
+  /** Dificultad: posición de la habilidad en el currículo (1–7), +0,5 si es de completar el hueco. */
   difficulty: number;
 }
 

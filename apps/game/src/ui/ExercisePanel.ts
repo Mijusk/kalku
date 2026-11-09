@@ -1,5 +1,6 @@
-import { formatExercise, type Exercise, type Locale } from '@kalku/exercises';
+import { formatExercise, speakExercise, type Exercise, type Locale } from '@kalku/exercises';
 import { tr } from '../i18n';
+import { hasVoice, onVoicesChanged, speak, stopSpeaking } from '../speech';
 
 /**
  * Panel de ejercicios en HTML, encima del canvas de Phaser.
@@ -31,6 +32,8 @@ export class ExercisePanel {
   private readonly root: HTMLElement;
   private answer = '';
   private locale: Locale = 'es';
+  private autoVoice = false;
+  private stopWatchingVoices: (() => void) | undefined;
 
   constructor(container: HTMLElement, private readonly callbacks: PanelCallbacks) {
     this.root = document.createElement('div');
@@ -42,6 +45,8 @@ export class ExercisePanel {
   /** Quita el panel y deja de escuchar el teclado (al salir de la escena). */
   destroy(): void {
     window.removeEventListener('keydown', this.keyListener);
+    this.stopWatchingVoices?.();
+    stopSpeaking();
     this.root.remove();
   }
 
@@ -49,8 +54,16 @@ export class ExercisePanel {
     this.locale = locale;
   }
 
+  /** «Voz automática» de Ajustes: si está activa (y hay voz), el ejercicio se lee solo al aparecer. */
+  setAutoVoice(autoVoice: boolean): void {
+    this.autoVoice = autoVoice;
+  }
+
   showActions(tag?: string, canRescue = false): void {
     this.root.dataset.state = 'actions';
+    // El ejercicio ya no está en pantalla: que no se lea ni al cargar voces tarde.
+    this.stopWatchingVoices?.();
+    stopSpeaking();
     this.root.replaceChildren(
       el('p', 'panel-title', tr('chooseAction', this.locale)),
       row(
@@ -65,6 +78,8 @@ export class ExercisePanel {
 
   showExercise(exercise: Exercise, tag?: string, chrome?: ExerciseChrome): void {
     this.answer = '';
+    this.stopWatchingVoices?.();
+    stopSpeaking();
     this.root.dataset.state = 'exercise';
     const keypad = el('div', 'keypad');
     for (const key of ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '✓']) {
@@ -72,10 +87,25 @@ export class ExercisePanel {
         key === '⌫' ? () => this.erase() : key === '✓' ? () => this.submit() : () => this.type(key);
       keypad.append(button(key, key === '✓' ? 'key key-ok' : 'key', action, key === '⌫' ? tr('erase', this.locale) : undefined));
     }
+    const text = speakExercise(exercise, this.locale);
+    const exerciseLine = el('div', 'exercise-line');
+    exerciseLine.append(
+      el('p', exercise.story ? 'exercise exercise-story' : 'exercise', formatExercise(exercise, '▢', this.locale)),
+    );
+    // El altavoz solo aparece si el navegador tiene voz en este idioma (a veces carga tarde).
+    // Si la voz llega tarde y la voz automática está activa, se lee una sola vez, al aparecer el botón.
+    const showSpeaker = (): void => {
+      if (exerciseLine.querySelector('.btn-speaker') || !hasVoice(this.locale)) return;
+      exerciseLine.append(button('🔊', 'btn-speaker', () => speak(text, this.locale), tr('listen', this.locale)));
+      if (this.autoVoice) speak(text, this.locale);
+    };
+    showSpeaker();
+    this.stopWatchingVoices = onVoicesChanged(showSpeaker);
+
     this.root.replaceChildren(
       ...(chrome ? headerOf(chrome) : []),
       tag ? el('p', 'panel-tag', tag) : el('span'),
-      el('p', 'exercise', formatExercise(exercise, '▢')),
+      exerciseLine,
       el('p', 'answer', ''),
       el('p', 'panel-feedback', ''),
       keypad,
@@ -102,6 +132,8 @@ export class ExercisePanel {
 
   showResult(title: string, detail: string, buttonLabel: string = tr('nextBattle', this.locale)): void {
     this.root.dataset.state = 'result';
+    this.stopWatchingVoices?.();
+    stopSpeaking();
     this.root.replaceChildren(
       el('p', 'panel-title', title),
       el('p', 'panel-feedback', detail),

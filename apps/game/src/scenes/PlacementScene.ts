@@ -70,6 +70,7 @@ export class PlacementScene extends Phaser.Scene {
       onOpenSettings: () => this.openSettings(),
     });
     this.panel.setLocale(this.progress.locale);
+    this.panel.setAutoVoice(this.progress.settings.autoVoice);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.panel.destroy());
     this.askNext();
   }
@@ -108,6 +109,7 @@ export class PlacementScene extends Phaser.Scene {
         applyTextSize(this.progress.settings);
         saveProgress(this.progress);
         this.panel.setLocale(this.progress.locale);
+        this.panel.setAutoVoice(this.progress.settings.autoVoice);
       },
       onClose: () => {
         this.settingsOpen = false;

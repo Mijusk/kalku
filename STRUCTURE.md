@@ -42,6 +42,7 @@ kalku/
 │   │   │   ├── mastery.ts      Dominio 0–100 por habilidad (+8/+5/−6/−3)
 │   │   │   ├── placement.ts    Prueba de nivel: sube/baja por el currículo y da el dominio inicial (sin tiempo, sin quitar nada)
 │   │   │   ├── selection.ts    Qué habilidad toca: 60 % actual, 25 % repaso, 15 % reto
+│   │   │   ├── speech.ts       Texto para leer el ejercicio en voz alta («cinco más tres son…»), es/ca
 │   │   │   └── scoring.ts      Puntos (Cifras): dificultad, racha, rapidez sin penalizar
 │   │   └── test/             Tests con vitest
 │   ├── world/                @kalku/world: mundo generado por código con semilla, TypeScript puro
@@ -71,10 +72,10 @@ kalku/
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
-│       │   ├── creatures.ts    Familias (sumus, restus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
+│       │   ├── creatures.ts    Familias (sumus, restus, problemus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
 │       │   ├── outfit.ts       Piezas del personaje como datos (cuerpo, pelo, ropa, accesorio), DEFAULT_OUTFIT, setPiece y parseOutfit
 │       │   ├── collection.ts   Rescate y colección: canRescue (25 % de vida, nunca jefes), addToCollection sin mutar, parseCollection, collectionStatus
-│       │   └── weakness.ts     Debilidad por operación inversa (damageMultiplier) y contador de encuentros para el cartel
+│       │   └── weakness.ts     Debilidad por operación inversa (damageMultiplier; los problemus no tienen) y contador de encuentros para el cartel
 │       └── test/             Tests con vitest
 │
 └── apps/
@@ -85,6 +86,7 @@ kalku/
         └── src/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
+            ├── speech.ts       Envoltorio de speechSynthesis: hay voz, leer, parar (el texto sale de @kalku/exercises)
             ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage), incluidos placementDone y outfit (tests en apps/game/test/)
             ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
             ├── art/
@@ -96,7 +98,7 @@ kalku/
             │   ├── BattleScene.ts  Combate por turnos de prueba, con una criatura generada que respira y parpadea; botón «Rescatar» con poca vida
             │   └── CollectionScene.ts Colección: criaturas rescatadas y las que faltan en silueta (HTML), se abre desde el mapa
             └── ui/             Interfaz HTML encima del canvas
-                ├── ExercisePanel.ts  Ejercicio, teclado numérico, pistas
+                ├── ExercisePanel.ts  Ejercicio, altavoz, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio
                 ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz
                 └── styles.css
