@@ -8,3 +8,4 @@ export * from './mastery.js';
 export * from './selection.js';
 export * from './scoring.js';
 export * from './placement.js';
+export * from './speech.js';

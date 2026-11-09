@@ -29,6 +29,7 @@ const STRINGS = {
   languageLabel: { es: 'Idioma', ca: 'Idioma' },
   timer: { es: 'Tiempo', ca: 'Temps' },
   textSize: { es: 'Tamaño del texto', ca: 'Mida del text' },
+  listen: { es: 'Escuchar el ejercicio', ca: 'Escoltar l’exercici' },
   autoVoice: { es: 'Voz automática', ca: 'Veu automàtica' },
   on: { es: 'Sí', ca: 'Sí' },
   off: { es: 'No', ca: 'No' },
