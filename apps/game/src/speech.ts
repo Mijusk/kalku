@@ -34,18 +34,30 @@ export function onVoicesChanged(callback: () => void): () => void {
   return () => s.removeEventListener('voiceschanged', callback);
 }
 
-/** Lee el texto, cortando lo que se estuviera leyendo. No hace nada si no hay voz. */
+let pending: ReturnType<typeof setTimeout> | undefined;
+
+/**
+ * Lee el texto, cortando lo que se estuviera leyendo. No hace nada si no hay voz.
+ * La nueva locución se encola en el siguiente turno: en versiones antiguas de
+ * Safari, un `speak` justo después de `cancel` se perdía.
+ */
 export function speak(text: string, locale: Locale): void {
   const s = synth();
   const voice = voiceFor(locale);
   if (!s || !voice) return;
+  clearTimeout(pending);
   s.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = LANG[locale];
-  utterance.voice = voice;
-  s.speak(utterance);
+  pending = setTimeout(() => {
+    pending = undefined;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = LANG[locale];
+    utterance.voice = voice;
+    s.speak(utterance);
+  }, 50);
 }
 
 export function stopSpeaking(): void {
+  clearTimeout(pending);
+  pending = undefined;
   synth()?.cancel();
 }
