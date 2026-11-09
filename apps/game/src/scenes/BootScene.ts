@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
-import { createPixelTexture, HERO, PALETTE } from '../art/pixelArt';
-import { createArtTextures } from '../art/textures';
+import { createArtTextures, createHeroTexture } from '../art/textures';
 import { loadProgress } from '../progress';
 
 /** Carga (o genera) todas las texturas antes de empezar. */
@@ -10,7 +9,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
-    createPixelTexture(this, 'hero', HERO, PALETTE);
+    createHeroTexture(this, loadProgress().outfit);
     // El mundo (con el agua animada) y las criaturas salen de `@kalku/art`.
     createArtTextures(this);
 

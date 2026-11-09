@@ -173,7 +173,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private createFighter(texture: string, x: number, y: number, scale: number, hp: number): Fighter {
-    const sprite = this.add.image(x, y, texture).setScale(scale);
+    const sprite = this.add.image(x, y, texture, 0).setScale(scale);
     const bar = this.add.graphics();
     const fighter = { sprite, hp, maxHp: hp, bar };
     this.drawBar(fighter);
