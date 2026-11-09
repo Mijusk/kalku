@@ -107,7 +107,16 @@ describe('pistas de problemas', () => {
       expect(getHint(ex, 2, 'es').text).toContain(`Es una ${word}: ${ex.a}`);
       expect(getHint(ex, 2, 'ca').text).toContain(`És una ${word}: ${ex.a}`);
       expect(getHint(ex, 2, 'es').text).not.toContain(`= ${ex.answer}`);
-      expect(getHint(ex, 3, 'es').text.length).toBeGreaterThan(0);
+      for (const locale of ['es', 'ca'] as const) {
+        const numbers = (getHint(ex, 3, locale).text.match(/\d+/g) ?? []).map(Number);
+        const start = ex.operator === '+' ? Math.max(ex.a, ex.b) : ex.a;
+        const direction = ex.operator === '+' ? 1 : -1;
+        expect(numbers[0]).toBe(start);
+        for (const [index, value] of numbers.entries()) {
+          expect(value).toBe(start + index * direction);
+        }
+        expect(numbers).not.toContain(ex.answer);
+      }
     }
   });
 });
