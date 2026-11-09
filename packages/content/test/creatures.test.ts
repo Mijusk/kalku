@@ -26,8 +26,33 @@ describe('criaturas de Pradera Uno', () => {
     }
   });
 
-  it('los nombres ya están aprobados por Luis', () => {
-    expect(CREATURES.every((c) => !c.provisional)).toBe(true);
+  it('solo Cuentín tiene el nombre pendiente de aprobar por Luis', () => {
+    expect(CREATURES.filter((c) => c.provisional).map((c) => c.id)).toEqual(['problemus-cuentin']);
+  });
+});
+
+describe('problemus', () => {
+  const cuentin = getCreature('problemus-cuentin');
+
+  it('la familia acepta su habilidad de problemas y el símbolo ±', () => {
+    expect(cuentin.skill).toBe('word-problems-within-10');
+    expect(cuentin.look.sign).toBe('±');
+    expect(validateCreatures([cuentin])).toEqual([]);
+  });
+
+  it('rechaza un problemus con una habilidad de una sola operación o con el símbolo de otra familia', () => {
+    expect(validateCreatures([{ ...cuentin, skill: 'add-within-10' }])).toContain(
+      'problemus-cuentin: un problemus no puede ir con la habilidad «add-within-10»',
+    );
+    expect(validateCreatures([{ ...cuentin, look: { ...cuentin.look, sign: '+' } }])).toContain(
+      'problemus-cuentin: el símbolo «+» no es el de la familia problemus',
+    );
+  });
+
+  it('un sumus no puede practicar problemas mixtos', () => {
+    expect(validateCreatures([broken({ skill: 'word-problems-within-10' })])).toContain(
+      'sumus-brote: un sumus no puede ir con la habilidad «word-problems-within-10»',
+    );
   });
 });
 
@@ -84,7 +109,7 @@ describe('piezas de las criaturas', () => {
     expect(validateCreatures([c])).toContain('sumus-brote: el cuerpo «cubo» no existe');
   });
 
-  it('las 6 criaturas se dibujan y no hay dos iguales', () => {
+  it('las 7 criaturas se dibujan y no hay dos iguales', () => {
     const drawings = CREATURES.map((c) => drawCreature(c.look)[0]?.px.join(',') ?? '');
     expect(new Set(drawings).size).toBe(CREATURES.length);
   });

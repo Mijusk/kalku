@@ -28,6 +28,13 @@ export function numberToWords(n: number, locale: Locale): string {
 }
 
 export function speakExercise(exercise: Exercise, locale: Locale): string {
+  // Un problema se lee tal cual: decir la operación le quitaría al niño la decisión.
+  // Los objetos de los enunciados son femeninos: en catalán, «dues pomes», no «dos pomes».
+  if (exercise.story) {
+    return exercise.story[locale].replace(/\d+/g, (n) =>
+      locale === 'ca' && n === '2' ? 'dues' : numberToWords(Number(n), locale),
+    );
+  }
   const w = WORDS[locale];
   const op = exercise.operator === '-' ? w.minus : w.plus;
   const say = (n: number): string => numberToWords(n, locale);

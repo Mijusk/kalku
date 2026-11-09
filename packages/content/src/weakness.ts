@@ -15,9 +15,10 @@ function inverse(operator: Operator): Operator {
   return operator === '+' ? '-' : '+';
 }
 
-/** La operación a la que es débil la criatura: la inversa de la de su familia. */
-export function weakOperator(creature: CreatureDefinition): Operator {
-  return inverse(getFamily(creature.family).operator);
+/** La operación a la que es débil la criatura: la inversa de la de su familia. Los problemus mezclan operaciones y no tienen debilidad. */
+export function weakOperator(creature: CreatureDefinition): Operator | undefined {
+  const operator = getFamily(creature.family).operator;
+  return operator === 'mixed' ? undefined : inverse(operator);
 }
 
 /** Multiplicador de daño de un ataque de esa operación contra la criatura (1 si no es su debilidad). */

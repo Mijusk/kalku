@@ -29,8 +29,8 @@ export interface CreatureLook {
   readonly cheeks?: boolean;
   /** Manchas oscuras en el cuerpo. */
   readonly spots?: boolean;
-  /** «+» para los sumus y «−» para los restus. */
-  readonly sign: '+' | '-';
+  /** «+» para los sumus, «−» para los restus y «±» para los problemus. */
+  readonly sign: '+' | '-' | '±';
 }
 
 /** Comprueba que el look usa piezas que existen (por si viene de datos externos). */
@@ -40,7 +40,7 @@ export function validateLook(look: CreatureLook): string[] {
   if (!BODIES.includes(look.body)) errors.push(`el cuerpo «${look.body}» no existe`);
   if (!TOPS.includes(look.top)) errors.push(`la pieza de cabeza «${look.top}» no existe`);
   if (!EYES.includes(look.eyes)) errors.push(`los ojos «${look.eyes}» no existen`);
-  if (look.sign !== '+' && look.sign !== '-') errors.push(`el símbolo «${String(look.sign)}» no existe`);
+  if (look.sign !== '+' && look.sign !== '-' && look.sign !== '±') errors.push(`el símbolo «${String(look.sign)}» no existe`);
   return errors;
 }
 
@@ -134,6 +134,13 @@ export function drawCreatureFrame(look: CreatureLook, frame: number): Grid {
   const signY = Math.round(cy + bodyH * 0.25);
   for (let i = -2; i <= 2; i++) setPx(g, 16 + i, signY, outline);
   if (look.sign === '+') for (let i = -2; i <= 2; i++) setPx(g, 16, signY + i, outline);
+  // «±»: un más pequeño con la raya de abajo.
+  if (look.sign === '±') {
+    for (let i = -1; i <= 1; i++) setPx(g, 16, signY - 2 + i, outline);
+    for (let i = -2; i <= 2; i++) setPx(g, 16 + i, signY + 2, outline);
+    setPx(g, 15, signY - 2, outline);
+    setPx(g, 17, signY - 2, outline);
+  }
 
   // Ojos y mejillas.
   const eyeY = Math.round(cy - bodyH * 0.12);

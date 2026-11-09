@@ -90,3 +90,35 @@ describe('pistas de conteo', () => {
     expect(count(getHint(ex, 2, 'es').text)).toBeLessThan(count(getHint(ex, 3, 'es').text));
   });
 });
+
+describe('pistas de problemas', () => {
+  it('el nivel 1 ayuda a decidir la operación, sin cifras, en es y ca', () => {
+    const ex = generateExercise('word-problems-within-10', createRng(8));
+    expect(getHint(ex, 1, 'es').text).toContain('suma');
+    expect(getHint(ex, 1, 'ca').text).toContain('suma');
+    expect(getHint(ex, 1, 'es').text).not.toMatch(/\d/);
+  });
+
+  it('el nivel 2 dice la operación y el 3 ayuda a calcularla, sin dar la respuesta', () => {
+    const rng = createRng(9);
+    for (let i = 0; i < 200; i++) {
+      const ex = generateExercise('word-problems-within-10', rng);
+      const word = ex.operator === '+' ? 'suma' : 'resta';
+      expect(getHint(ex, 2, 'es').text).toContain(`Es una ${word}: ${ex.a}`);
+      expect(getHint(ex, 2, 'ca').text).toContain(`És una ${word}: ${ex.a}`);
+      expect(getHint(ex, 2, 'es').text).not.toContain(`= ${ex.answer}`);
+      for (const locale of ['es', 'ca'] as const) {
+        const numbers = (getHint(ex, 3, locale).text.match(/\d+/g) ?? []).map(Number);
+        const start = ex.operator === '+' ? Math.max(ex.a, ex.b) : ex.a;
+        const direction = ex.operator === '+' ? 1 : -1;
+        const operand = ex.operator === '+' ? Math.min(ex.a, ex.b) : ex.b;
+        expect(numbers[0]).toBe(start);
+        expect(numbers).toHaveLength(operand);
+        for (const [index, value] of numbers.entries()) {
+          expect(value).toBe(start + index * direction);
+        }
+        expect(numbers).not.toContain(ex.answer);
+      }
+    }
+  });
+});

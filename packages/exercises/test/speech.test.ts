@@ -60,3 +60,18 @@ describe('numberToWords', () => {
     ca.forEach((w, n) => expect(numberToWords(n, 'ca')).toBe(w));
   });
 });
+
+describe('speakExercise con enunciado', () => {
+  const story: Exercise = {
+    id: 't', skill: 'word-problems-within-10', format: 'result', a: 2, b: 3, c: 5, operator: '+', hidden: 'c', answer: 5,
+    story: { es: 'Ana tiene 2 manzanas y recibe 3 más.', ca: 'L’Ana té 2 pomes i en rep 3 més.' },
+  };
+
+  it('lee el enunciado con los números en palabras, sin desvelar la operación', () => {
+    expect(speakExercise(story, 'es')).toBe('Ana tiene dos manzanas y recibe tres más.');
+  });
+
+  it('en catalán, el 2 va en femenino: «dues pomes»', () => {
+    expect(speakExercise(story, 'ca')).toBe('L’Ana té dues pomes i en rep tres més.');
+  });
+});

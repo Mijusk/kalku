@@ -89,7 +89,9 @@ export class ExercisePanel {
     }
     const text = speakExercise(exercise, this.locale);
     const exerciseLine = el('div', 'exercise-line');
-    exerciseLine.append(el('p', 'exercise', formatExercise(exercise, '▢')));
+    exerciseLine.append(
+      el('p', exercise.story ? 'exercise exercise-story' : 'exercise', formatExercise(exercise, '▢', this.locale)),
+    );
     // El altavoz solo aparece si el navegador tiene voz en este idioma (a veces carga tarde).
     // Si la voz llega tarde y la voz automática está activa, se lee una sola vez, al aparecer el botón.
     const showSpeaker = (): void => {

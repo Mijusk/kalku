@@ -2,6 +2,13 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-09 · Problemas con enunciado y familia problemus (#28)
+
+- **Operador `'mixed'`** para la habilidad `word-problems-within-10` y la familia problemus. Cada ejercicio lleva su operación real (`+` o `−`) y un `story` en es/ca con el enunciado; `validateCreatures` exige que habilidad y familia coincidan (mixed con mixed) y que el símbolo sea `±`.
+- **Resultados hasta 10**, operandos de 2 o más (el texto nunca dice «1 manzanas»), siempre preguntando por el resultado: el niño decide la operación. Va **al final de `SKILLS`** para no mover la dificultad de las demás; la prueba de nivel la trata como la más difícil, pero sigue empezando en «Sumas hasta 20 sin llevar» (`START_LEVEL`).
+- **Problemus sin debilidad** (daño ×1), porque sus ejercicios mezclan operaciones. Pistas: nivel 1 ayuda a elegir la operación, el 2 la nombra, el 3 ayuda a calcularla.
+- **Cuentín** (`problemus-cuentin`) es un nombre provisional pendiente de aprobar por Luis.
+
 ## 2026-11-09 · Leer el ejercicio en voz alta (#14)
 
 - **El texto sale de una función pura** (`speakExercise` en `@kalku/exercises`), con tests; el navegador solo lo pronuncia con `speechSynthesis` (`apps/game/src/speech.ts`). Signos y números van en palabras («cinco más tres son…», «siete más ¿cuánto falta para doce?») para que el motor de voz no los lea mal. En una resta con hueco no se dice «cuánto falta», sino «¿cuánto?» y el resultado.
