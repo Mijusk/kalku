@@ -1,4 +1,4 @@
-import { parseEncounters, type EncounterCounts } from '@kalku/content';
+import { parseCollection, parseEncounters, type Collection, type EncounterCounts } from '@kalku/content';
 import { createProfile, SKILL_IDS, type Locale, type MasteryProfile } from '@kalku/exercises';
 
 /**
@@ -44,6 +44,8 @@ export interface PlayerProgress {
   encounters: EncounterCounts;
   /** La prueba de nivel inicial ya se hizo (o se saltó). Solo sale la primera vez. */
   placementDone: boolean;
+  /** Criaturas rescatadas (id y fecha). Solo para coleccionar: no da ventaja en el combate. */
+  collection: Collection;
 }
 
 const STORAGE_KEY = 'kalku:progress';
@@ -58,6 +60,7 @@ export function defaultProgress(): PlayerProgress {
     settings: { ...DEFAULT_SETTINGS },
     encounters: {},
     placementDone: false,
+    collection: [],
   };
 }
 
@@ -76,7 +79,7 @@ export function loadProgress(): PlayerProgress {
     // Un guardado antiguo con intentos cuenta como hecho: no se molesta a quien ya juega.
     const hasPlayed = SKILL_IDS.some((id) => profile[id].attempts > 0);
     const placementDone = typeof parsed.placementDone === 'boolean' ? parsed.placementDone : hasPlayed;
-    return { ...defaultProgress(), ...parsed, locale, profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters) };
+    return { ...defaultProgress(), ...parsed, locale, profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection) };
   } catch {
     return defaultProgress();
   }

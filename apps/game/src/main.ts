@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { registerSW } from 'virtual:pwa-register';
 import { BattleScene, GAME_HEIGHT, GAME_WIDTH } from './scenes/BattleScene';
+import { CollectionScene } from './scenes/CollectionScene';
 import { BootScene } from './scenes/BootScene';
 import { PlacementScene } from './scenes/PlacementScene';
 import { WorldScene } from './scenes/WorldScene';
@@ -17,7 +18,7 @@ new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, PlacementScene, WorldScene, BattleScene],
+  scene: [BootScene, PlacementScene, WorldScene, BattleScene, CollectionScene],
 });
 
 // Web instalable: el service worker guarda el juego para jugar sin conexión.

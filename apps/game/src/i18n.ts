@@ -43,6 +43,13 @@ const STRINGS = {
   placementSkip: { es: 'Ahora no', ca: 'Ara no' },
   placementDone: { es: '¡Listo! Ya sé por dónde empezar.', ca: 'Fet! Ja sé per on començar.' },
   placementGo: { es: 'A jugar', ca: 'A jugar' },
+  rescue: { es: 'Rescatar', ca: 'Rescatar' },
+  rescued: { es: '¡Rescatado!', ca: 'Rescatat!' },
+  rescuedNew: { es: '¡Nueva criatura en tu colección!', ca: 'Nova criatura a la teva col·lecció!' },
+  rescuedAgain: { es: 'Ya estaba en tu colección.', ca: 'Ja era a la teva col·lecció.' },
+  rescueTitle: { es: 'Rescatar a la criatura', ca: 'Rescatar la criatura' },
+  collection: { es: 'Colección', ca: 'Col·lecció' },
+  collectionCount: { es: 'rescatadas', ca: 'rescatades' },
   language: { es: 'Català', ca: 'Castellano' },
 } as const satisfies Record<string, Record<Locale, string>>;
 

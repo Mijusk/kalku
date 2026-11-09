@@ -19,6 +19,8 @@ import {
   type Slot,
 } from '@kalku/exercises';
 import {
+  addToCollection,
+  canRescue,
   countEncounter,
   CREATURES,
   damageMultiplier,
@@ -61,6 +63,8 @@ interface Turn {
   exercise: Exercise;
   slot: Slot;
   strong: boolean;
+  /** Ejercicio de rescate: si se acierta, la criatura entra en la colección y el combate termina. */
+  rescue: boolean;
   tries: number;
   hintLevel: 0 | Hint['level'];
   startedAt: number;
@@ -98,6 +102,8 @@ export class BattleScene extends Phaser.Scene {
     this.creature = this.encounter ? getCreature(this.encounter.data.creature) : undefined;
     this.turn = undefined;
     this.streak = 0;
+    this.rescuedNow = undefined;
+    this.revealed = undefined;
     this.settingsOpen = false;
     this.progress = loadProgress();
     this.rng = createRng(randomSeed());
@@ -119,7 +125,7 @@ export class BattleScene extends Phaser.Scene {
     ui.replaceChildren();
     this.hud = new Hud(ui);
     this.panel = new ExercisePanel(ui, {
-      onAction: (a) => this.startTurn(a === 'strong'),
+      onAction: (a) => this.startTurn(a),
       onSubmit: (answer) => this.submit(answer),
       onHint: () => this.showNextHint(),
       onNext: () => (this.encounter ? this.returnToWorld() : this.startBattle()),
@@ -209,9 +215,19 @@ export class BattleScene extends Phaser.Scene {
     this.drawBar(this.enemy);
     this.drawBar(this.player);
     this.turn = undefined;
+    this.rescuedNow = undefined;
+    this.revealed = undefined;
     this.busy = false;
     this.refreshHud();
-    this.panel.showActions();
+    this.showActions();
+  }
+
+  /** Muestra los ataques; «Rescatar» solo si a la criatura le queda poca vida y no es un jefe. */
+  private showActions(): void {
+    const rescuable = this.creature !== undefined && canRescue(this.creature, this.enemy.hp, this.enemy.maxHp);
+    // El texto se monta aquí, con el idioma de ahora: si el niño cambia el idioma en los ajustes, también cambia.
+    const reveal = this.revealed === undefined ? undefined : `${tr('reveal', this.progress.locale)} ${this.revealed}.`;
+    this.panel.showActions(reveal, rescuable);
   }
 
   /** Cuenta el encuentro una sola vez por combate, al empezar, y decide si sale el cartel. */
@@ -227,17 +243,24 @@ export class BattleScene extends Phaser.Scene {
     this.refreshCreatureLabels();
   }
 
-  private startTurn(strong: boolean): void {
+  private startTurn(action: 'quick' | 'strong' | 'rescue'): void {
     if (this.busy) return;
+    this.revealed = undefined;
+    const strong = action === 'strong';
+    const rescue = action === 'rescue';
+    // Por si el botón llega tarde: el rescate se vuelve a comprobar con la vida actual.
+    if (rescue && !(this.creature && canRescue(this.creature, this.enemy.hp, this.enemy.maxHp))) return;
     const profile = this.progress.profile;
     const fromCreature = this.encounter?.data;
-    const pick = strong
+    const pick = rescue && this.creature
+      ? { skill: this.creature.skill, slot: fromCreature?.slot ?? ('current' as const) }
+      : strong
       ? { skill: challengeSkill(profile) ?? currentSkill(profile), slot: 'challenge' as const }
       : fromCreature
         ? { skill: fromCreature.skill, slot: fromCreature.slot }
         : pickSkill(profile, this.rng);
     const exercise = generateExercise(pick.skill, this.rng);
-    this.turn = { exercise, slot: pick.slot, strong, tries: 0, hintLevel: 0, startedAt: performance.now() };
+    this.turn = { exercise, slot: pick.slot, strong, rescue, tries: 0, hintLevel: 0, startedAt: performance.now() };
 
     const locale = this.progress.locale;
     const tag = pick.slot === 'challenge' ? tr('challenge', locale) : pick.slot === 'review' ? tr('review', locale) : undefined;
@@ -263,7 +286,10 @@ export class BattleScene extends Phaser.Scene {
     turn.tries += 1;
     this.panel.clearAnswer();
     if (turn.tries >= BATTLE.maxTries) {
-      this.panel.showFeedback(`${tr('reveal', locale)} ${turn.exercise.answer}.`, 'info');
+      const reveal = `${tr('reveal', locale)} ${turn.exercise.answer}.`;
+      this.panel.showFeedback(reveal, 'info');
+      // Se queda en el panel de acciones hasta que el niño elija otra cosa, también tras los ajustes.
+      this.revealed = turn.exercise.answer;
       this.finishTurn(false);
       return;
     }
@@ -312,7 +338,15 @@ export class BattleScene extends Phaser.Scene {
           'good',
         );
       }
-      this.hit(this.enemy, damage);
+      if (turn.rescue && this.creature) {
+        // Rescatar no hace daño ni da ventaja: solo guarda la criatura (sin duplicar) y termina el combate.
+        const had = this.progress.collection.some((e) => e.id === this.creature?.id);
+        this.progress.collection = addToCollection(this.progress.collection, this.creature.id, new Date().toISOString().slice(0, 10));
+        this.rescuedNow = had ? 'again' : 'new';
+        this.panel.showFeedback(`${tr('correct', locale)} +${score.total} ${tr('coins', locale)}`, 'good');
+      } else {
+        this.hit(this.enemy, damage);
+      }
     }
     // La gema se gana al cruzar el umbral jugando: lo que da la prueba de nivel no cuenta.
     if (!wasMastered && isMastered(this.progress.profile[skill]) && !this.progress.gems.includes(skill)) {
@@ -323,13 +357,21 @@ export class BattleScene extends Phaser.Scene {
     this.refreshHud();
 
     this.time.delayedCall(900, () => {
-      if (this.enemy.hp <= 0) return this.endBattle(true);
+      if (this.rescuedNow || this.enemy.hp <= 0) return this.endBattle(true);
+      // Fallar un rescate no cuesta nada: el enemigo no contraataca, así la criatura no huye
+      // y se puede volver a intentar.
+      if (turn.rescue && !correct) {
+        this.busy = false;
+        this.turn = undefined;
+        this.showActions();
+        return;
+      }
       this.hit(this.player, BATTLE.enemyDamage);
       this.time.delayedCall(600, () => {
         if (this.player.hp <= 0) return this.endBattle(false);
         this.busy = false;
         this.turn = undefined;
-        this.panel.showActions();
+        this.showActions();
       });
     });
   }
@@ -345,9 +387,11 @@ export class BattleScene extends Phaser.Scene {
     const locale = this.progress.locale;
     if (won) this.tweens.add({ targets: this.enemy.sprite, alpha: 0, duration: 400 });
     // Perder no quita nada: ni monedas ni dominio.
+    const rescued = this.rescuedNow;
+    const coins = `${this.progress.coins} ${tr('coins', locale)}`;
     this.panel.showResult(
-      won ? tr('victory', locale) : tr('defeat', locale),
-      `${this.progress.coins} ${tr('coins', locale)}`,
+      rescued ? tr('rescued', locale) : won ? tr('victory', locale) : tr('defeat', locale),
+      rescued ? `${tr(rescued === 'new' ? 'rescuedNew' : 'rescuedAgain', locale)} ${coins}` : coins,
       this.encounter ? tr('backToMap', locale) : tr('nextBattle', locale),
     );
   }
@@ -363,6 +407,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private settingsOpen = false;
+  /** Si en este combate se ha rescatado a la criatura: nueva en la colección o ya la tenía. */
+  private rescuedNow: 'new' | 'again' | undefined;
+  /** Respuesta revelada tras agotar los intentos; se muestra en las acciones hasta el siguiente turno. */
+  private revealed: number | undefined;
 
   private openSettings(): void {
     const ui = document.getElementById('ui');
@@ -379,7 +427,7 @@ export class BattleScene extends Phaser.Scene {
       },
       onClose: () => {
         this.settingsOpen = false;
-        this.panel.showActions();
+        this.showActions();
       },
     });
   }
