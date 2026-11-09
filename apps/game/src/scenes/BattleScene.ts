@@ -225,7 +225,9 @@ export class BattleScene extends Phaser.Scene {
   /** Muestra los ataques; «Rescatar» solo si a la criatura le queda poca vida y no es un jefe. */
   private showActions(): void {
     const rescuable = this.creature !== undefined && canRescue(this.creature, this.enemy.hp, this.enemy.maxHp);
-    this.panel.showActions(this.revealed, rescuable);
+    // El texto se monta aquí, con el idioma de ahora: si el niño cambia el idioma en los ajustes, también cambia.
+    const reveal = this.revealed === undefined ? undefined : `${tr('reveal', this.progress.locale)} ${this.revealed}.`;
+    this.panel.showActions(reveal, rescuable);
   }
 
   /** Cuenta el encuentro una sola vez por combate, al empezar, y decide si sale el cartel. */
@@ -287,7 +289,7 @@ export class BattleScene extends Phaser.Scene {
       const reveal = `${tr('reveal', locale)} ${turn.exercise.answer}.`;
       this.panel.showFeedback(reveal, 'info');
       // Se queda en el panel de acciones hasta que el niño elija otra cosa, también tras los ajustes.
-      this.revealed = reveal;
+      this.revealed = turn.exercise.answer;
       this.finishTurn(false);
       return;
     }
@@ -408,7 +410,7 @@ export class BattleScene extends Phaser.Scene {
   /** Si en este combate se ha rescatado a la criatura: nueva en la colección o ya la tenía. */
   private rescuedNow: 'new' | 'again' | undefined;
   /** Respuesta revelada tras agotar los intentos; se muestra en las acciones hasta el siguiente turno. */
-  private revealed: string | undefined;
+  private revealed: number | undefined;
 
   private openSettings(): void {
     const ui = document.getElementById('ui');
