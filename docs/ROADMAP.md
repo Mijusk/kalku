@@ -17,7 +17,7 @@ Bloques de desarrollo: 1 Publicar · 2 Mapa · 3 Encuentros · 4 Gráficos y tie
 - [ ] Moverse por el mapa y encontrar criaturas
 - [ ] Tienda de 5 objetos cosméticos
 - [ ] Límite diario de Cifras por ejercicios demasiado fáciles
-- [ ] Accesibilidad: lectura en voz alta del ejercicio
+- [x] Accesibilidad: lectura en voz alta del ejercicio
 
 ## Fase 2 · Versión de piloto · enero–marzo 2027
 

@@ -132,6 +132,7 @@ export class BattleScene extends Phaser.Scene {
       onOpenSettings: () => this.openSettings(),
     });
     this.panel.setLocale(this.progress.locale);
+    this.panel.setAutoVoice(this.progress.settings.autoVoice);
     document.querySelectorAll('#game .creature-name, #game .creature-weakness').forEach((e) => e.remove());
     this.nameLabel = this.createLabel('creature-name');
     this.weaknessLabel = this.createLabel('creature-weakness');
@@ -422,6 +423,7 @@ export class BattleScene extends Phaser.Scene {
         applyTextSize(this.progress.settings);
         saveProgress(this.progress);
         this.panel.setLocale(this.progress.locale);
+        this.panel.setAutoVoice(this.progress.settings.autoVoice);
         this.refreshCreatureLabels();
         this.refreshHud();
       },

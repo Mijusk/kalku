@@ -12,7 +12,7 @@ export interface Settings {
   /** Con false no se mide el tiempo ni hay bonus de rapidez (los puntos no bajan). */
   timed: boolean;
   textSize: 'normal' | 'large';
-  /** Lectura en voz alta. De momento solo se guarda; la voz llega en otra tarea. */
+  /** Lee el ejercicio en voz alta al aparecer (si el navegador tiene voz en el idioma). */
   autoVoice: boolean;
 }
 
