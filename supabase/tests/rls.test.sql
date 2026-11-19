@@ -1,5 +1,5 @@
 begin;
-select plan(16);
+select plan(15);
 
 -- Dos niños (logins anónimos simulados).
 insert into auth.users (id, aud, role, is_anonymous)
