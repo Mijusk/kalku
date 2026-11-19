@@ -4,12 +4,12 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 
 ## 2026-11-19 · Servidor: Supabase en Frankfurt, tablas y permisos (#44)
 
-- **Proyecto** `nxaehojnwutxpshqwzeo` (eu-central-1, plan gratis en el piloto). Migraciones en `supabase/migrations/`; la CI aplicará las migraciones desde cero con Supabase local y los tests pgTAP (`supabase/workflows/supabase.yml`, pendiente de copiar a `.github/workflows/`).
+- **Proyecto** `nxaehojnwutxpshqwzeo` (eu-central-1, plan gratis en el piloto). Migraciones en `supabase/migrations/`; la CI aplica las migraciones desde cero con Supabase local y lanza los tests pgTAP (`.github/workflows/supabase.yml`).
 - **Un niño es un login anónimo de Supabase:** `children.id` = `auth.uid()`. La futura cuenta de familia conserva el mismo id.
 - **Tablas mínimas:** `children` (id, apodo, fecha), `progress` (dominio por habilidad, como `SkillProgress`) y `answers` (respuesta con su semilla, para que el servidor regenere el ejercicio). Sin nombre real, correo ni ubicación; un test falla si aparece otra columna.
 - **RLS activado y forzado:** cada niño solo lee y escribe lo suyo; `anon` no tiene permisos; `answers` no se edita ni se borra.
 - **El navegador escribe ya `progress` y `answers`** (solo lo suyo). Hasta #46 un niño podría falsear su propio progreso; en #46 se retiran esos permisos.
-- **Migraciones al proyecto real:** workflow manual `supabase-migrar.yml` (en `supabase/workflows/` hasta que Luis lo copie a `.github/workflows/`, porque la app de Claude no puede crear workflows), solo para Luis, con los secretos `SUPABASE_ACCESS_TOKEN` y `SUPABASE_DB_PASSWORD`. La `service_role` no se usa en ningún sitio.
+- **Migraciones al proyecto real:** workflow manual `.github/workflows/supabase-migrar.yml`, solo para Luis, con los secretos `SUPABASE_ACCESS_TOKEN` y `SUPABASE_DB_PASSWORD`. La `service_role` no se usa en ningún sitio.
 - **Cliente** (`apps/game/src/supabase.ts`): solo clave pública vía `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; sin ellas devuelve `null` y el juego sigue con el guardado local.
 
 ## 2026-11-09 · Problemas con enunciado y familia problemus (#28)
