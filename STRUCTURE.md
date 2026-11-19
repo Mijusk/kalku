@@ -11,8 +11,11 @@ kalku/
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
+├── .env.example              Variables públicas del cliente de Supabase (sin claves secretas)
+├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS) y tests/ (pgTAP: permisos y privacidad)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
+│   ├── (pendiente) workflows/supabase.yml y supabase-migrar.yml: están en supabase/workflows/ hasta que Luis los copie aquí
 │   ├── workflows/claude.yml    Claude desde las issues: etiquetas plan/dev, /revisar tras CodeRabbit, @claude
 │   ├── ISSUE_TEMPLATE/tarea.md Plantilla de issue de tarea
 │   └── pull_request_template.md Plantilla de PR (Closes #, cómo probar, criterios)
@@ -85,6 +88,7 @@ kalku/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
             ├── speech.ts       Envoltorio de speechSynthesis: hay voz, leer, parar (el texto sale de @kalku/exercises)
+            ├── supabase.ts     Cliente de Supabase con clave pública; null si faltan las variables (aún no se usa desde las escenas)
             ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage), incluido placementDone (tests en apps/game/test/)
             ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
             ├── art/

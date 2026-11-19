@@ -15,6 +15,7 @@
     "@kalku/content": "0.1.0",
     "@kalku/exercises": "0.1.0",
     "@kalku/world": "0.1.0",
+    "@supabase/supabase-js": "^2.119.2",
     "phaser": "3.90.0"
   }
 }

@@ -1,0 +1,23 @@
+name: Supabase
+
+on:
+  pull_request:
+    paths: ['supabase/**', '.github/workflows/supabase.yml']
+  push:
+    branches: [main]
+    paths: ['supabase/**']
+
+jobs:
+  base-de-datos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Arrancar Supabase local
+        run: supabase start -x realtime,storage-api,imgproxy,edge-runtime,logflare,vector,studio,mailpit,postgres-meta,supavisor
+      - name: Aplicar las migraciones desde cero
+        run: supabase db reset
+      - name: Tests de permisos (RLS) y privacidad
+        run: supabase test db

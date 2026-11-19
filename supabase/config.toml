@@ -1,0 +1,18 @@
+# Supabase local (CI y desarrollo). El proyecto real está en Frankfurt (eu-central-1).
+project_id = "kalku"
+
+[api]
+enabled = true
+schemas = ["public"]
+
+[db]
+major_version = 15
+
+[auth]
+enabled = true
+# Cada niño entra con un login anónimo: auth.uid() es su id (children.id).
+enable_anonymous_sign_ins = true
+enable_signup = true
+
+[auth.email]
+enable_signup = false
