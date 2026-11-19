@@ -1,0 +1,20 @@
+name: Supabase · aplicar migraciones
+
+# Solo lo lanza Luis a mano desde Actions, después de fusionar.
+on:
+  workflow_dispatch:
+
+jobs:
+  migrar:
+    runs-on: ubuntu-latest
+    if: github.actor == 'Mijusk'
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase link --project-ref nxaehojnwutxpshqwzeo
+      - run: supabase db push

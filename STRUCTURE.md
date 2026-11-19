@@ -11,8 +11,11 @@ kalku/
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
+├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS) y tests/ (pgTAP: permisos y privacidad)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
+│   ├── workflows/supabase.yml  CI de la base de datos: migraciones desde cero + tests pgTAP (si cambia supabase/)
+│   ├── workflows/supabase-migrar.yml Manual (solo Luis): aplica las migraciones al proyecto real
 │   ├── workflows/claude.yml    Claude desde las issues: etiquetas plan/dev, /revisar tras CodeRabbit, @claude
 │   ├── ISSUE_TEMPLATE/tarea.md Plantilla de issue de tarea
 │   └── pull_request_template.md Plantilla de PR (Closes #, cómo probar, criterios)
@@ -85,6 +88,7 @@ kalku/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
             ├── speech.ts       Envoltorio de speechSynthesis: hay voz, leer, parar (el texto sale de @kalku/exercises)
+            ├── supabase.ts     Cliente de Supabase con clave pública; null si faltan las variables (copia apps/game/.env.example a .env; aún no se usa desde las escenas)
             ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage), incluido placementDone (tests en apps/game/test/)
             ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
             ├── art/
