@@ -17,4 +17,5 @@ jobs:
         with:
           version: latest
       - run: supabase link --project-ref nxaehojnwutxpshqwzeo
-      - run: supabase db push --remote
+      # Lanzarlo a mano ya es la confirmación: --yes evita la pregunta interactiva.
+      - run: supabase db push --remote --yes
