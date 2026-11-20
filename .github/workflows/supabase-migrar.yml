@@ -17,4 +17,4 @@ jobs:
         with:
           version: latest
       - run: supabase link --project-ref nxaehojnwutxpshqwzeo
-      - run: supabase db push
+      - run: supabase db push --remote
