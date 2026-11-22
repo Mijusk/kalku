@@ -5,7 +5,7 @@ import { defaultProgress } from '../src/progress';
 import { NICKNAME_KEY, pullProgress, pushProgress, supabaseBackend, type KeyValueStore } from '../src/sync';
 
 /**
- * Con Supabase local (`supabase start`). La CI de la base de datos define
+ * Con Supabase local (`supabase start`). Cuando la CI de la base de datos defina
  * SUPABASE_TEST_URL y SUPABASE_TEST_ANON_KEY; en un `npm test` normal no hay
  * servidor local y este fichero no se ejecuta.
  */
