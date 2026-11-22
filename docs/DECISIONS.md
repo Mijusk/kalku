@@ -2,6 +2,15 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-22 · Progreso en el servidor con cuenta anónima (#45)
+
+- **Se guarda todo el progreso (decidido con Luis):** el dominio en `progress` y el resto (monedas, gemas, colección, encuentros, ajustes, idioma, `placementDone`) en `children.extra jsonb`, con límite de 8 KB en la base de datos. Sin datos personales; el test de privacidad ahora espera esa columna.
+- **Cuenta:** al empezar, pantalla de apodo (lista o escrito) y `signInAnonymously()`; la sesión la guarda Supabase en el aparato. El apodo también queda en `localStorage` (`kalku:nickname`) para crear la cuenta más tarde si no había red.
+- **Conflicto local/servidor (decidido con Luis):** gana el servidor, salvo que no tenga ningún intento y el local sí; entonces se sube el local, una sola vez (`kalku:migrated`, solo se marca si la subida confirma).
+- **Apodo de varias palabras (decidido con Luis):** solo un aviso corto, sin bloquear.
+- **Sin conexión:** `localStorage` es la copia; los fallos de red se ignoran y se reintenta en la siguiente guardada (subida con 1,5 s de retardo). Al arrancar se espera como mucho 4 s al servidor.
+- **Test de integración** con Supabase local (`sync.integracion.test.ts`) en la CI de `supabase.yml`; fuera de ella no se ejecuta porque no hay servidor local.
+
 ## 2026-11-19 · Servidor: Supabase en Frankfurt, tablas y permisos (#44)
 
 - **Proyecto** `nxaehojnwutxpshqwzeo` (eu-central-1, plan gratis en el piloto). Migraciones en `supabase/migrations/`; la CI aplica las migraciones desde cero con Supabase local y lanza los tests pgTAP (`.github/workflows/supabase.yml`).

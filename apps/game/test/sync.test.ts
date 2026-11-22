@@ -1,0 +1,161 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createProfile } from '@kalku/exercises';
+import { defaultProgress, type PlayerProgress } from '../src/progress';
+import { createPusher, MIGRATED_KEY, needsNickname, NICKNAME_KEY, pullProgress, type Backend, type KeyValueStore } from '../src/sync';
+
+const PROGRESS_KEY = 'kalku:progress';
+
+function memoryStore(initial: Record<string, string> = {}): KeyValueStore & { data: Record<string, string> } {
+  const data = { ...initial };
+  return { data, getItem: (k) => data[k] ?? null, setItem: (k, v) => void (data[k] = v) };
+}
+
+function played(coins = 1): PlayerProgress {
+  const p = defaultProgress();
+  p.coins = coins;
+  p.profile = createProfile();
+  p.profile['add-within-10'] = { mastery: 16, attempts: 2, correct: 2 };
+  return p;
+}
+
+interface Fake extends Backend {
+  saves: { id: string; nickname: string; extra: unknown; rows: unknown[] }[];
+  failSave: boolean;
+  offline: boolean;
+  session: string | null;
+  server: { nickname: string; extra: unknown; rows: { skill: string; mastery: number; attempts: number; correct: number }[] } | null;
+}
+
+function fakeBackend(session: string | null = 'kid-1'): Fake {
+  const f: Fake = {
+    saves: [],
+    failSave: false,
+    offline: false,
+    session,
+    server: null,
+    async userId() {
+      return f.session;
+    },
+    async signInAnonymously() {
+      if (f.offline) throw new Error('offline');
+      f.session = 'kid-1';
+      return 'kid-1';
+    },
+    async fetchChild() {
+      if (f.offline) throw new Error('offline');
+      return f.server ? { nickname: f.server.nickname, extra: f.server.extra } : null;
+    },
+    async fetchProgress() {
+      if (f.offline) throw new Error('offline');
+      return f.server?.rows ?? [];
+    },
+    async save(id, nickname, extra, rows) {
+      if (f.offline || f.failSave) throw new Error('fallo');
+      f.saves.push({ id, nickname, extra, rows });
+      f.server = { nickname, extra, rows };
+    },
+  };
+  return f;
+}
+
+afterEach(() => vi.unstubAllGlobals());
+
+function withLocal(progress: PlayerProgress | null): ReturnType<typeof memoryStore> {
+  const store = memoryStore({ [NICKNAME_KEY]: 'Zorro', ...(progress ? { [PROGRESS_KEY]: JSON.stringify(progress) } : {}) });
+  vi.stubGlobal('localStorage', store);
+  return store;
+}
+
+describe('migración del progreso local', () => {
+  it('se sube una sola vez', async () => {
+    const store = withLocal(played());
+    const b = fakeBackend();
+    const first = await pullProgress(b, store);
+    expect(first.progress.coins).toBe(1);
+    expect(b.saves).toHaveLength(1);
+    expect(store.data[MIGRATED_KEY]).toBe('1');
+    await pullProgress(b, store);
+    expect(b.saves).toHaveLength(1);
+  });
+
+  it('si la subida falla no se marca como hecha y no se pierde lo local', async () => {
+    const store = withLocal(played());
+    const b = fakeBackend();
+    b.failSave = true;
+    const r = await pullProgress(b, store);
+    expect(r.source).toBe('local');
+    expect(r.progress.coins).toBe(1);
+    expect(store.data[MIGRATED_KEY]).toBeUndefined();
+    expect(store.data[PROGRESS_KEY]).toBeDefined();
+    b.failSave = false;
+    await pullProgress(b, store);
+    expect(b.saves).toHaveLength(1);
+    expect(store.data[MIGRATED_KEY]).toBe('1');
+  });
+});
+
+describe('servidor y local', () => {
+  it('gana el servidor aunque el local tenga más', async () => {
+    const store = withLocal(played(500));
+    const b = fakeBackend();
+    b.server = { nickname: 'Zorro', extra: { coins: 7 }, rows: [{ skill: 'add-within-10', mastery: 40, attempts: 5, correct: 4 }] };
+    const r = await pullProgress(b, store);
+    expect(r.source).toBe('server');
+    expect(r.progress.coins).toBe(7);
+    expect(JSON.parse(store.data[PROGRESS_KEY] ?? '{}').coins).toBe(7);
+    expect(b.saves).toHaveLength(0);
+  });
+
+  it('servidor sin intentos y local sin intentos: no se sube nada', async () => {
+    const store = withLocal(defaultProgress());
+    const b = fakeBackend();
+    const r = await pullProgress(b, store);
+    expect(r.source).toBe('local');
+    expect(b.saves).toHaveLength(0);
+  });
+});
+
+describe('sin conexión', () => {
+  it('sin red no lanza error y conserva la copia local', async () => {
+    const store = withLocal(played());
+    const b = fakeBackend();
+    b.offline = true;
+    const r = await pullProgress(b, store);
+    expect(r.source).toBe('local');
+    expect(r.progress.coins).toBe(1);
+  });
+
+  it('sin sesión devuelve la copia local', async () => {
+    const store = withLocal(played());
+    const r = await pullProgress(fakeBackend(null), store);
+    expect(r.source).toBe('local');
+  });
+
+  it('el pusher no lanza sin red y reintenta en el siguiente guardado', async () => {
+    const store = memoryStore({ [NICKNAME_KEY]: 'Zorro' });
+    const b = fakeBackend(null);
+    b.offline = true;
+    const pusher = createPusher(b, store, 0);
+    pusher.push(played());
+    await expect(pusher.flush()).resolves.toBeUndefined();
+    expect(b.saves).toHaveLength(0);
+    b.offline = false;
+    pusher.push(played(2));
+    await pusher.flush();
+    // La cuenta se crea al volver la conexión.
+    expect(b.session).toBe('kid-1');
+    expect(b.saves).toHaveLength(1);
+    expect(b.saves[0]?.nickname).toBe('Zorro');
+  });
+});
+
+describe('needsNickname', () => {
+  it('sin servidor no pide apodo', async () => {
+    expect(await needsNickname(null, memoryStore())).toBe(false);
+  });
+  it('sin sesión ni apodo, sí; con apodo o con sesión, no', async () => {
+    expect(await needsNickname(fakeBackend(null), memoryStore())).toBe(true);
+    expect(await needsNickname(fakeBackend(null), memoryStore({ [NICKNAME_KEY]: 'Zorro' }))).toBe(false);
+    expect(await needsNickname(fakeBackend('kid-1'), memoryStore())).toBe(false);
+  });
+});

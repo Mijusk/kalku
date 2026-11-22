@@ -1,14 +1,14 @@
 begin;
-select plan(15);
+select plan(18);
 
 -- Dos niños (logins anónimos simulados).
 insert into auth.users (id, aud, role, is_anonymous)
 values ('11111111-1111-1111-1111-111111111111', 'authenticated', 'authenticated', true),
        ('22222222-2222-2222-2222-222222222222', 'authenticated', 'authenticated', true);
 
-insert into public.children (id, nickname) values
-  ('11111111-1111-1111-1111-111111111111', 'Ana'),
-  ('22222222-2222-2222-2222-222222222222', 'Beto');
+insert into public.children (id, nickname, extra) values
+  ('11111111-1111-1111-1111-111111111111', 'Ana', '{"coins": 5}'),
+  ('22222222-2222-2222-2222-222222222222', 'Beto', '{"coins": 99}');
 insert into public.progress (child_id, skill, mastery, attempts, correct) values
   ('11111111-1111-1111-1111-111111111111', 'add-within-10', 40, 5, 4),
   ('22222222-2222-2222-2222-222222222222', 'add-within-10', 70, 9, 8);
@@ -60,6 +60,15 @@ select throws_ok($$update public.answers set correct = false$$, '42501', null,
   'las respuestas no se editan');
 select throws_ok($$delete from public.answers$$, '42501', null,
   'las respuestas no se borran');
+
+select results_eq($$select (extra->>'coins')::int from public.children$$, $$values (5)$$,
+  'un niño no lee el extra de otro');
+select lives_ok(
+  $$update public.children set extra = '{"coins": 6}' where id = '11111111-1111-1111-1111-111111111111'$$,
+  'un niño guarda su propio extra');
+select throws_ok(
+  $$update public.children set extra = (select jsonb_build_object('x', string_agg(md5(i::text), '')) from generate_series(1, 400) i) where id = '11111111-1111-1111-1111-111111111111'$$,
+  '23514', null, 'el extra tiene límite de tamaño');
 
 -- Vuelta a superusuario: el progreso de B sigue intacto.
 reset role;
