@@ -264,7 +264,15 @@ body {
 
 .btn-small {
   min-height: 48px;
+  padding: 0 16px;
   font-size: 1rem;
+}
+
+a.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 /* En horizontal con poca altura, el panel va a la derecha del juego. */

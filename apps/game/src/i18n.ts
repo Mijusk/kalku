@@ -26,6 +26,7 @@ const STRINGS = {
   review: { es: 'Repaso', ca: 'Repàs' },
   settings: { es: 'Ajustes', ca: 'Ajustos' },
   back: { es: 'Volver', ca: 'Tornar' },
+  privacy: { es: 'Privacidad', ca: 'Privacitat' },
   languageLabel: { es: 'Idioma', ca: 'Idioma' },
   timer: { es: 'Tiempo', ca: 'Temps' },
   textSize: { es: 'Tamaño del texto', ca: 'Mida del text' },

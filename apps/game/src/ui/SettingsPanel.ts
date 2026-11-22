@@ -66,9 +66,19 @@ export class SettingsPanel {
         choice(tr('on', locale), s.autoVoice, change(() => (s.autoVoice = true))),
         choice(tr('off', locale), !s.autoVoice, change(() => (s.autoVoice = false))),
       ]),
+      privacyLink(tr('privacy', locale)),
       close,
     );
   }
+}
+
+/** Enlace a la política de privacidad (página aparte, sin Phaser). */
+function privacyLink(label: string): HTMLAnchorElement {
+  const a = document.createElement('a');
+  a.className = 'btn btn-small';
+  a.href = '/privacidad.html';
+  a.textContent = label;
+  return a;
 }
 
 function title(text: string): HTMLElement {

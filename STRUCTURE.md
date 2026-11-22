@@ -29,6 +29,7 @@ kalku/
 │   ├── DESIGN.md             Resumen del documento de diseño del juego
 │   ├── DECISIONS.md          Registro de decisiones (qué y por qué), la más reciente arriba
 │   ├── ROADMAP.md            Fases y tareas hasta septiembre de 2027
+│   ├── legal/                Plantillas del contrato de encargo de tratamiento para centros (es/ca, borrador)
 │   └── maquetas/
 │       └── dibujos-por-codigo.html  Maqueta del generador de dibujos (mapa por reglas y semilla, criaturas por piezas)
 │
@@ -76,12 +77,14 @@ kalku/
 │       │   ├── index.ts        Exporta todo el paquete
 │       │   ├── creatures.ts    Familias (sumus, restus, problemus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
 │       │   ├── collection.ts   Rescate y colección: canRescue (25 % de vida, nunca jefes), addToCollection sin mutar, parseCollection, collectionStatus
+│       │   ├── legal.ts        Textos legales como datos: política es/ca, versión para niños, datos del servidor, subencargados, LEGAL_DRAFT
 │       │   └── weakness.ts     Debilidad por operación inversa (damageMultiplier; los problemus no tienen) y contador de encuentros para el cartel
 │       └── test/             Tests con vitest
 │
 └── apps/
     └── game/                 @kalku/game: el juego, web instalable (PWA)
         ├── index.html          Contenedores #game (canvas) y #ui (HTML)
+        ├── privacidad.html     Página /privacidad (entrada aparte de Vite, sin Phaser)
         ├── vite.config.ts      Vite + PWA (manifest y service worker)
         ├── public/             Ficheros estáticos (icono, _headers de caché para Cloudflare Pages)
         └── src/
@@ -89,6 +92,8 @@ kalku/
             ├── i18n.ts         Textos de interfaz es/ca
             ├── speech.ts       Envoltorio de speechSynthesis: hay voz, leer, parar (el texto sale de @kalku/exercises)
             ├── supabase.ts     Cliente de Supabase con clave pública; null si faltan las variables (copia apps/game/.env.example a .env; aún no se usa desde las escenas)
+            ├── privacidad.ts   Pinta la política de privacidad (idioma, versión, tablas) desde @kalku/content
+            ├── privacyLocale.ts Elige el idioma de /privacidad: ?lang=, ajuste guardado o navegador
             ├── progress.ts     Progreso y ajustes (PROVISIONAL: localStorage), incluido placementDone (tests en apps/game/test/)
             ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
             ├── art/

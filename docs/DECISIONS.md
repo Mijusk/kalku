@@ -2,6 +2,16 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-22 · Política de privacidad y contrato para centros (#49)
+
+- **Los textos son datos** (`packages/content/src/legal.ts`, es/ca) y la página `/privacidad` (`privacidad.html`, entrada aparte de Vite, sin Phaser) solo los pinta. Se enlaza desde Ajustes. El service worker no la sustituye por `index.html` (`navigateFallbackDenylist`).
+- **Borrador:** `LEGAL_DRAFT = true` muestra «Borrador pendiente de revisión legal» en la página; las plantillas de `docs/legal/` llevan el mismo aviso. Para quitarlo, cuando el abogado dé el visto bueno: `LEGAL_DRAFT = false` y borrar el aviso de las plantillas.
+- **Responsable y contacto** (decidido con Luis): marcadores `[PENDIENTE: …]` visibles; nadie inventa datos. Luis los rellena antes del piloto.
+- **Conservación** (decidido con Luis): la cuenta del niño se borra tras 12 meses sin jugar y siempre a petición de la familia o del centro; los datos de un centro, al terminar el contrato. Es texto: el borrado automático aún no existe.
+- **Subencargados:** Supabase (Frankfurt) y Cloudflare; Brevo marcado «cuando existan cuentas de familia» (hoy no se guarda ningún correo).
+- **Un test cruza la política con `supabase/migrations/`:** si una migración añade una columna que no está en `SERVER_DATA`, falla. Así la política no se queda atrás.
+- **Pendiente para el abogado:** ubicación exacta del alojamiento de Cloudflare Pages, plazo de aviso de brechas (48 h, propuesto) y jurisdicción del contrato.
+
 ## 2026-11-19 · Servidor: Supabase en Frankfurt, tablas y permisos (#44)
 
 - **Proyecto** `nxaehojnwutxpshqwzeo` (eu-central-1, plan gratis en el piloto). Migraciones en `supabase/migrations/`; la CI aplica las migraciones desde cero con Supabase local y lanza los tests pgTAP (`.github/workflows/supabase.yml`).

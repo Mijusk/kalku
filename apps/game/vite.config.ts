@@ -6,6 +6,13 @@ export default defineConfig({
   build: {
     // Phaser ocupa ~1 MB; es normal y se cachea con el service worker.
     chunkSizeWarningLimit: 2000,
+    // Dos entradas: el juego y /privacidad (sin Phaser).
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        privacidad: 'privacidad.html',
+      },
+    },
   },
   plugins: [
     VitePWA({
@@ -25,6 +32,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,json}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        // /privacidad es una página propia: no se sustituye por index.html.
+        navigateFallbackDenylist: [/^\/privacidad/],
       },
     }),
   ],
