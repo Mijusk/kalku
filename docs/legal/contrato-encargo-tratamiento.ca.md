@@ -38,7 +38,7 @@ El centre autoritza de manera general els subencarregats següents, tots a la Un
 | Subencarregat | Funció | Ubicació |
 | --- | --- | --- |
 | Supabase | Base de dades i accés anònim | Frankfurt (Alemanya) |
-| Cloudflare | Allotjament del web del joc | Xarxa europea de Cloudflare |
+| Cloudflare | Allotjament del web del joc | Xarxa mundial de Cloudflare (només lliura els fitxers del joc; no guarda dades dels infants) |
 | Brevo | Correus a les famílies (**només quan hi hagi comptes de família**) | França |
 
 L’encarregat informarà el centre de qualsevol canvi amb almenys [PENDENT: 30] dies d’antelació perquè s’hi pugui oposar. Imposarà a cada subencarregat les mateixes obligacions de protecció de dades i en respondrà davant el centre.

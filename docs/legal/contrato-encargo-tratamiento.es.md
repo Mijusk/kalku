@@ -38,7 +38,7 @@ El centro autoriza de forma general a los siguientes subencargados, todos en la 
 | Subencargado | Función | Ubicación |
 | --- | --- | --- |
 | Supabase | Base de datos y acceso anónimo | Frankfurt (Alemania) |
-| Cloudflare | Alojamiento de la web del juego | Red europea de Cloudflare |
+| Cloudflare | Alojamiento de la web del juego | Red mundial de Cloudflare (solo entrega los ficheros del juego; no guarda datos de los niños) |
 | Brevo | Correos a las familias (**solo cuando existan cuentas de familia**) | Francia |
 
 El encargado informará al centro de cualquier cambio con al menos [PENDIENTE: 30] días de antelación para que pueda oponerse. Impondrá a cada subencargado las mismas obligaciones de protección de datos y responderá ante el centro de su cumplimiento.

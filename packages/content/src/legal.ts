@@ -127,7 +127,7 @@ export const SUBPROCESSORS: readonly Subprocessor[] = [
   {
     name: 'Cloudflare',
     role: { es: 'Alojamiento de la web del juego (Cloudflare Pages)', ca: 'Allotjament del web del joc (Cloudflare Pages)' },
-    location: { es: 'Red europea de Cloudflare', ca: 'Xarxa europea de Cloudflare' },
+    location: { es: 'Red mundial de Cloudflare (solo entrega los ficheros del juego; no guarda el progreso)', ca: 'Xarxa mundial de Cloudflare (només lliura els fitxers del joc; no guarda el progrés)' },
     future: false,
   },
   {
