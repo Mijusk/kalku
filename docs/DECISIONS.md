@@ -8,7 +8,7 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 - **Cuenta:** al empezar, pantalla de apodo (lista o escrito) y `signInAnonymously()`; la sesión la guarda Supabase en el aparato. El apodo también queda en `localStorage` (`kalku:nickname`) para crear la cuenta más tarde si no había red.
 - **Conflicto local/servidor (decidido con Luis):** gana el servidor, salvo que no tenga ningún intento y el local sí; entonces se sube el local, una sola vez (`kalku:migrated`, solo se marca si la subida confirma).
 - **Apodo de varias palabras (decidido con Luis):** solo un aviso corto, sin bloquear.
-- **Sin conexión:** `localStorage` es la copia; los fallos de red se ignoran y se reintenta en la siguiente guardada (subida con 1,5 s de retardo). Al arrancar se espera como mucho 4 s al servidor.
+- **Sin conexión:** `localStorage` es la copia; los fallos de red se ignoran y se reintenta en la siguiente guardada (subida con 1,5 s de retardo). Al arrancar se espera como mucho 4 s al servidor. Mientras haya guardados sin confirmar (`kalku:pending`), al arrancar se sube lo local en vez de bajar el servidor, para no perder lo jugado sin conexión.
 - **Test de integración** con Supabase local (`sync.integracion.test.ts`) en la CI de `supabase.yml`; fuera de ella no se ejecuta porque no hay servidor local.
 
 ## 2026-11-19 · Servidor: Supabase en Frankfurt, tablas y permisos (#44)

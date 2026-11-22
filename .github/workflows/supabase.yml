@@ -2,7 +2,7 @@ name: Supabase
 
 on:
   pull_request:
-    paths: ['supabase/**', '.github/workflows/supabase.yml']
+    paths: ['supabase/**', '.github/workflows/supabase.yml', 'apps/game/src/sync.ts', 'apps/game/src/progress.ts', 'apps/game/test/sync.integracion.test.ts']
   push:
     branches: [main]
     paths: ['supabase/**']
@@ -21,3 +21,14 @@ jobs:
         run: supabase db reset
       - name: Tests de permisos (RLS) y privacidad
         run: supabase test db
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Paquetes del juego
+        run: npm run build -w @kalku/exercises -w @kalku/world -w @kalku/art -w @kalku/content
+      - name: Test de integración del progreso (cuenta anónima → guardar → recuperar)
+        run: |
+          eval "$(supabase status -o env | grep -E '^(API_URL|ANON_KEY)=')"
+          SUPABASE_TEST_URL="$API_URL" SUPABASE_TEST_ANON_KEY="$ANON_KEY" npm run test -w @kalku/game -- test/sync.integracion.test.ts

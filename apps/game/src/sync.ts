@@ -36,6 +36,8 @@ export interface KeyValueStore {
 
 export const NICKNAME_KEY = 'kalku:nickname';
 export const MIGRATED_KEY = 'kalku:migrated';
+/** '1' mientras haya guardados locales que el servidor aún no ha confirmado (jugar sin conexión). */
+export const PENDING_KEY = 'kalku:pending';
 
 export function supabaseBackend(client: SupabaseClient): Backend {
   return {
@@ -93,6 +95,14 @@ export async function pullProgress(backend: Backend, store: KeyValueStore): Prom
     const id = await backend.userId();
     if (!id) return fallback;
     const [child, rows] = await Promise.all([backend.fetchChild(id), backend.fetchProgress(id)]);
+    // Sin apodo guardado en este aparato (almacenamiento borrado a medias): se recupera del servidor.
+    if (child?.nickname && !store.getItem(NICKNAME_KEY)) store.setItem(NICKNAME_KEY, child.nickname);
+    // Partida sin conexión que no llegó a subirse: es más nueva que el servidor, no se pisa.
+    if (local && store.getItem(PENDING_KEY) === '1') {
+      await pushProgress(backend, store, local);
+      store.setItem(PENDING_KEY, '0');
+      return { progress: local, source: 'local' };
+    }
     const server = fromServerRows(child?.extra, rows);
     const serverHasPlayed = hasAttempts(server.profile);
     if (!serverHasPlayed && local && hasAttempts(local.profile)) {
@@ -134,6 +144,7 @@ export function createPusher(backend: Backend, store: KeyValueStore, delayMs = 1
       await pushProgress(backend, store, sending);
       // Si llegó algo más nuevo mientras subíamos, se sube otra vez.
       if (latest !== sending) schedule();
+      else store.setItem(PENDING_KEY, '0');
     } catch {
       // Sin red: queda la copia local; se reintenta en el siguiente guardado.
     } finally {
@@ -147,6 +158,7 @@ export function createPusher(backend: Backend, store: KeyValueStore, delayMs = 1
   return {
     push(progress: PlayerProgress): void {
       latest = progress;
+      store.setItem(PENDING_KEY, '1');
       schedule();
     },
     /** Sube ya (para los tests o al cerrar la página). */

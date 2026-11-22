@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createProfile } from '@kalku/exercises';
 import { defaultProgress, type PlayerProgress } from '../src/progress';
-import { createPusher, MIGRATED_KEY, needsNickname, NICKNAME_KEY, pullProgress, type Backend, type KeyValueStore } from '../src/sync';
+import { createPusher, MIGRATED_KEY, needsNickname, NICKNAME_KEY, PENDING_KEY, pullProgress, type Backend, type KeyValueStore } from '../src/sync';
 
 const PROGRESS_KEY = 'kalku:progress';
 
@@ -106,6 +106,38 @@ describe('servidor y local', () => {
     expect(b.saves).toHaveLength(0);
   });
 
+  it('lo jugado sin conexión que no se subió no lo pisa el servidor', async () => {
+    const store = withLocal(played(500));
+    store.data[PENDING_KEY] = '1';
+    const b = fakeBackend();
+    b.server = { nickname: 'Zorro', extra: { coins: 7 }, rows: [{ skill: 'add-within-10', mastery: 40, attempts: 5, correct: 4 }] };
+    const r = await pullProgress(b, store);
+    expect(r.source).toBe('local');
+    expect(r.progress.coins).toBe(500);
+    expect(b.saves).toHaveLength(1);
+    expect(store.data[PENDING_KEY]).toBe('0');
+  });
+
+  it('si esa subida falla, se sigue con lo local y queda pendiente', async () => {
+    const store = withLocal(played(500));
+    store.data[PENDING_KEY] = '1';
+    const b = fakeBackend();
+    b.failSave = true;
+    b.server = { nickname: 'Zorro', extra: { coins: 7 }, rows: [{ skill: 'add-within-10', mastery: 40, attempts: 5, correct: 4 }] };
+    const r = await pullProgress(b, store);
+    expect(r.progress.coins).toBe(500);
+    expect(store.data[PENDING_KEY]).toBe('1');
+  });
+
+  it('recupera el apodo del servidor si se perdió en el aparato', async () => {
+    const store = memoryStore();
+    vi.stubGlobal('localStorage', store);
+    const b = fakeBackend();
+    b.server = { nickname: 'Cohete', extra: {}, rows: [] };
+    await pullProgress(b, store);
+    expect(store.data[NICKNAME_KEY]).toBe('Cohete');
+  });
+
   it('servidor sin intentos y local sin intentos: no se sube nada', async () => {
     const store = withLocal(defaultProgress());
     const b = fakeBackend();
@@ -146,6 +178,7 @@ describe('sin conexión', () => {
     expect(b.session).toBe('kid-1');
     expect(b.saves).toHaveLength(1);
     expect(b.saves[0]?.nickname).toBe('Zorro');
+    expect(store.data[PENDING_KEY]).toBe('0');
   });
 });
 
