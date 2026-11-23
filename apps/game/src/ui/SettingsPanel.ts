@@ -1,10 +1,13 @@
 import { tr } from '../i18n';
 import type { PlayerProgress } from '../progress';
+import { AdultsPanel } from './AdultsPanel';
 
 export interface SettingsCallbacks {
   /** Se llama tras cada cambio, con `progress` ya modificado. */
   onChange(): void;
   onClose(): void;
+  /** Se borraron los datos del niño: hay que volver a empezar como un niño nuevo. */
+  onDeleted(): void;
 }
 
 /** Pantalla de ajustes en HTML. Botones de 48 px o más; cada cambio se aplica al instante. */
@@ -48,6 +51,21 @@ export class SettingsPanel {
       this.callbacks.onClose();
     });
 
+    const adultsButton = document.createElement('button');
+    adultsButton.type = 'button';
+    adultsButton.className = 'btn btn-small';
+    adultsButton.textContent = tr('adults', locale);
+    adultsButton.addEventListener('click', () => {
+      new AdultsPanel(this.root, locale, {
+        onClose: () => this.render(),
+        onDeleted: () => {
+          this.root.remove();
+          for (const el of this.inerted) el.removeAttribute('inert');
+          this.callbacks.onDeleted();
+        },
+      });
+    });
+
     this.root.replaceChildren(
       title(tr('settings', locale)),
       item(tr('languageLabel', locale), [
@@ -67,6 +85,7 @@ export class SettingsPanel {
         choice(tr('off', locale), !s.autoVoice, change(() => (s.autoVoice = false))),
       ]),
       privacyLink(tr('privacy', locale)),
+      adultsButton,
       close,
     );
   }

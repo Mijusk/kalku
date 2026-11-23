@@ -221,8 +221,8 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: { es: '7. Tus derechos', ca: '7. Els teus drets' },
     paragraphs: [
       {
-        es: 'Puedes pedir acceder a los datos, corregirlos, borrarlos, limitar su uso, llevártelos o oponerte, y retirar tu consentimiento cuando quieras. Escríbenos al correo de arriba. Si crees que no tratamos bien los datos, puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).',
-        ca: 'Pots demanar accedir a les dades, corregir-les, esborrar-les, limitar-ne l’ús, endur-te-les o oposar-t’hi, i retirar el consentiment quan vulguis. Escriu-nos al correu de dalt. Si creus que no tractem bé les dades, pots reclamar davant l’Agència Espanyola de Protecció de Dades (aepd.es).',
+        es: 'Puedes pedir acceder a los datos, corregirlos, borrarlos, limitar su uso, llevártelos o oponerte, y retirar tu consentimiento cuando quieras. Desde el juego, en Ajustes → Para adultos, puedes descargar los datos del niño y borrarlos. Para lo demás (o si no tienes el aparato del niño), escríbenos al correo de arriba. Si crees que no tratamos bien los datos, puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).',
+        ca: 'Pots demanar accedir a les dades, corregir-les, esborrar-les, limitar-ne l’ús, endur-te-les o oposar-t’hi, i retirar el consentiment quan vulguis. Des del joc, a Ajustos → Per a adults, pots descarregar les dades de l’infant i esborrar-les. Per a la resta (o si no tens l’aparell de l’infant), escriu-nos al correu de dalt. Si creus que no tractem bé les dades, pots reclamar davant l’Agència Espanyola de Protecció de Dades (aepd.es).',
       },
     ],
   },

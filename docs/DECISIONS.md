@@ -2,6 +2,15 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-23 · Exportar y borrar los datos de un niño (#50)
+
+- **Dos funciones SQL** (`export_my_data`, `delete_my_account`, `security definer`) que solo actúan sobre `auth.uid()`. El cliente no puede borrar `auth.users` ni `answers`, por eso hace falta función. `anon` no puede ejecutarlas.
+- **El borrado es borrar la fila de `auth.users`:** `on delete cascade` se lleva `children`, `progress` y `answers`. Una tabla futura con `child_id` debe tener también `on delete cascade`, y el export usa `to_jsonb(fila)`, así que incluye las columnas nuevas. Un test pgTAP falla si una tabla con `child_id` no está en el export.
+- **«Para adultos» en Ajustes** (decidido con Luis), tras una cuenta tipo 47 × 6 con semilla. No es seguridad, solo evita borrados por error. Confirmación en dos pasos, con «No, volver» como botón principal.
+- **Si el servidor falla, no se borra nada local** y se avisa; no se finge un borrado.
+- **Tras borrar** se vuelve a la pantalla de apodo como un niño nuevo (cuenta anónima nueva).
+- **Fuera de alcance (decidido con Luis):** un adulto sin el aparato del niño necesita cuentas de familia; mientras, la política ofrece el correo.
+
 ## 2026-11-22 · Política de privacidad y contrato para centros (#49)
 
 - **Los textos son datos** (`packages/content/src/legal.ts`, es/ca) y la página `/privacidad` (`privacidad.html`, entrada aparte de Vite, sin Phaser) solo los pinta. Se enlaza desde Ajustes. El service worker no la sustituye por `index.html` (`navigateFallbackDenylist`).

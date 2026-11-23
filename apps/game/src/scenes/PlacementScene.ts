@@ -116,6 +116,11 @@ export class PlacementScene extends Phaser.Scene {
         // Mismo ejercicio, con el idioma nuevo.
         if (this.question) this.presentQuestion(this.question.exercise);
       },
+      onDeleted: () => {
+        // Datos borrados: de vuelta a la pantalla de apodo, como un niño nuevo.
+        this.settingsOpen = false;
+        this.scene.start('nickname');
+      },
     });
   }
 
