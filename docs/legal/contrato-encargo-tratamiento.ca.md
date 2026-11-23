@@ -17,7 +17,7 @@ L’encarregat presta al centre el servei Kalku (joc de matemàtiques per a alum
 ## 2. Dades i persones afectades
 
 - **Persones afectades:** alumnat del centre que fa servir Kalku, i el professorat que el gestiona.
-- **Dades de l’alumnat:** identificador anònim d’accés; malnom (no ha de ser el nom real); domini, intents i encerts per habilitat matemàtica; cada resposta amb la llavor de l’exercici, el número donat, si va ser correcta, les pistes fetes servir i la data.
+- **Dades de l’alumnat:** identificador anònim d’accés; malnom (no ha de ser el nom real); domini, intents i encerts per habilitat matemàtica; estat de la partida (monedes del joc, gemmes, criatures rescatades, ajustos i idioma); cada resposta amb la llavor de l’exercici, el número donat, si va ser correcta, les pistes fetes servir i la data.
 - **No es tracten:** nom real, correu, ubicació, imatge, veu ni dades de categories especials.
 - **Durada:** la del contracte de servei entre el centre i l’encarregat.
 

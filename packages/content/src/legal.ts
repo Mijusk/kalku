@@ -68,14 +68,14 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
   },
   {
     table: 'children',
-    columns: ['id', 'nickname', 'created_at'],
+    columns: ['id', 'nickname', 'created_at', 'extra'],
     what: {
-      es: 'El identificador anónimo, un apodo (de 1 a 30 letras, no debe ser el nombre real) y la fecha de creación.',
-      ca: 'L’identificador anònim, un malnom (d’1 a 30 lletres, no ha de ser el nom real) i la data de creació.',
+      es: 'El identificador anónimo, un apodo (de 1 a 30 letras, no debe ser el nombre real), la fecha de creación y el resto de la partida: monedas del juego, gemas, criaturas rescatadas, ajustes e idioma.',
+      ca: 'L’identificador anònim, un malnom (d’1 a 30 lletres, no ha de ser el nom real), la data de creació i la resta de la partida: monedes del joc, gemmes, criatures rescatades, ajustos i idioma.',
     },
     purpose: {
-      es: 'Mostrar el apodo en el juego y saber a quién pertenece cada progreso.',
-      ca: 'Mostrar el malnom al joc i saber a qui pertany cada progrés.',
+      es: 'Mostrar el apodo en el juego, saber a quién pertenece cada progreso y que la partida siga igual al volver a entrar.',
+      ca: 'Mostrar el malnom al joc, saber a qui pertany cada progrés i que la partida continuï igual en tornar a entrar.',
     },
     retention: RETENTION_CHILD,
   },
@@ -242,7 +242,7 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
 export const KIDS_TITLE: Localized = { es: 'Para ti, explorador', ca: 'Per a tu, explorador' };
 
 export const KIDS_SUMMARY: readonly Localized[] = [
-  { es: 'Kalku solo guarda tu apodo y cómo vas con las mates.', ca: 'Kalku només guarda el teu malnom i com vas amb les mates.' },
+  { es: 'Kalku solo guarda tu apodo y cómo vas en el juego y con las mates.', ca: 'Kalku només guarda el teu malnom i com vas al joc i amb les mates.' },
   { es: 'No te pedimos tu nombre de verdad. Usa un apodo.', ca: 'No et demanem el teu nom de veritat. Fes servir un malnom.' },
   { es: 'No hay anuncios y no vendemos nada de lo tuyo.', ca: 'No hi ha anuncis i no venem res del que és teu.' },
   { es: 'Si te equivocas, no pasa nada: no pierdes nada.', ca: 'Si t’equivoques, no passa res: no perds res.' },

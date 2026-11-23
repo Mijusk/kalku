@@ -31,7 +31,7 @@ function allLocalized(): Localized[] {
   ];
 }
 
-/** Lee `create table public.x ( ... );` de las migraciones y saca los nombres de columna. */
+/** Lee `create table` y `alter table … add/drop column` de las migraciones y saca los nombres de columna. */
 function migrationColumns(): Map<string, string[]> {
   const sql = readdirSync(MIGRATIONS)
     .filter((f) => f.endsWith('.sql'))
@@ -55,6 +55,11 @@ function migrationColumns(): Map<string, string[]> {
     columns.push(line);
     const names = columns.map((c) => c.trim().split(/\s+/)[0] ?? '').filter((n) => n && !['primary', 'unique', 'constraint', 'foreign', 'check'].includes(n));
     tables.set(m[1] ?? '', names);
+  }
+  // Columnas añadidas después: `alter table public.x add column y …` (y `drop column`).
+  for (const m of sql.matchAll(/alter table public\.(\w+)\s+(add|drop) column (?:if (?:not )?exists )?(\w+)/g)) {
+    const table = tables.get(m[1] ?? '') ?? [];
+    tables.set(m[1] ?? '', m[2] === 'add' ? [...table, m[3] ?? ''] : table.filter((c) => c !== m[3]));
   }
   return tables;
 }

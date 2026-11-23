@@ -17,7 +17,7 @@ El encargado presta al centro el servicio Kalku (juego de matemáticas para alum
 ## 2. Datos y personas afectadas
 
 - **Personas afectadas:** alumnado del centro que usa Kalku, y el profesorado que lo gestiona.
-- **Datos del alumnado:** identificador anónimo de acceso; apodo (no debe ser el nombre real); dominio, intentos y aciertos por habilidad matemática; cada respuesta con la semilla del ejercicio, el número dado, si fue correcta, las pistas usadas y la fecha.
+- **Datos del alumnado:** identificador anónimo de acceso; apodo (no debe ser el nombre real); dominio, intentos y aciertos por habilidad matemática; estado de la partida (monedas del juego, gemas, criaturas rescatadas, ajustes e idioma); cada respuesta con la semilla del ejercicio, el número dado, si fue correcta, las pistas usadas y la fecha.
 - **No se tratan:** nombre real, correo, ubicación, imagen, voz ni datos de categorías especiales.
 - **Duración:** la del contrato de servicio entre el centro y el encargado.
 
