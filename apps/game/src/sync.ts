@@ -84,6 +84,8 @@ export const NICKNAME_KEY = 'kalku:nickname';
 export const MIGRATED_KEY = 'kalku:migrated';
 /** '1' mientras haya guardados locales que el servidor aún no ha confirmado (jugar sin conexión). */
 export const PENDING_KEY = 'kalku:pending';
+/** Id del niño al que pertenece la copia local: si la sesión cambia de niño (#47), la copia no se mezcla. */
+export const OWNER_KEY = 'kalku:owner';
 
 export function supabaseBackend(client: SupabaseClient): Backend {
   return {
@@ -153,6 +155,13 @@ export interface PullResult {
  * - Sin sesión o sin red: la copia local.
  */
 export async function pullProgress(backend: Backend, store: KeyValueStore): Promise<PullResult> {
+  try {
+    const id = await backend.userId();
+    // Si la sesión es de otro niño que la copia local, la copia se descarta antes de leerla.
+    if (id) claimLocalCopy(store, id);
+  } catch {
+    // Sin red o sin sesión legible: se sigue con la copia local tal cual.
+  }
   const local = loadLocalProgress();
   const fallback: PullResult = { progress: local ?? defaultProgress(), source: 'local' };
   try {
@@ -274,7 +283,17 @@ export async function needsNickname(backend: Backend | null, store: KeyValueStor
 }
 
 /** Claves de localStorage que son del niño: se borran con la cuenta. */
-export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING_KEY] as const;
+export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING_KEY, OWNER_KEY] as const;
+
+/**
+ * Marca la copia local como del niño `userId`. Si era de otro niño, la borra antes:
+ * dos niños nunca comparten monedas, ajustes ni apodo en un aparato.
+ */
+export function claimLocalCopy(store: KeyValueStore, userId: string): void {
+  const owner = store.getItem(OWNER_KEY);
+  if (owner && owner !== userId) for (const key of LOCAL_KEYS) store.removeItem?.(key);
+  store.setItem(OWNER_KEY, userId);
+}
 
 /** Descarga de datos: el JSON del servidor. Lanza si no hay sesión o red. */
 export async function exportChildData(backend: Backend): Promise<string> {

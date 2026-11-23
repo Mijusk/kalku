@@ -10,6 +10,8 @@ import {
   MIGRATED_KEY,
   needsNickname,
   NICKNAME_KEY,
+  OWNER_KEY,
+  claimLocalCopy,
   parseServerSkills,
   PENDING_KEY,
   pullProgress,
@@ -345,5 +347,34 @@ describe('respuestas al servidor (#46)', () => {
 
   it('AnswerRejected lleva el código', () => {
     expect(new AnswerRejected(409, 'repeated').code).toBe('repeated');
+  });
+});
+
+describe('cambio de niño en el mismo aparato (#47)', () => {
+  it('la copia local de otro niño se descarta y no se sube al nuevo', async () => {
+    const store = withLocal(played(77));
+    store.setItem(OWNER_KEY, 'kid-viejo');
+    const b = fakeBackend('kid-1');
+    b.server = { nickname: 'Nuevo', extra: {}, rows: [] };
+    const result = await pullProgress(b, store);
+    expect(result.progress.coins).toBe(0);
+    expect(b.saves).toHaveLength(0);
+    expect(store.data[OWNER_KEY]).toBe('kid-1');
+    expect(store.data[NICKNAME_KEY]).toBe('Nuevo');
+  });
+
+  it('si la copia ya es de este niño no se toca', async () => {
+    const store = withLocal(played(5));
+    store.setItem(OWNER_KEY, 'kid-1');
+    const b = fakeBackend('kid-1');
+    const result = await pullProgress(b, store);
+    expect(result.progress.coins).toBe(5);
+  });
+
+  it('claimLocalCopy marca el dueño de una copia sin dueño sin borrar nada', () => {
+    const store = memoryStore({ [NICKNAME_KEY]: 'Zorro' });
+    claimLocalCopy(store, 'kid-1');
+    expect(store.data[OWNER_KEY]).toBe('kid-1');
+    expect(store.data[NICKNAME_KEY]).toBe('Zorro');
   });
 });

@@ -40,7 +40,7 @@ const RETENTION_CHILD: Localized = {
 
 export interface ServerDataItem {
   /** Tabla de Supabase. `auth.users` es el login anónimo. */
-  table: 'children' | 'progress' | 'answers' | 'auth.users';
+  table: 'children' | 'progress' | 'answers' | 'families' | 'family_children' | 'link_codes' | 'auth.users';
   /** Columnas tal como están en `supabase/migrations/` (un test las comprueba). */
   columns: readonly string[];
   what: Localized;
@@ -57,12 +57,12 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
     table: 'auth.users',
     columns: [],
     what: {
-      es: 'Un identificador anónimo generado por el sistema de acceso (sin correo ni contraseña).',
-      ca: 'Un identificador anònim generat pel sistema d’accés (sense correu ni contrasenya).',
+      es: 'Niño: un identificador anónimo generado por el sistema de acceso (sin correo ni contraseña). Adulto de una cuenta de familia: su correo electrónico y un identificador. El correo se guarda solo aquí, nunca en los datos del niño.',
+      ca: 'Infant: un identificador anònim generat pel sistema d’accés (sense correu ni contrasenya). Adult d’un compte de família: el seu correu electrònic i un identificador. El correu es guarda només aquí, mai a les dades de l’infant.',
     },
     purpose: {
-      es: 'Que el niño recupere su progreso en el mismo dispositivo sin dar ningún dato personal.',
-      ca: 'Que l’infant recuperi el seu progrés al mateix dispositiu sense donar cap dada personal.',
+      es: 'Niño: recuperar su progreso sin dar ningún dato personal. Adulto: entrar con un enlace enviado por correo (sin contraseña) para ver el progreso de sus hijos y recuperarlo en otro aparato.',
+      ca: 'Infant: recuperar el seu progrés sense donar cap dada personal. Adult: entrar amb un enllaç enviat per correu (sense contrasenya) per veure el progrés dels seus fills i recuperar-lo en un altre aparell.',
     },
     retention: RETENTION_CHILD,
   },
@@ -105,6 +105,48 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
     },
     retention: RETENTION_CHILD,
   },
+  {
+    table: 'families',
+    columns: ['id', 'owner_id', 'created_at'],
+    what: {
+      es: 'Una familia: su identificador, el identificador del adulto que la lleva y la fecha de creación.',
+      ca: 'Una família: el seu identificador, l’identificador de l’adult que la porta i la data de creació.',
+    },
+    purpose: {
+      es: 'Que el adulto vea el progreso de sus hijos y los recupere en otro aparato.',
+      ca: 'Que l’adult vegi el progrés dels seus fills i el recuperi en un altre aparell.',
+    },
+    retention: RETENTION_CHILD,
+  },
+  {
+    table: 'family_children',
+    columns: ['child_id', 'family_id', 'joined_at'],
+    what: {
+      es: 'Qué niños (hasta 4) pertenecen a cada familia y desde cuándo.',
+      ca: 'Quins infants (fins a 4) pertanyen a cada família i des de quan.',
+    },
+    purpose: {
+      es: 'Saber qué progreso puede ver cada adulto.',
+      ca: 'Saber quin progrés pot veure cada adult.',
+    },
+    retention: RETENTION_CHILD,
+  },
+  {
+    table: 'link_codes',
+    columns: ['code_hash', 'child_id', 'created_at', 'expires_at'],
+    what: {
+      es: 'Un código de un solo uso que el niño enseña al adulto para unirse a la familia. Solo se guarda su huella (hash) y caduca a los 10 minutos.',
+      ca: 'Un codi d’un sol ús que l’infant ensenya a l’adult per unir-se a la família. Només es guarda la seva empremta (hash) i caduca als 10 minuts.',
+    },
+    purpose: {
+      es: 'Unir al niño a la familia de un adulto sin escribir ningún dato personal.',
+      ca: 'Unir l’infant a la família d’un adult sense escriure cap dada personal.',
+    },
+    retention: {
+      es: '10 minutos, o hasta que se use.',
+      ca: '10 minuts, o fins que s’utilitzi.',
+    },
+  },
 ];
 
 export interface Subprocessor {
@@ -134,8 +176,8 @@ export const SUBPROCESSORS: readonly Subprocessor[] = [
     name: 'Brevo',
     role: { es: 'Envío de correos a las familias', ca: 'Enviament de correus a les famílies' },
     location: { es: 'Francia (UE)', ca: 'França (UE)' },
-    future: true,
-    note: { es: 'Cuando existan cuentas de familia.', ca: 'Quan hi hagi comptes de família.' },
+    future: false,
+    note: { es: 'Solo envía el enlace de acceso al correo del adulto de una cuenta de familia.', ca: 'Només envia l’enllaç d’accés al correu de l’adult d’un compte de família.' },
   },
 ];
 
@@ -231,8 +273,8 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: { es: '8. Lo que todavía no existe', ca: '8. El que encara no existeix' },
     paragraphs: [
       {
-        es: 'Hoy no guardamos ningún correo electrónico. Cuando haya cuentas de familia, se guardará el correo del adulto para darle acceso a los informes y para enviarle avisos (con Brevo). Antes avisaremos y actualizaremos esta política.',
-        ca: 'Avui no guardem cap correu electrònic. Quan hi hagi comptes de família, es guardarà el correu de l’adult per donar-li accés als informes i per enviar-li avisos (amb Brevo). Abans ho avisarem i actualitzarem aquesta política.',
+        es: 'Del niño no guardamos nunca ningún correo electrónico. Solo si un adulto crea una cuenta de familia guardamos su correo, únicamente en el sistema de acceso, para enviarle el enlace con el que entra (con Brevo). Los informes y avisos por correo todavía no existen; antes de enviarlos avisaremos y actualizaremos esta política.',
+        ca: 'De l’infant no guardem mai cap correu electrònic. Només si un adult crea un compte de família guardem el seu correu, únicament al sistema d’accés, per enviar-li l’enllaç amb què entra (amb Brevo). Els informes i avisos per correu encara no existeixen; abans d’enviar-los avisarem i actualitzarem aquesta política.',
       },
     ],
   },

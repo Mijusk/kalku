@@ -14,11 +14,22 @@ enabled = true
 enable_anonymous_sign_ins = true
 enable_signup = true
 
+# Adultos: login por enlace de correo, sin contraseña (#47). En local los correos
+# los recoge Inbucket (http://localhost:54324). En el proyecto real el SMTP de Brevo
+# se configura en el panel de Supabase (Auth → SMTP), nunca con claves en este repo.
 [auth.email]
-enable_signup = false
+enable_signup = true
+enable_confirmations = true
 
 # Corrige las respuestas del niño (#46). Se empaqueta con `npm run build:function`.
 [functions.answer]
 enabled = true
 verify_jwt = true
 entrypoint = "./functions/answer/dist/index.js"
+
+# El adulto entra como uno de sus niños en otro aparato (#47). Necesita el secreto
+# KALKU_JWT_SECRET (`supabase secrets set`), que no está en el repo.
+[functions.child-session]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/child-session/dist/index.js"

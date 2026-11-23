@@ -475,3 +475,11 @@ a.btn {
   font-size: 1.25rem;
   text-align: center;
 }
+
+/* Lista de hijos de la cuenta de familia (#47). */
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(480px, 100%);
+}

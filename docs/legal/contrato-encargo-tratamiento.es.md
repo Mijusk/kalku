@@ -18,7 +18,7 @@ El encargado presta al centro el servicio Kalku (juego de matemáticas para alum
 
 - **Personas afectadas:** alumnado del centro que usa Kalku, y el profesorado que lo gestiona.
 - **Datos del alumnado:** identificador anónimo de acceso; apodo (no debe ser el nombre real); dominio, intentos y aciertos por habilidad matemática; estado de la partida (monedas del juego, gemas, criaturas rescatadas, ajustes e idioma); cada respuesta con la semilla del ejercicio, el número dado, si fue correcta, las pistas usadas y la fecha.
-- **No se tratan:** nombre real, correo, ubicación, imagen, voz ni datos de categorías especiales.
+- **No se tratan (del alumnado):** nombre real, correo, ubicación, imagen, voz ni datos de categorías especiales.
 - **Duración:** la del contrato de servicio entre el centro y el encargado.
 
 ## 3. Obligaciones del encargado
@@ -39,7 +39,7 @@ El centro autoriza de forma general a los siguientes subencargados, todos en la 
 | --- | --- | --- |
 | Supabase | Base de datos y acceso anónimo | Frankfurt (Alemania) |
 | Cloudflare | Alojamiento de la web del juego | Red mundial de Cloudflare (solo entrega los ficheros del juego; no guarda datos de los niños) |
-| Brevo | Correos a las familias (**solo cuando existan cuentas de familia**) | Francia |
+| Brevo | Enlace de acceso por correo al adulto de una cuenta de familia (**solo si la familia la crea**; el correo no es un dato del alumno) | Francia |
 
 El encargado informará al centro de cualquier cambio con al menos [PENDIENTE: 30] días de antelación para que pueda oponerse. Impondrá a cada subencargado las mismas obligaciones de protección de datos y responderá ante el centro de su cumplimiento.
 

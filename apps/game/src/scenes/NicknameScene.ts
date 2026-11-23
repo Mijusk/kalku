@@ -2,7 +2,10 @@ import Phaser from 'phaser';
 import { tr } from '../i18n';
 import { NICKNAME_MAX, NICKNAMES, checkNickname } from '../nickname';
 import { applyTextSize, loadProgress, type PlayerProgress } from '../progress';
+import { appFamilyBackend } from '../family';
 import { createAccount, startSyncWithTimeout } from '../sync';
+import { button, showAdultGate } from '../ui/dom';
+import { FamilyPanel } from '../ui/FamilyPanel';
 
 /**
  * Pantalla de apodo (#45): la única cosa que escribe el niño para tener cuenta.
@@ -93,7 +96,22 @@ export class NicknameScene extends Phaser.Scene {
       choices.append(b);
     }
 
-    root.replaceChildren(text('panel-title', tr('nicknameTitle', locale)), text('panel-feedback', tr('nicknameHint', locale)), choices, input, warning, go);
+    // Un adulto con cuenta de familia entra como su hijo (tras la cuenta de «Para adultos»).
+    const family = button('btn btn-small', tr('familyAlready', locale), () =>
+      showAdultGate(
+        root,
+        locale,
+        () =>
+          new FamilyPanel(root, locale, {
+            hasChildHere: false,
+            backend: appFamilyBackend(),
+            onClose: () => this.render(root, progress),
+            onEntered: () => window.location.reload(),
+          }),
+        () => this.render(root, progress),
+      ),
+    );
+    root.replaceChildren(text('panel-title', tr('nicknameTitle', locale)), text('panel-feedback', tr('nicknameHint', locale)), choices, input, warning, go, family);
     refresh();
   }
 }

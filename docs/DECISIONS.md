@@ -2,6 +2,19 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-24 · Cuenta de familia (#47)
+
+- **Decisiones de Luis (23 nov):** (1) el adulto entra como niño en otro aparato con la Edge Function `child-session`, que crea una sesión del mismo niño (su `id` no cambia, no se copian filas); (2) ese niño juega como en su aparato, sin acceso al correo ni a los otros hijos; (3) un niño que ya está en otra familia se rechaza: solo se suelta desde su familia (`leave_family`) o borrando su cuenta (#63).
+- **El adulto es un usuario no anónimo de Supabase** (enlace de correo, sin contraseña, Brevo). El correo vive solo en `auth.users`; un test pgTAP falla si alguna tabla de `public` tiene una columna de correo, y el test de integración comprueba que ni la ficha ni la exportación del niño lo llevan. `is_adult()` lee `is_anonymous` del token: las funciones y las políticas de adulto lo exigen, y las de niño lo prohíben.
+- **Tablas:** `families` (un adulto, una familia), `family_children` (clave primaria = niño: solo una familia; máximo 4 con un trigger que bloquea la fila de la familia) y `link_codes` (hash sha-256 de un código de 8 caracteres, 10 minutos, un solo uso). RLS forzada; el adulto solo lee `families`, `family_children`, `children` y `progress` de su familia (no las respuestas) y nunca escribe: todo cambio va por funciones `security definer` (`create_link_code`, `join_family_with_code`, `leave_family`).
+- **Dos clientes de Supabase en el navegador:** el del adulto usa otra clave de `localStorage` (`kalku-adult-auth`) y es el único que lee el enlace de la URL. Así entrar como adulto no pisa la sesión del niño de ese aparato, y «unir desde este aparato» es: el niño pide un código con su sesión y el adulto lo usa con la suya. Por eso no existe una función SQL «unir desde este aparato».
+- **Unir no copia ni mueve nada:** solo inserta una fila en `family_children`; el progreso del niño no se toca. Volver a unir al mismo niño no cambia nada (ni siquiera con la familia llena).
+- **`child-session` firma un JWT del niño** (HS256, 7 días, `sub` = id del niño, `is_anonymous: true`) con el secreto `KALKU_JWT_SECRET`, que solo existe en el servidor. No hay token de refresco: pasados 7 días el adulto vuelve a entrar como él. **Pendiente de Luis:** `supabase secrets set KALKU_JWT_SECRET=<JWT secret del proyecto>` y comprobar en el proyecto real que el proyecto acepta tokens HS256 (clave heredada); la CI no arranca el runtime de funciones, así que esta función solo tiene test de la firma, no de extremo a extremo.
+- **Cambio de niño en un aparato:** la copia local lleva su dueño (`kalku:owner`). Si la sesión es de otro niño, la copia se borra antes de leerla: dos niños nunca comparten monedas, apodo ni ajustes. Si el servidor falla al entrar como un niño, el aparato queda como estaba.
+- **«Para adultos» y la pantalla de apodo:** la sección Familia va detrás de la cuenta 47 × 6; en la pantalla de apodo, el enlace «Ya tengo cuenta de familia» pasa por la misma cuenta.
+- **Correo:** en local lo recoge Inbucket. El SMTP de Brevo se configura en el panel de Supabase (Auth → SMTP), sin claves en el repo (pendiente de Luis). La política de privacidad y el contrato ya dicen que Brevo está activo y que el correo del adulto se guarda solo en el sistema de acceso.
+- **Fuera de alcance:** consentimiento parental (#48), plan de pago, informes por correo.
+
 ## 2026-11-23 · Exportar y borrar los datos de un niño (#50)
 
 - **Dos funciones SQL** (`export_my_data`, `delete_my_account`, `security definer`) que solo actúan sobre `auth.uid()`. El cliente no puede borrar `auth.users` ni `answers`, por eso hace falta función. `anon` no puede ejecutarlas.

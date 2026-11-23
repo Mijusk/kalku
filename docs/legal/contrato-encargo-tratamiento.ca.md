@@ -18,7 +18,7 @@ L’encarregat presta al centre el servei Kalku (joc de matemàtiques per a alum
 
 - **Persones afectades:** alumnat del centre que fa servir Kalku, i el professorat que el gestiona.
 - **Dades de l’alumnat:** identificador anònim d’accés; malnom (no ha de ser el nom real); domini, intents i encerts per habilitat matemàtica; estat de la partida (monedes del joc, gemmes, criatures rescatades, ajustos i idioma); cada resposta amb la llavor de l’exercici, el número donat, si va ser correcta, les pistes fetes servir i la data.
-- **No es tracten:** nom real, correu, ubicació, imatge, veu ni dades de categories especials.
+- **No es tracten (de l’alumnat):** nom real, correu, ubicació, imatge, veu ni dades de categories especials.
 - **Durada:** la del contracte de servei entre el centre i l’encarregat.
 
 ## 3. Obligacions de l’encarregat
@@ -39,7 +39,7 @@ El centre autoritza de manera general els subencarregats següents, tots a la Un
 | --- | --- | --- |
 | Supabase | Base de dades i accés anònim | Frankfurt (Alemanya) |
 | Cloudflare | Allotjament del web del joc | Xarxa mundial de Cloudflare (només lliura els fitxers del joc; no guarda dades dels infants) |
-| Brevo | Correus a les famílies (**només quan hi hagi comptes de família**) | França |
+| Brevo | Enllaç d’accés per correu a l’adult d’un compte de família (**només si la família el crea**; el correu no és una dada de l’alumne) | França |
 
 L’encarregat informarà el centre de qualsevol canvi amb almenys [PENDENT: 30] dies d’antelació perquè s’hi pugui oposar. Imposarà a cada subencarregat les mateixes obligacions de protecció de dades i en respondrà davant el centre.
 

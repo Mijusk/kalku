@@ -11,7 +11,7 @@ kalku/
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
-├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas) y tests/ (pgTAP: permisos y privacidad)
+├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato) y tests/ (pgTAP: permisos, privacidad y familias)
 ├── scripts/bundle-function.mjs Empaqueta la Edge Function con @kalku/exercises dentro (`npm run build:function`)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
@@ -93,7 +93,8 @@ kalku/
             ├── main.ts         Arranca Phaser y registra el service worker
             ├── i18n.ts         Textos de interfaz es/ca
             ├── speech.ts       Envoltorio de speechSynthesis: hay voz, leer, parar (el texto sale de @kalku/exercises)
-            ├── supabase.ts     Cliente de Supabase con clave pública; null si faltan las variables (copia apps/game/.env.example a .env)
+            ├── supabase.ts     Cliente de Supabase con clave pública; null si faltan las variables (copia apps/game/.env.example a .env). Segundo cliente, con otra sesión, para el adulto
+            ├── family.ts       Cuenta de familia: enlace por correo, unir niños (código de 10 min), entrar como un niño; FamilyBackend falso en los tests
             ├── progress.ts     Progreso y ajustes: copia local (localStorage) y conversión a filas del servidor (toServerRows / fromServerRows)
             ├── adultGate.ts    Cuenta con semilla (tipo 47 × 6) que da paso a «Para adultos»
             ├── sync.ts         Cuenta anónima y sincronización con Supabase: bajar al arrancar, migrar lo local una vez, subir tras cada guardado; sin red sigue en local
@@ -115,7 +116,9 @@ kalku/
                 ├── ExercisePanel.ts  Ejercicio, altavoz, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio
                 ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz y «Para adultos»
-                ├── AdultsPanel.ts    Para adultos: cuenta de entrada, descargar los datos en JSON y borrarlos (con confirmación)
+                ├── dom.ts            Ayudas de HTML (texto, botón, estado) y la cuenta de «Para adultos»
+                ├── FamilyPanel.ts    Familia: entrar con correo, lista de hijos, unir, entrar como, quitar
+                ├── AdultsPanel.ts    Para adultos (con «Familia»): cuenta de entrada, descargar los datos en JSON y borrarlos (con confirmación)
                 └── styles.css
 ```
 
