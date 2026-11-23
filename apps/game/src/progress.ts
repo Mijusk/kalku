@@ -165,3 +165,19 @@ export function saveProgress(progress: PlayerProgress): void {
   writeLocalProgress(progress);
   saveListener?.(progress);
 }
+
+/**
+ * El servidor corrige y manda: pone el dominio que él calculó en la copia local y en
+ * el progreso en memoria de la escena. No toca monedas ni nada más, y no se sube
+ * (el dominio solo lo escribe el servidor).
+ */
+export function applyServerSkills(progress: PlayerProgress, skills: Partial<Record<SkillId, SkillProgress>>): void {
+  const stored = loadProgress();
+  for (const skill of SKILL_IDS) {
+    const server = skills[skill];
+    if (!server) continue;
+    stored.profile[skill] = { ...server };
+    progress.profile[skill] = { ...server };
+  }
+  writeLocalProgress(stored);
+}
