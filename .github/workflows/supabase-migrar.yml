@@ -28,4 +28,5 @@ jobs:
       - run: npm ci
       - run: npm run build -w @kalku/exercises && npm run build:function
       # El token necesita el permiso «Edge Functions» (lectura y escritura).
-      - run: supabase functions deploy answer --project-ref nxaehojnwutxpshqwzeo
+      # Igual que db push: sin --yes la CLI pide confirmación y falla en Actions.
+      - run: supabase functions deploy answer --project-ref nxaehojnwutxpshqwzeo --yes
