@@ -16,3 +16,9 @@ enable_signup = true
 
 [auth.email]
 enable_signup = false
+
+# Corrige las respuestas del niño (#46). Se empaqueta con `npm run build:function`.
+[functions.answer]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/answer/dist/index.js"

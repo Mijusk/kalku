@@ -1,4 +1,5 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js';
+import { SKILL_IDS, type Exercise, type PlacementAnswer, type SkillId, type SkillProgress, type Slot } from '@kalku/exercises';
 import {
   defaultProgress,
   fromServerRows,
@@ -26,11 +27,51 @@ export interface Backend {
   signInAnonymously(): Promise<string>;
   fetchChild(id: string): Promise<{ nickname: string; extra: unknown } | null>;
   fetchProgress(id: string): Promise<{ skill: string; mastery: unknown; attempts: unknown; correct: unknown }[]>;
-  save(id: string, nickname: string, extra: unknown, rows: { skill: string; mastery: number; attempts: number; correct: number }[]): Promise<void>;
+  /** Sube la ficha y el resto del progreso. El dominio NO se sube: lo escribe el servidor al corregir (#46). */
+  save(id: string, nickname: string, extra: unknown): Promise<void>;
+  /** Manda respuestas a la Edge Function `answer`. Lanza `AnswerRejected` si el servidor las rechaza. */
+  answer(body: AnswerBody): Promise<ServerSkills>;
   /** Todo lo que el servidor guarda del niño (RGPD: portabilidad). */
   exportData(): Promise<unknown>;
   /** Borra la cuenta del niño y todas sus filas (RGPD: supresión) y cierra la sesión. */
   deleteAccount(): Promise<void>;
+}
+
+/** El servidor respondió, pero no aceptó la respuesta (`code` es su `error`). */
+export class AnswerRejected extends Error {
+  constructor(readonly status: number, readonly code: string) {
+    super(`answer ${status} ${code}`);
+  }
+}
+
+export type AnswerBody =
+  | { kind: 'answer'; skill: SkillId; seed: string; given: number; exercise: ExerciseView; helped: boolean; slot: Slot; hintsUsed: 0 | 1 | 2 | 3 }
+  | { kind: 'placement'; answers: PlacementAnswer[] };
+
+type ExerciseView = { a: number; b: number; c: number; hidden: Exercise['hidden'] };
+
+/** Dominio que devuelve el servidor, solo de las habilidades que cambiaron. */
+export type ServerSkills = Partial<Record<SkillId, SkillProgress>>;
+
+/** La parte del ejercicio que el servidor compara con el que regenera desde la semilla. */
+export function exerciseView(exercise: Exercise): ExerciseView {
+  return { a: exercise.a, b: exercise.b, c: exercise.c, hidden: exercise.hidden };
+}
+
+/** Lee la respuesta del servidor sin fiarse de su forma. */
+export function parseServerSkills(raw: unknown): ServerSkills {
+  const progress = typeof raw === 'object' && raw !== null ? (raw as { progress?: unknown }).progress : undefined;
+  const out: ServerSkills = {};
+  if (typeof progress !== 'object' || progress === null) return out;
+  for (const skill of SKILL_IDS) {
+    const r = (progress as Record<string, unknown>)[skill];
+    if (typeof r !== 'object' || r === null) continue;
+    const { mastery, attempts, correct } = r as Record<string, unknown>;
+    if (typeof mastery === 'number' && typeof attempts === 'number' && typeof correct === 'number' && mastery >= 0 && mastery <= 100) {
+      out[skill] = { mastery, attempts, correct };
+    }
+  }
+  return out;
 }
 
 export interface KeyValueStore {
@@ -65,14 +106,21 @@ export function supabaseBackend(client: SupabaseClient): Backend {
       if (error) throw error;
       return data ?? [];
     },
-    async save(id, nickname, extra, rows) {
+    async save(id, nickname, extra) {
       const child = await client.from('children').upsert({ id, nickname, extra });
       if (child.error) throw child.error;
-      const now = new Date().toISOString();
-      const progress = await client
-        .from('progress')
-        .upsert(rows.map((r) => ({ child_id: id, ...r, updated_at: now })), { onConflict: 'child_id,skill' });
-      if (progress.error) throw progress.error;
+    },
+    async answer(body) {
+      const { data, error } = await client.functions.invoke('answer', { body });
+      if (error) {
+        if (error instanceof FunctionsHttpError) {
+          const res = error.context as Response;
+          const detail = (await res.json().catch(() => ({}))) as { error?: unknown };
+          throw new AnswerRejected(res.status, typeof detail.error === 'string' ? detail.error : '');
+        }
+        throw error;
+      }
+      return parseServerSkills(data);
     },
     async exportData() {
       const { data, error } = await client.rpc('export_my_data');
@@ -142,8 +190,41 @@ export async function pushProgress(backend: Backend, store: KeyValueStore, progr
   const nickname = store.getItem(NICKNAME_KEY);
   if (!nickname) throw new Error('Sin apodo');
   const id = await ensureAccount(backend);
-  const { extra, rows } = toServerRows(progress);
-  await backend.save(id, nickname, extra, rows);
+  const { extra } = toServerRows(progress);
+  await backend.save(id, nickname, extra);
+}
+
+/**
+ * Manda una respuesta (o la prueba de nivel) al servidor y devuelve el dominio
+ * que él calcula, o `null` si no se pudo (sin red, función sin desplegar, rechazo):
+ * el juego se queda entonces con la copia local. Las respuestas sin conexión no se
+ * reintentan todavía (bloque 8).
+ */
+export async function submitAnswer(backend: Backend, store: KeyValueStore, progress: PlayerProgress, body: AnswerBody): Promise<ServerSkills | null> {
+  try {
+    await ensureAccount(backend);
+    try {
+      return await backend.answer(body);
+    } catch (e) {
+      // La ficha del niño aún no está en el servidor (primer uso o sin red al empezar): se crea y se reintenta una vez.
+      if (!(e instanceof AnswerRejected && e.code === 'no-child')) throw e;
+      await pushProgress(backend, store, progress);
+      return await backend.answer(body);
+    }
+  } catch {
+    return null;
+  }
+}
+
+let sending: Promise<unknown> = Promise.resolve();
+
+/** Como `submitAnswer` con el servidor de la app, y de una en una para que lleguen en orden. */
+export function sendAnswer(progress: PlayerProgress, body: AnswerBody): Promise<ServerSkills | null> {
+  const b = appBackend();
+  if (!b || typeof localStorage === 'undefined') return Promise.resolve(null);
+  const result = sending.then(() => submitAnswer(b, localStorage, progress, body));
+  sending = result.catch(() => undefined);
+  return result;
 }
 
 /** Subida con retardo corto y reintento en el siguiente guardado si falla. */

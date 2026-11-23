@@ -11,7 +11,8 @@ kalku/
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
-├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS) y tests/ (pgTAP: permisos y privacidad)
+├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas) y tests/ (pgTAP: permisos y privacidad)
+├── scripts/bundle-function.mjs Empaqueta la Edge Function con @kalku/exercises dentro (`npm run build:function`)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
 │   ├── workflows/supabase.yml  CI de la base de datos: migraciones desde cero + tests pgTAP (si cambia supabase/)
@@ -46,6 +47,7 @@ kalku/
 │   │   │   ├── mastery.ts      Dominio 0–100 por habilidad (+8/+5/−6/−3)
 │   │   │   ├── placement.ts    Prueba de nivel: sube/baja por el currículo y da el dominio inicial (sin tiempo, sin quitar nada)
 │   │   │   ├── selection.ts    Qué habilidad toca: 60 % actual, 25 % repaso, 15 % reto
+│   │   │   ├── validate.ts     Validación en el servidor: regenera el ejercicio desde la semilla, corrige y aplica el dominio (respuesta y prueba de nivel)
 │   │   │   ├── speech.ts       Texto para leer el ejercicio en voz alta («cinco más tres son…»), es/ca
 │   │   │   └── scoring.ts      Puntos (Cifras): dificultad, racha, rapidez sin penalizar
 │   │   └── test/             Tests con vitest

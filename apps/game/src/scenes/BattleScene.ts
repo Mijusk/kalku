@@ -32,7 +32,8 @@ import {
 import { endEncounter, PRADERA_UNO } from '@kalku/world';
 import { ANIMATION_MS, TILESET_KEYS } from '../art/textures';
 import { tr } from '../i18n';
-import { applyTextSize, loadProgress, saveProgress, type PlayerProgress } from '../progress';
+import { applyServerSkills, applyTextSize, loadProgress, saveProgress, type PlayerProgress } from '../progress';
+import { exerciseView, sendAnswer } from '../sync';
 import { ExercisePanel } from '../ui/ExercisePanel';
 import { Hud } from '../ui/Hud';
 import { SettingsPanel } from '../ui/SettingsPanel';
@@ -65,6 +66,10 @@ interface Turn {
   strong: boolean;
   /** Ejercicio de rescate: si se acierta, la criatura entra en la colección y el combate termina. */
   rescue: boolean;
+  /** Semilla del ejercicio: el servidor lo regenera con ella para corregirlo. */
+  seed: number;
+  /** Lo último que respondió el niño. */
+  given: number | undefined;
   tries: number;
   hintLevel: 0 | Hint['level'];
   startedAt: number;
@@ -261,8 +266,10 @@ export class BattleScene extends Phaser.Scene {
       : fromCreature
         ? { skill: fromCreature.skill, slot: fromCreature.slot }
         : pickSkill(profile, this.rng);
-    const exercise = generateExercise(pick.skill, this.rng);
-    this.turn = { exercise, slot: pick.slot, strong, rescue, tries: 0, hintLevel: 0, startedAt: performance.now() };
+    // Cada ejercicio sale de su propia semilla, para que el servidor pueda regenerarlo.
+    const seed = randomSeed();
+    const exercise = generateExercise(pick.skill, createRng(seed));
+    this.turn = { exercise, slot: pick.slot, strong, rescue, seed, given: undefined, tries: 0, hintLevel: 0, startedAt: performance.now() };
 
     const locale = this.progress.locale;
     const tag = pick.slot === 'challenge' ? tr('challenge', locale) : pick.slot === 'review' ? tr('review', locale) : undefined;
@@ -280,6 +287,7 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
+    turn.given = result.value;
     if (result.status === 'correct') {
       this.finishTurn(true);
       return;
@@ -357,6 +365,7 @@ export class BattleScene extends Phaser.Scene {
     }
     saveProgress(this.progress);
     this.refreshHud();
+    this.reportAnswer(turn, helped);
 
     this.time.delayedCall(900, () => {
       if (this.rescuedNow || this.enemy.hp <= 0) return this.endBattle(true);
@@ -375,6 +384,29 @@ export class BattleScene extends Phaser.Scene {
         this.turn = undefined;
         this.showActions();
       });
+    });
+  }
+
+  /**
+   * Manda la respuesta al servidor, que la corrige con la misma lógica y manda sobre el dominio.
+   * La copia local ya se aplicó para que se vea al instante; sin red o con error se queda tal cual.
+   */
+  private reportAnswer(turn: Turn, helped: boolean): void {
+    if (turn.given === undefined) return;
+    const progress = this.progress;
+    void sendAnswer(progress, {
+      kind: 'answer',
+      skill: turn.exercise.skill,
+      seed: String(turn.seed),
+      given: turn.given,
+      exercise: exerciseView(turn.exercise),
+      helped,
+      slot: turn.slot,
+      hintsUsed: turn.hintLevel,
+    }).then((skills) => {
+      if (!skills) return;
+      applyServerSkills(progress, skills);
+      if (this.scene.isActive()) this.refreshHud();
     });
   }
 

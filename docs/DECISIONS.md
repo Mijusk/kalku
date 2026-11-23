@@ -11,6 +11,20 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 - **Tras borrar** se vuelve a la pantalla de apodo como un niño nuevo (cuenta anónima nueva).
 - **Fuera de alcance (decidido con Luis):** un adulto sin el aparato del niño necesita cuentas de familia; mientras, la política ofrece el correo.
 
+## 2026-11-23 · Respuestas validadas en el servidor (#46)
+
+- **Edge Function `answer`** (`supabase/functions/answer/`): el niño manda habilidad + semilla + lo que respondió; el servidor regenera el ejercicio con `createRng(seed)`, corrige con `checkAnswer`, aplica `applyAnswer` y guarda. La lógica pura está en `packages/exercises/src/validate.ts` (con tests); la función solo identifica al niño por su token, lee el perfil y llama a `record_answers`.
+- **El navegador ya no escribe `progress` ni `answers`** (solo lee). Escribe únicamente `record_answers`, que solo puede ejecutar `service_role` (clave que solo existe en el entorno de la función). `children` (apodo y `extra`) se sigue guardando desde el navegador.
+- **Semilla del cliente (decidido con Luis)** + `unique (child_id, seed)`: una semilla no se responde dos veces. Un tramposo podría generar ejercicios y resolverlos con un script (acelerar, no inventar progreso); se revisa en el bloque 8.
+- **Ejercicio manipulado:** el cliente manda también `a, b, c` y el hueco que vio; si no coinciden con lo regenerado, se rechaza (422) y no se guarda nada. Semillas solo como entero de 32 bits en forma canónica (`"5"`, nunca `"05"`), para que `unique` no se esquive.
+- **Cifras fuera (decidido con Luis):** monedas, gemas y colección siguen en el cliente (`children.extra`); se validarán cuando haya tienda (no dan ventaja en el juego, regla 1).
+- **`helped` y `slot` los declara el cliente (decidido con Luis):** el servidor no puede comprobarlos; se guarda `hints_used` en `answers` para revisar patrones raros.
+- **Regla 3:** el tiempo no se envía ni se usa en el dominio; ser lento no puede restar. **Regla 2:** `applyAnswer` no baja de 0 ni quita intentos o aciertos.
+- **Prueba de nivel:** se manda entera al terminar y el servidor la repite desde el principio (cada ejercicio tiene que ser el que tocaba, la prueba debe estar acabada) y aplica `applyPlacement`, que nunca baja nada.
+- **El servidor manda:** el juego sigue aplicando la respuesta en local para verse al instante y, cuando llega la respuesta del servidor, pone su dominio. Sin red o con error se queda la copia local (el reintento sin conexión es del bloque 8). **Consecuencia:** el dominio local de antes de las cuentas ya no se sube (migración de prototipo); la primera respuesta validada de cada habilidad lo sustituye por el del servidor.
+- **Empaquetado:** Deno no resuelve los imports `.js` → `.ts` de `@kalku/exercises`, así que `npm run build:function` (rolldown) genera `supabase/functions/answer/dist/index.js`, que es el `entrypoint` de `config.toml`. Despliegue: `supabase functions deploy answer` tras `db push` en «Supabase · aplicar migraciones» (pendiente de añadir a mano, ver PR #62); el token necesita permiso de «Edge Functions».
+- **Despliegue de la función:** el workflow manual «Supabase · aplicar migraciones» empaqueta `answer` (`npm run build:function`) y la sube con `supabase functions deploy` tras las migraciones. El token `SUPABASE_ACCESS_TOKEN` necesita el permiso «Edge Functions» además de «Migrations». Hasta que se despliega, el juego sigue con la copia local.
+
 ## 2026-11-22 · Política de privacidad y contrato para centros (#49)
 
 - **Los textos son datos** (`packages/content/src/legal.ts`, es/ca) y la página `/privacidad` (`privacidad.html`, entrada aparte de Vite, sin Phaser) solo los pinta. Se enlaza desde Ajustes. El service worker no la sustituye por `index.html` (`navigateFallbackDenylist`).
@@ -36,7 +50,7 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 - **Un niño es un login anónimo de Supabase:** `children.id` = `auth.uid()`. La futura cuenta de familia conserva el mismo id.
 - **Tablas mínimas:** `children` (id, apodo, fecha), `progress` (dominio por habilidad, como `SkillProgress`) y `answers` (respuesta con su semilla, para que el servidor regenere el ejercicio). Sin nombre real, correo ni ubicación; un test falla si aparece otra columna.
 - **RLS activado y forzado:** cada niño solo lee y escribe lo suyo; `anon` no tiene permisos; `answers` no se edita ni se borra.
-- **El navegador escribe ya `progress` y `answers`** (solo lo suyo). Hasta #46 un niño podría falsear su propio progreso; en #46 se retiran esos permisos.
+- **El navegador escribía `progress` y `answers`** (solo lo suyo); en #46 se retiraron esos permisos.
 - **Migraciones al proyecto real:** workflow manual `.github/workflows/supabase-migrar.yml`, solo para Luis, con los secretos `SUPABASE_ACCESS_TOKEN` y `SUPABASE_DB_PASSWORD`. La `service_role` no se usa en ningún sitio.
 - **Cliente** (`apps/game/src/supabase.ts`): solo clave pública vía `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; sin ellas devuelve `null` y el juego sigue con el guardado local.
 

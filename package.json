@@ -13,7 +13,8 @@
   },
   "scripts": {
     "dev": "npm run dev -w @kalku/game",
-    "build": "npm run build -w @kalku/exercises -w @kalku/world -w @kalku/art -w @kalku/content && npm run build -w @kalku/game",
+    "build": "npm run build -w @kalku/exercises -w @kalku/world -w @kalku/art -w @kalku/content && npm run build -w @kalku/game && npm run build:function",
+    "build:function": "node scripts/bundle-function.mjs",
     "test": "npm run test -w @kalku/exercises -w @kalku/world -w @kalku/art -w @kalku/content -w @kalku/game",
     "typecheck": "tsc -b",
     "check": "npm run typecheck && npm run test && npm run build"

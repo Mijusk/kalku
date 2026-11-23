@@ -1,6 +1,7 @@
 name: Supabase · aplicar migraciones
 
 # Solo lo lanza Luis a mano desde Actions, después de fusionar.
+# Aplica las migraciones y despliega la Edge Function `answer` (#46).
 on:
   workflow_dispatch:
 
@@ -19,3 +20,12 @@ jobs:
       - run: supabase link --project-ref nxaehojnwutxpshqwzeo
       # Lanzarlo a mano ya es la confirmación: --yes evita la pregunta interactiva.
       - run: supabase db push --remote --yes
+      # La función lleva @kalku/exercises dentro: se empaqueta antes de subirla.
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w @kalku/exercises && npm run build:function
+      # El token necesita el permiso «Edge Functions» (lectura y escritura).
+      - run: supabase functions deploy answer --project-ref nxaehojnwutxpshqwzeo
