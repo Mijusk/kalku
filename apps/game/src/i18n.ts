@@ -51,6 +51,12 @@ const STRINGS = {
   rescueTitle: { es: 'Rescatar a la criatura', ca: 'Rescatar la criatura' },
   collection: { es: 'Colección', ca: 'Col·lecció' },
   collectionCount: { es: 'rescatadas', ca: 'rescatades' },
+  nicknameTitle: { es: '¿Cómo te llamas en el juego?', ca: 'Com et dius al joc?' },
+  nicknameHint: { es: 'Elige un apodo. No uses tu nombre real.', ca: 'Tria un malnom. No facis servir el teu nom real.' },
+  nicknameInput: { es: 'O escribe el tuyo', ca: 'O escriu el teu' },
+  nicknameNameWarning: { es: '¿Es tu nombre? Mejor un apodo inventado.', ca: 'És el teu nom? Millor un malnom inventat.' },
+  nicknameGo: { es: 'Empezar', ca: 'Començar' },
+  nicknameTooLong: { es: 'Máximo 30 letras.', ca: 'Màxim 30 lletres.' },
   language: { es: 'Català', ca: 'Castellano' },
 } as const satisfies Record<string, Record<Locale, string>>;
 
