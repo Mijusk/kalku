@@ -13,7 +13,7 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 - **Regla 3:** el tiempo no se envía ni se usa en el dominio; ser lento no puede restar. **Regla 2:** `applyAnswer` no baja de 0 ni quita intentos o aciertos.
 - **Prueba de nivel:** se manda entera al terminar y el servidor la repite desde el principio (cada ejercicio tiene que ser el que tocaba, la prueba debe estar acabada) y aplica `applyPlacement`, que nunca baja nada.
 - **El servidor manda:** el juego sigue aplicando la respuesta en local para verse al instante y, cuando llega la respuesta del servidor, pone su dominio. Sin red o con error se queda la copia local (el reintento sin conexión es del bloque 8). **Consecuencia:** el dominio local de antes de las cuentas ya no se sube (migración de prototipo); la primera respuesta validada de cada habilidad lo sustituye por el del servidor.
-- **Empaquetado:** Deno no resuelve los imports `.js` → `.ts` de `@kalku/exercises`, así que `npm run build:function` (rolldown) genera `supabase/functions/answer/dist/index.js`, que es el `entrypoint` de `config.toml`. El workflow «Supabase · aplicar migraciones» lo despliega tras `db push`; el token necesita permiso de «Edge Functions».
+- **Empaquetado:** Deno no resuelve los imports `.js` → `.ts` de `@kalku/exercises`, así que `npm run build:function` (rolldown) genera `supabase/functions/answer/dist/index.js`, que es el `entrypoint` de `config.toml`. Despliegue: `supabase functions deploy answer` tras `db push` en «Supabase · aplicar migraciones» (pendiente de añadir a mano, ver PR #62); el token necesita permiso de «Edge Functions».
 
 ## 2026-11-22 · Política de privacidad y contrato para centros (#49)
 
