@@ -2,7 +2,7 @@ name: Supabase
 
 on:
   pull_request:
-    paths: ['supabase/**', 'scripts/bundle-function.mjs', 'packages/exercises/**', '.github/workflows/supabase.yml', 'apps/game/src/sync.ts', 'apps/game/src/progress.ts', 'apps/game/test/sync.integracion.test.ts']
+    paths: ['supabase/**', '.github/workflows/supabase.yml', 'apps/game/src/sync.ts', 'apps/game/src/progress.ts', 'apps/game/test/sync.integracion.test.ts']
   push:
     branches: [main]
     paths: ['supabase/**']
@@ -28,8 +28,6 @@ jobs:
       - run: npm ci
       - name: Paquetes del juego
         run: npm run build -w @kalku/exercises -w @kalku/world -w @kalku/art -w @kalku/content
-      - name: La función answer se empaqueta (Deno no resuelve @kalku/exercises sin esto)
-        run: npm run build:function
       - name: Test de integración del progreso (cuenta anónima → guardar → recuperar)
         run: |
           eval "$(supabase status -o env | grep -E '^(API_URL|ANON_KEY)=')"
