@@ -1,5 +1,5 @@
 begin;
-select plan(24);
+select plan(26);
 
 -- Dos niños (logins anónimos simulados).
 insert into auth.users (id, aud, role, is_anonymous)
@@ -61,10 +61,12 @@ select throws_ok(
   $$select public.record_answers('11111111-1111-1111-1111-111111111111', '[]', '[]')$$,
   '42501', null, 'un niño no puede llamar a record_answers');
 
--- Modificar lo de otro no afecta a ninguna fila.
-update public.progress set mastery = 0 where child_id = '22222222-2222-2222-2222-222222222222';
-delete from public.progress where child_id = '22222222-2222-2222-2222-222222222222';
-select is((select count(*)::int from public.progress), 1, 'un niño no modifica ni borra el progreso de otro (solo ve el suyo)');
+-- Lo de otro tampoco: desde #46 el navegador no tiene permiso de escribir en progress.
+select throws_ok($$update public.progress set mastery = 0 where child_id = '22222222-2222-2222-2222-222222222222'$$,
+  '42501', null, 'un niño no modifica el progreso de otro');
+select throws_ok($$delete from public.progress where child_id = '22222222-2222-2222-2222-222222222222'$$,
+  '42501', null, 'un niño no borra el progreso de otro');
+select is((select count(*)::int from public.progress), 1, 'un niño solo ve su propio progreso');
 
 select throws_ok($$update public.answers set correct = false$$, '42501', null,
   'las respuestas no se editan');
