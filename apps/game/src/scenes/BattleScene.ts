@@ -464,6 +464,11 @@ export class BattleScene extends Phaser.Scene {
         this.settingsOpen = false;
         this.showActions();
       },
+      onDeleted: () => {
+        // Datos borrados: de vuelta a la pantalla de apodo, como un niño nuevo.
+        this.settingsOpen = false;
+        this.scene.start('nickname');
+      },
     });
   }
 

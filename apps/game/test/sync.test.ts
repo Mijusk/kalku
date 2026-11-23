@@ -4,6 +4,9 @@ import { defaultProgress, type PlayerProgress } from '../src/progress';
 import {
   AnswerRejected,
   createPusher,
+  deleteChildData,
+  exportChildData,
+  LOCAL_KEYS,
   MIGRATED_KEY,
   needsNickname,
   NICKNAME_KEY,
@@ -21,7 +24,7 @@ const PROGRESS_KEY = 'kalku:progress';
 
 function memoryStore(initial: Record<string, string> = {}): KeyValueStore & { data: Record<string, string> } {
   const data = { ...initial };
-  return { data, getItem: (k) => data[k] ?? null, setItem: (k, v) => void (data[k] = v) };
+  return { data, getItem: (k) => data[k] ?? null, setItem: (k, v) => void (data[k] = v), removeItem: (k) => void delete data[k] };
 }
 
 function played(coins = 1): PlayerProgress {
@@ -38,6 +41,8 @@ interface Fake extends Backend {
   /** Qué hace `answer`: devolver dominio, o fallar con un código del servidor. */
   answerWith: (() => ServerSkills) | { reject: string } | 'offline';
   failSave: boolean;
+  failDelete: boolean;
+  deleted: number;
   offline: boolean;
   session: string | null;
   server: { nickname: string; extra: unknown; rows: { skill: string; mastery: number; attempts: number; correct: number }[] } | null;
@@ -49,6 +54,8 @@ function fakeBackend(session: string | null = 'kid-1'): Fake {
     answers: [],
     answerWith: () => ({}),
     failSave: false,
+    failDelete: false,
+    deleted: 0,
     offline: false,
     session,
     server: null,
@@ -83,6 +90,16 @@ function fakeBackend(session: string | null = 'kid-1'): Fake {
         throw new AnswerRejected(how.reject === 'no-child' ? 409 : 422, how.reject);
       }
       return how();
+    },
+    async exportData() {
+      if (f.offline) throw new Error('offline');
+      return { children: [{ nickname: f.server?.nickname }], progress: f.server?.rows ?? [], answers: [] };
+    },
+    async deleteAccount() {
+      if (f.offline || f.failDelete) throw new Error('fallo');
+      f.deleted++;
+      f.server = null;
+      f.session = null;
     },
   };
   return f;
@@ -220,6 +237,55 @@ describe('needsNickname', () => {
     expect(await needsNickname(fakeBackend(null), memoryStore())).toBe(true);
     expect(await needsNickname(fakeBackend(null), memoryStore({ [NICKNAME_KEY]: 'Zorro' }))).toBe(false);
     expect(await needsNickname(fakeBackend('kid-1'), memoryStore())).toBe(false);
+  });
+});
+
+describe('exportar y borrar los datos (#50)', () => {
+  it('la descarga es el JSON del servidor', async () => {
+    const b = fakeBackend();
+    b.server = { nickname: 'Zorro', extra: {}, rows: [{ skill: 'add-within-10', mastery: 5, attempts: 1, correct: 1 }] };
+    const json = JSON.parse(await exportChildData(b));
+    expect(json.children[0].nickname).toBe('Zorro');
+    expect(json.progress).toHaveLength(1);
+  });
+
+  it('sin cuenta no hay nada que descargar', async () => {
+    await expect(exportChildData(fakeBackend(null))).rejects.toThrow();
+  });
+
+  it('borrar limpia el servidor y todas las claves locales', async () => {
+    const store = memoryStore({ [PROGRESS_KEY]: '{}', [NICKNAME_KEY]: 'Zorro', [MIGRATED_KEY]: '1', [PENDING_KEY]: '1', otra: 'x' });
+    const b = fakeBackend();
+    await deleteChildData(b, store);
+    expect(b.deleted).toBe(1);
+    expect(b.server).toBeNull();
+    for (const key of LOCAL_KEYS) expect(store.data[key]).toBeUndefined();
+    expect(store.data.otra).toBe('x');
+  });
+
+  it('si el servidor falla, no se borra nada local', async () => {
+    const store = memoryStore({ [PROGRESS_KEY]: '{}', [NICKNAME_KEY]: 'Zorro' });
+    const b = fakeBackend();
+    b.failDelete = true;
+    await expect(deleteChildData(b, store)).rejects.toThrow();
+    expect(store.data[NICKNAME_KEY]).toBe('Zorro');
+    expect(store.data[PROGRESS_KEY]).toBe('{}');
+  });
+
+  it('sin red avisa en lugar de fingir', async () => {
+    const store = memoryStore({ [NICKNAME_KEY]: 'Zorro' });
+    const b = fakeBackend();
+    b.offline = true;
+    await expect(deleteChildData(b, store)).rejects.toThrow();
+    expect(store.data[NICKNAME_KEY]).toBe('Zorro');
+  });
+
+  it('sin sesión (nunca llegó a subirse) solo se borra lo local', async () => {
+    const store = memoryStore({ [NICKNAME_KEY]: 'Zorro' });
+    const b = fakeBackend(null);
+    await deleteChildData(b, store);
+    expect(b.deleted).toBe(0);
+    expect(store.data[NICKNAME_KEY]).toBeUndefined();
   });
 });
 

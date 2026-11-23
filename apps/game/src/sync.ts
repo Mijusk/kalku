@@ -31,6 +31,10 @@ export interface Backend {
   save(id: string, nickname: string, extra: unknown): Promise<void>;
   /** Manda respuestas a la Edge Function `answer`. Lanza `AnswerRejected` si el servidor las rechaza. */
   answer(body: AnswerBody): Promise<ServerSkills>;
+  /** Todo lo que el servidor guarda del niño (RGPD: portabilidad). */
+  exportData(): Promise<unknown>;
+  /** Borra la cuenta del niño y todas sus filas (RGPD: supresión) y cierra la sesión. */
+  deleteAccount(): Promise<void>;
 }
 
 /** El servidor respondió, pero no aceptó la respuesta (`code` es su `error`). */
@@ -73,6 +77,7 @@ export function parseServerSkills(raw: unknown): ServerSkills {
 export interface KeyValueStore {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
+  removeItem?(key: string): void;
 }
 
 export const NICKNAME_KEY = 'kalku:nickname';
@@ -116,6 +121,17 @@ export function supabaseBackend(client: SupabaseClient): Backend {
         throw error;
       }
       return parseServerSkills(data);
+    },
+    async exportData() {
+      const { data, error } = await client.rpc('export_my_data');
+      if (error) throw error;
+      return data;
+    },
+    async deleteAccount() {
+      const { error } = await client.rpc('delete_my_account');
+      if (error) throw error;
+      // La cuenta ya no existe: se cierra la sesión solo en este aparato.
+      await client.auth.signOut({ scope: 'local' });
     },
   };
 }
@@ -255,6 +271,24 @@ export async function needsNickname(backend: Backend | null, store: KeyValueStor
   } catch {
     return true;
   }
+}
+
+/** Claves de localStorage que son del niño: se borran con la cuenta. */
+export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING_KEY] as const;
+
+/** Descarga de datos: el JSON del servidor. Lanza si no hay sesión o red. */
+export async function exportChildData(backend: Backend): Promise<string> {
+  if (!(await backend.userId())) throw new Error('Sin cuenta');
+  return JSON.stringify(await backend.exportData(), null, 2);
+}
+
+/**
+ * Borra la cuenta en el servidor y, solo si ha funcionado, la copia local.
+ * Si el servidor falla, lanza y no toca nada: no se finge un borrado.
+ */
+export async function deleteChildData(backend: Backend, store: KeyValueStore): Promise<void> {
+  if (await backend.userId()) await backend.deleteAccount();
+  for (const key of LOCAL_KEYS) store.removeItem?.(key);
 }
 
 let backend: Backend | null | undefined;

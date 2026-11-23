@@ -95,6 +95,7 @@ kalku/
             ├── speech.ts       Envoltorio de speechSynthesis: hay voz, leer, parar (el texto sale de @kalku/exercises)
             ├── supabase.ts     Cliente de Supabase con clave pública; null si faltan las variables (copia apps/game/.env.example a .env)
             ├── progress.ts     Progreso y ajustes: copia local (localStorage) y conversión a filas del servidor (toServerRows / fromServerRows)
+            ├── adultGate.ts    Cuenta con semilla (tipo 47 × 6) que da paso a «Para adultos»
             ├── sync.ts         Cuenta anónima y sincronización con Supabase: bajar al arrancar, migrar lo local una vez, subir tras cada guardado; sin red sigue en local
             ├── privacidad.ts   Pinta la política de privacidad (idioma, versión, tablas) desde @kalku/content
             ├── privacyLocale.ts Elige el idioma de /privacidad: ?lang=, ajuste guardado o navegador
@@ -113,7 +114,8 @@ kalku/
             └── ui/             Interfaz HTML encima del canvas
                 ├── ExercisePanel.ts  Ejercicio, altavoz, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio
-                ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz
+                ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz y «Para adultos»
+                ├── AdultsPanel.ts    Para adultos: cuenta de entrada, descargar los datos en JSON y borrarlos (con confirmación)
                 └── styles.css
 ```
 
