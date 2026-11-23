@@ -1,7 +1,21 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createProfile } from '@kalku/exercises';
 import { defaultProgress, type PlayerProgress } from '../src/progress';
-import { createPusher, MIGRATED_KEY, needsNickname, NICKNAME_KEY, PENDING_KEY, pullProgress, type Backend, type KeyValueStore } from '../src/sync';
+import {
+  AnswerRejected,
+  createPusher,
+  MIGRATED_KEY,
+  needsNickname,
+  NICKNAME_KEY,
+  parseServerSkills,
+  PENDING_KEY,
+  pullProgress,
+  submitAnswer,
+  type AnswerBody,
+  type Backend,
+  type KeyValueStore,
+  type ServerSkills,
+} from '../src/sync';
 
 const PROGRESS_KEY = 'kalku:progress';
 
@@ -19,7 +33,10 @@ function played(coins = 1): PlayerProgress {
 }
 
 interface Fake extends Backend {
-  saves: { id: string; nickname: string; extra: unknown; rows: unknown[] }[];
+  saves: { id: string; nickname: string; extra: unknown }[];
+  answers: AnswerBody[];
+  /** Qué hace `answer`: devolver dominio, o fallar con un código del servidor. */
+  answerWith: (() => ServerSkills) | { reject: string } | 'offline';
   failSave: boolean;
   offline: boolean;
   session: string | null;
@@ -29,6 +46,8 @@ interface Fake extends Backend {
 function fakeBackend(session: string | null = 'kid-1'): Fake {
   const f: Fake = {
     saves: [],
+    answers: [],
+    answerWith: () => ({}),
     failSave: false,
     offline: false,
     session,
@@ -49,10 +68,21 @@ function fakeBackend(session: string | null = 'kid-1'): Fake {
       if (f.offline) throw new Error('offline');
       return f.server?.rows ?? [];
     },
-    async save(id, nickname, extra, rows) {
+    async save(id, nickname, extra) {
       if (f.offline || f.failSave) throw new Error('fallo');
-      f.saves.push({ id, nickname, extra, rows });
-      f.server = { nickname, extra, rows };
+      f.saves.push({ id, nickname, extra });
+      f.server = { nickname, extra, rows: f.server?.rows ?? [] };
+    },
+    async answer(body) {
+      f.answers.push(body);
+      const how = f.answerWith;
+      if (how === 'offline') throw new Error('offline');
+      if (typeof how === 'object') {
+        // Como el servidor real: sin ficha, rechaza con `no-child` hasta que se sube.
+        if (how.reject === 'no-child' && f.server) return { 'add-within-10': { mastery: 8, attempts: 1, correct: 1 } };
+        throw new AnswerRejected(how.reject === 'no-child' ? 409 : 422, how.reject);
+      }
+      return how();
     },
   };
   return f;
@@ -190,5 +220,64 @@ describe('needsNickname', () => {
     expect(await needsNickname(fakeBackend(null), memoryStore())).toBe(true);
     expect(await needsNickname(fakeBackend(null), memoryStore({ [NICKNAME_KEY]: 'Zorro' }))).toBe(false);
     expect(await needsNickname(fakeBackend('kid-1'), memoryStore())).toBe(false);
+  });
+});
+
+describe('respuestas al servidor (#46)', () => {
+  const body: AnswerBody = {
+    kind: 'answer',
+    skill: 'add-within-10',
+    seed: '7',
+    given: 5,
+    exercise: { a: 2, b: 3, c: 5, hidden: 'c' },
+    helped: false,
+    slot: 'current',
+    hintsUsed: 0,
+  };
+
+  it('devuelve el dominio que calcula el servidor', async () => {
+    const b = fakeBackend();
+    b.answerWith = () => ({ 'add-within-10': { mastery: 8, attempts: 1, correct: 1 } });
+    const r = await submitAnswer(b, memoryStore({ [NICKNAME_KEY]: 'Zorro' }), defaultProgress(), body);
+    expect(r).toEqual({ 'add-within-10': { mastery: 8, attempts: 1, correct: 1 } });
+    expect(b.answers).toEqual([body]);
+  });
+
+  it('el dominio no se sube con el resto del progreso: solo lo escribe el servidor', async () => {
+    const b = fakeBackend();
+    const store = memoryStore({ [NICKNAME_KEY]: 'Zorro' });
+    const p = played();
+    const { pushProgress } = await import('../src/sync');
+    await pushProgress(b, store, p);
+    expect(JSON.stringify(b.saves[0]?.extra)).not.toContain('mastery');
+    expect(b.saves[0]?.extra).toMatchObject({ coins: 1 });
+  });
+
+  it('sin ficha en el servidor, la crea y reintenta una vez', async () => {
+    const b = fakeBackend();
+    b.answerWith = { reject: 'no-child' };
+    const store = memoryStore({ [NICKNAME_KEY]: 'Zorro' });
+    const r = await submitAnswer(b, store, defaultProgress(), body);
+    expect(b.saves).toHaveLength(1);
+    expect(b.answers).toHaveLength(2);
+    expect(r).toEqual({ 'add-within-10': { mastery: 8, attempts: 1, correct: 1 } });
+  });
+
+  it.each([['rechazo', { reject: 'exercise-mismatch' }], ['sin red', 'offline' as const]])('con %s devuelve null y no lanza', async (_n, how) => {
+    const b = fakeBackend();
+    b.answerWith = how;
+    await expect(submitAnswer(b, memoryStore({ [NICKNAME_KEY]: 'Zorro' }), defaultProgress(), body)).resolves.toBeNull();
+  });
+
+  it('parseServerSkills ignora lo que no es un dominio válido', () => {
+    const raw = { progress: { 'add-within-10': { mastery: 40, attempts: 5, correct: 4 }, 'sub-within-10': { mastery: 500, attempts: 1, correct: 1 }, raro: { mastery: 1, attempts: 1, correct: 1 } } };
+    const expected: ServerSkills = { 'add-within-10': { mastery: 40, attempts: 5, correct: 4 } };
+    expect(parseServerSkills(raw)).toEqual(expected);
+    expect(parseServerSkills(null)).toEqual({});
+    expect(parseServerSkills({ progress: 3 })).toEqual({});
+  });
+
+  it('AnswerRejected lleva el código', () => {
+    expect(new AnswerRejected(409, 'repeated').code).toBe('repeated');
   });
 });

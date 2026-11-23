@@ -18,7 +18,7 @@ function memoryStore(): KeyValueStore {
 }
 
 describe.skipIf(!url || !anonKey)('progreso en Supabase local', () => {
-  it('login anónimo → guardar → cliente nuevo con la misma sesión → recupera lo guardado', async () => {
+  it('login anónimo → guardar → cliente nuevo con la misma sesión → recupera lo guardado (sin el dominio)', async () => {
     // Almacén de sesión compartido: es lo que hace el navegador con localStorage.
     const sessionStore = memoryStore();
     const make = () =>
@@ -28,7 +28,8 @@ describe.skipIf(!url || !anonKey)('progreso en Supabase local', () => {
 
     const store = memoryStore();
     store.setItem(NICKNAME_KEY, 'Zorro');
-    const first = supabaseBackend(make());
+    const client = make();
+    const first = supabaseBackend(client);
     const id = await first.signInAnonymously();
     expect(id).toBeTruthy();
 
@@ -40,12 +41,19 @@ describe.skipIf(!url || !anonKey)('progreso en Supabase local', () => {
     progress.profile['add-within-10'] = { mastery: 24, attempts: 4, correct: 3 };
     await pushProgress(first, store, progress);
 
+    // Desde el navegador ya no se puede escribir el dominio ni las respuestas (#46).
+    const forged = await client.from('progress').upsert({ child_id: id, skill: 'add-within-10', mastery: 100, attempts: 50, correct: 50 });
+    expect(forged.error).not.toBeNull();
+    const forgedAnswer = await client.from('answers').insert({ child_id: id, skill: 'add-within-10', seed: '1', given: 1, correct: true });
+    expect(forgedAnswer.error).not.toBeNull();
+
     // «Recarga»: cliente nuevo, sin copia local.
     vi.stubGlobal('localStorage', memoryStore());
     const second = supabaseBackend(make());
     const result = await pullProgress(second, store);
     vi.unstubAllGlobals();
     expect(result.source).toBe('server');
-    expect(result.progress).toEqual(progress);
+    // El dominio ya no lo sube el cliente (#46): lo escribe la función `answer`. Lo demás sí vuelve.
+    expect(result.progress).toEqual({ ...progress, profile: createProfile() });
   });
 });

@@ -1,5 +1,5 @@
 begin;
-select plan(18);
+select plan(24);
 
 -- Dos niños (logins anónimos simulados).
 insert into auth.users (id, aud, role, is_anonymous)
@@ -44,17 +44,27 @@ select throws_ok(
   $$insert into public.children (id, nickname) values ('22222222-2222-2222-2222-222222222222', 'Falso')$$,
   '42501', null, 'un niño no crea la ficha de otro');
 
-select lives_ok(
+-- #46: el navegador ya no escribe el dominio ni las respuestas, ni siquiera lo suyo.
+select throws_ok(
   $$insert into public.progress (child_id, skill, mastery) values ('11111111-1111-1111-1111-111111111111', 'sub-within-10', 10)$$,
-  'un niño inserta su propio progreso');
-select lives_ok(
+  '42501', null, 'un niño no inserta su propio progreso');
+select throws_ok(
+  $$update public.progress set mastery = 100 where child_id = '11111111-1111-1111-1111-111111111111'$$,
+  '42501', null, 'un niño no sube su propio dominio');
+select throws_ok(
+  $$delete from public.progress where child_id = '11111111-1111-1111-1111-111111111111'$$,
+  '42501', null, 'un niño no borra su propio progreso');
+select throws_ok(
   $$insert into public.answers (child_id, skill, seed, given, correct) values ('11111111-1111-1111-1111-111111111111', 'add-within-10', 's3', 3, true)$$,
-  'un niño inserta sus propias respuestas');
+  '42501', null, 'un niño no inserta respuestas, ni las suyas');
+select throws_ok(
+  $$select public.record_answers('11111111-1111-1111-1111-111111111111', '[]', '[]')$$,
+  '42501', null, 'un niño no puede llamar a record_answers');
 
 -- Modificar lo de otro no afecta a ninguna fila.
 update public.progress set mastery = 0 where child_id = '22222222-2222-2222-2222-222222222222';
 delete from public.progress where child_id = '22222222-2222-2222-2222-222222222222';
-select is((select count(*)::int from public.progress), 2, 'un niño no modifica ni borra el progreso de otro (solo ve el suyo)');
+select is((select count(*)::int from public.progress), 1, 'un niño no modifica ni borra el progreso de otro (solo ve el suyo)');
 
 select throws_ok($$update public.answers set correct = false$$, '42501', null,
   'las respuestas no se editan');
@@ -72,6 +82,23 @@ select throws_ok(
 
 -- Vuelta a superusuario: el progreso de B sigue intacto.
 reset role;
+
+-- La Edge Function (service_role) sí guarda, de una vez y sin repetir semillas.
+set local role service_role;
+select lives_ok(
+  $$select public.record_answers('11111111-1111-1111-1111-111111111111',
+    '[{"skill":"add-within-10","seed":"77","given":4,"correct":true,"hints_used":0}]',
+    '[{"skill":"add-within-10","mastery":48,"attempts":6,"correct":5}]')$$,
+  'service_role guarda respuesta y dominio');
+select throws_ok(
+  $$select public.record_answers('11111111-1111-1111-1111-111111111111',
+    '[{"skill":"add-within-10","seed":"77","given":4,"correct":true,"hints_used":0}]',
+    '[{"skill":"add-within-10","mastery":99,"attempts":7,"correct":6}]')$$,
+  '23505', null, 'una semilla no se responde dos veces');
+reset role;
+select is((select mastery::int from public.progress
+  where child_id = '11111111-1111-1111-1111-111111111111'), 48,
+  'la respuesta repetida no cambió el dominio');
 select is((select mastery::int from public.progress
   where child_id = '22222222-2222-2222-2222-222222222222'), 70,
   'el progreso de B no cambió');

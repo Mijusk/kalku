@@ -19,3 +19,12 @@ jobs:
       - run: supabase link --project-ref nxaehojnwutxpshqwzeo
       # Lanzarlo a mano ya es la confirmación: --yes evita la pregunta interactiva.
       - run: supabase db push --remote --yes
+      # La función `answer` lleva @kalku/exercises dentro: se empaqueta y se despliega.
+      # Hace falta que el token de SUPABASE_ACCESS_TOKEN tenga permiso de «Edge Functions».
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build:function
+      - run: supabase functions deploy answer --project-ref nxaehojnwutxpshqwzeo
