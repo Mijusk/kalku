@@ -31,3 +31,5 @@ jobs:
       # El token necesita el permiso «Edge Functions» (lectura y escritura).
       # Igual que db push: sin --yes la CLI pide confirmación y falla en Actions.
       - run: supabase functions deploy answer --project-ref nxaehojnwutxpshqwzeo --yes
+      # child-session necesita además el secreto KALKU_JWT_SECRET (lo pone Luis en Edge Functions → Secrets).
+      - run: supabase functions deploy child-session --project-ref nxaehojnwutxpshqwzeo --yes

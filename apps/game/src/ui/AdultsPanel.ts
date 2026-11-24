@@ -1,7 +1,9 @@
-import { randomSeed, type Locale } from '@kalku/exercises';
-import { checkAdultGate, createAdultGate } from '../adultGate';
+import type { Locale } from '@kalku/exercises';
 import { tr } from '../i18n';
 import { appBackend, deleteChildData, exportChildData } from '../sync';
+import { appFamilyBackend } from '../family';
+import { button, showAdultGate, show, text } from './dom';
+import { FamilyPanel } from './FamilyPanel';
 
 export interface AdultsCallbacks {
   /** Vuelve a los ajustes. */
@@ -22,32 +24,11 @@ export class AdultsPanel {
   }
 
   private show(...nodes: HTMLElement[]): void {
-    this.root.replaceChildren(...nodes);
-    this.root.querySelector<HTMLElement>('input, button')?.focus();
+    show(this.root, ...nodes);
   }
 
   private showGate(): void {
-    const { locale } = this;
-    const gate = createAdultGate(randomSeed());
-    const input = document.createElement('input');
-    input.className = 'nickname-input';
-    input.inputMode = 'numeric';
-    input.setAttribute('aria-label', tr('adultsGateAnswer', locale));
-    input.placeholder = tr('adultsGateAnswer', locale);
-    const feedback = text('panel-feedback', '');
-    feedback.setAttribute('role', 'status');
-    const enter = button('btn btn-primary', tr('adultsEnter', locale), () => {
-      if (checkAdultGate(gate, input.value)) this.showMenu();
-      else {
-        feedback.textContent = tr('adultsGateWrong', locale);
-        feedback.dataset.kind = 'bad';
-      }
-    });
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') enter.click();
-    });
-    const back = button('btn btn-small', tr('back', locale), () => this.callbacks.onClose());
-    this.show(text('panel-title', tr('adultsGateTitle', locale)), text('panel-feedback', tr('adultsGateHint', locale)), text('panel-title', `${gate.a} × ${gate.b}`), input, feedback, enter, back);
+    showAdultGate(this.root, this.locale, () => this.showMenu(), () => this.callbacks.onClose());
   }
 
   private showMenu(message = '', kind = 'info'): void {
@@ -56,9 +37,20 @@ export class AdultsPanel {
     feedback.setAttribute('role', 'status');
     feedback.dataset.kind = kind;
     const download = button('btn btn-primary', tr('adultsDownload', locale), () => void this.download(feedback));
+    const family = button('btn btn-primary', tr('familyTitle', locale), () => this.showFamily());
     const del = button('btn btn-small', tr('adultsDelete', locale), () => this.showConfirm());
     const back = button('btn btn-small', tr('back', locale), () => this.callbacks.onClose());
-    this.show(text('panel-title', tr('adults', locale)), download, del, feedback, back);
+    this.show(text('panel-title', tr('adults', locale)), family, download, del, feedback, back);
+  }
+
+  private showFamily(): void {
+    new FamilyPanel(this.root, this.locale, {
+      hasChildHere: true,
+      backend: appFamilyBackend(),
+      onClose: () => this.showMenu(),
+      // Entró como otro niño: se recarga el juego con su sesión y su progreso.
+      onEntered: () => window.location.reload(),
+    });
   }
 
   private showConfirm(message = ''): void {
@@ -111,20 +103,4 @@ export class AdultsPanel {
       this.showConfirm(tr('adultsDeleteFailed', this.locale));
     }
   }
-}
-
-function text(className: string, content: string): HTMLElement {
-  const p = document.createElement('p');
-  p.className = className;
-  p.textContent = content;
-  return p;
-}
-
-function button(className: string, label: string, onClick: () => void): HTMLButtonElement {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = className;
-  b.textContent = label;
-  b.addEventListener('click', onClick);
-  return b;
 }

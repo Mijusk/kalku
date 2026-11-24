@@ -99,7 +99,7 @@ describe('datos del servidor', () => {
   const tables = migrationColumns();
 
   it('lee las tablas de las migraciones', () => {
-    expect([...tables.keys()].sort()).toEqual(['answers', 'children', 'progress']);
+    expect([...tables.keys()].sort()).toEqual(['answers', 'children', 'families', 'family_children', 'link_codes', 'progress']);
   });
 
   it('cada columna de las migraciones aparece en la política, y al revés', () => {
@@ -123,9 +123,9 @@ describe('subencargados', () => {
     expect(SUBPROCESSORS.map((s) => s.name).sort()).toEqual(['Brevo', 'Cloudflare', 'Supabase']);
   });
 
-  it('Brevo está marcado como futuro y con su nota', () => {
+  it('Brevo ya está activo (cuentas de familia) y lleva su nota', () => {
     const brevo = SUBPROCESSORS.find((s) => s.name === 'Brevo');
-    expect(brevo?.future).toBe(true);
+    expect(brevo?.future).toBe(false);
     expect(brevo?.note).toBeDefined();
   });
 });

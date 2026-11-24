@@ -21,7 +21,7 @@ Bloques de desarrollo: 1 Publicar · 2 Mapa · 3 Encuentros · 4 Gráficos y tie
 
 ## Fase 2 · Versión de piloto · enero–marzo 2027
 
-- [ ] Supabase en la UE: cuentas de familia, cuenta anónima del niño y fusión
+- [ ] Supabase en la UE: cuentas de familia (hecho en #47), cuenta anónima del niño y fusión
 - [ ] Cuenta de centro, clases con QR, tarjetas imprimibles, «toca tu animal»
 - [ ] Validación de respuestas en el servidor; sin conexión con sincronización
 - [ ] Pradera Uno completa con 5 criaturas como datos
