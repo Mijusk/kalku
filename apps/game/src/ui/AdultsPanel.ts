@@ -40,7 +40,7 @@ export class AdultsPanel {
     const family = button('btn btn-primary', tr('familyTitle', locale), () => this.showFamily());
     const del = button('btn btn-small', tr('adultsDelete', locale), () => this.showConfirm());
     const back = button('btn btn-small', tr('back', locale), () => this.callbacks.onClose());
-    this.show(text('panel-title', tr('adults', locale)), family, download, del, feedback, back);
+    this.show(text('panel-title', tr('adults', locale)), text('panel-feedback', tr('adultsExpiry', locale)), family, download, del, feedback, back);
   }
 
   private showFamily(): void {

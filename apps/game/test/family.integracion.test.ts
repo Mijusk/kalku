@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { describe, expect, it } from 'vitest';
-import { supabaseFamilyBackend } from '../src/family';
+import { guardianConsent, supabaseFamilyBackend } from '../src/family';
 import { defaultProgress } from '../src/progress';
 import { NICKNAME_KEY, pushProgress, supabaseBackend, type KeyValueStore } from '../src/sync';
 
@@ -12,6 +12,8 @@ import { NICKNAME_KEY, pushProgress, supabaseBackend, type KeyValueStore } from 
 const url = process.env.SUPABASE_TEST_URL;
 const anonKey = process.env.SUPABASE_TEST_ANON_KEY;
 const serviceKey = process.env.SUPABASE_TEST_SERVICE_ROLE_KEY;
+
+const CONSENT = guardianConsent(true);
 
 const make = (key: string): SupabaseClient =>
   createClient(url as string, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
@@ -60,7 +62,7 @@ describe.skipIf(!url || !anonKey || !serviceKey)('cuenta de familia en Supabase 
     const before = await admin.from('progress').select('*').eq('child_id', kid.id);
 
     // Une al niño de este aparato (niño pide el código, adulto lo usa).
-    const joined = await family1.joinWithCode(await family1.createLinkCode());
+    const joined = await family1.joinWithCode(await family1.createLinkCode(), CONSENT);
     expect(joined).toEqual({ childId: kid.id, nickname: 'Zorro' });
 
     // Otro navegador: el adulto entra de nuevo por enlace y ve el mismo progreso.
@@ -70,7 +72,7 @@ describe.skipIf(!url || !anonKey || !serviceKey)('cuenta de familia en Supabase 
     expect(children).toEqual([{ id: kid.id, nickname: 'Zorro', skillsTried: 1, averageMastery: 40 }]);
 
     // Unir otra vez al mismo niño no cambia nada.
-    await family1.joinWithCode(await family1.createLinkCode());
+    await family1.joinWithCode(await family1.createLinkCode(), CONSENT);
     expect(await family2.listChildren()).toEqual(children);
     const after = await admin.from('progress').select('*').eq('child_id', kid.id);
     expect(after.data).toEqual(before.data);
@@ -101,16 +103,33 @@ describe.skipIf(!url || !anonKey || !serviceKey)('cuenta de familia en Supabase 
     const familyA = supabaseFamilyBackend(kid.client, await adultBrowser(admin, emailA));
     const familyB = supabaseFamilyBackend(kid.client, await adultBrowser(admin, emailB));
 
-    await familyA.joinWithCode(await familyA.createLinkCode());
-    await expect(familyB.joinWithCode(await familyB.createLinkCode())).rejects.toMatchObject({ code: 'child-in-family' });
-    await expect(familyB.joinWithCode('ZZZZZZZZ')).rejects.toMatchObject({ code: 'invalid-code' });
+    await familyA.joinWithCode(await familyA.createLinkCode(), CONSENT);
+    await expect(familyB.joinWithCode(await familyB.createLinkCode(), CONSENT)).rejects.toMatchObject({ code: 'child-in-family' });
+    await expect(familyB.joinWithCode('ZZZZZZZZ', CONSENT)).rejects.toMatchObject({ code: 'invalid-code' });
 
     await familyA.leave(kid.id);
     expect(await familyA.listChildren()).toEqual([]);
     const still = await admin.from('progress').select('mastery').eq('child_id', kid.id);
     expect(still.data).toHaveLength(1);
     // Ya suelto, otra familia puede unirlo.
-    await familyB.joinWithCode(await familyB.createLinkCode());
+    await familyB.joinWithCode(await familyB.createLinkCode(), CONSENT);
     expect(await familyB.listChildren()).toHaveLength(1);
+  });
+
+  it('sin la declaración no se une, y retirar el consentimiento borra al niño', async () => {
+    const admin = make(serviceKey as string);
+    const email = `c-${Date.now()}@example.com`;
+    await admin.auth.admin.createUser({ email, email_confirm: true });
+    const kid = await childBrowser(admin, 'Nube', 30);
+    const family = supabaseFamilyBackend(kid.client, await adultBrowser(admin, email));
+
+    await expect(family.joinWithCode(await family.createLinkCode(), guardianConsent(false))).rejects.toMatchObject({ code: 'consent-required' });
+    expect(await family.listChildren()).toEqual([]);
+
+    await family.joinWithCode(await family.createLinkCode(), CONSENT);
+    await family.withdrawConsent(kid.id);
+    expect(await family.listChildren()).toEqual([]);
+    expect((await admin.from('children').select('id').eq('id', kid.id)).data).toHaveLength(0);
+    expect((await admin.from('progress').select('child_id').eq('child_id', kid.id)).data).toHaveLength(0);
   });
 });

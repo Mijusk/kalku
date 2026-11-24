@@ -2,6 +2,16 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-24 · Consentimiento de los padres (#48)
+
+- **Decisiones de Luis (24 nov):** (1) sin segundo correo: basta el enlace de acceso; al unir, el adulto marca «Soy su madre, padre o tutor» y acepta la política, y el servidor exige el correo confirmado; (2) los 30 días se cuentan **sin jugar** desde `children.last_active_at`, y «Para adultos» avisa de que sin familia el progreso caduca; (3) el correo del adulto solo en `parental_consents.adult_email`, sin lectura salvo funciones del servidor.
+- **Unir = consentir:** `join_family_with_code(código, versión_política, es_tutor)` falla (`email-not-confirmed`, `consent-required`) si falta algo, y en la misma transacción une e inserta el consentimiento (fecha, versión, correo). Volver a unir al mismo niño no cambia el consentimiento original.
+- **`parental_consents`:** RLS forzada y sin permisos para nadie desde el cliente. El test de #47 ahora admite una única columna de correo en `public`: esa. La exportación del niño incluye el consentimiento sin el correo.
+- **Retirar el consentimiento** (`withdraw_consent`, solo el adulto de la familia): borra la cuenta del niño en `auth.users` y todo cae por `on delete cascade`, incluida la fila con el correo. **Soltar al niño** de la familia (`leave_family`) también borra su consentimiento y el correo: el niño vuelve a ser una cuenta sin consentimiento y caduca a los 30 días sin jugar. Borrar la cuenta del adulto borra sus consentimientos por cascada (misma consecuencia).
+- **Borrado automático:** `purge_unconsented_children()` borra a los niños sin consentimiento con `last_active_at` de hace más de 30 días; `pg_cron` la lanza cada día a las 03:00 UTC (la migración lo programa si la extensión existe; si no, avisa). `last_active_at` se actualiza con triggers al guardar respuestas o dominio, como mucho una vez por hora.
+- **Política de privacidad 0.2** (borrador para el abogado): consentimiento, correo del adulto, 30 días sin consentimiento.
+- **Pendiente de Luis:** comprobar en el panel de Supabase que existe el trabajo `purge-unconsented-children` (Database → Cron) y que `pg_cron` está activo en el proyecto real.
+
 ## 2026-11-24 · Cuenta de familia (#47)
 
 - **Decisiones de Luis (23 nov):** (1) el adulto entra como niño en otro aparato con la Edge Function `child-session`, que crea una sesión del mismo niño (su `id` no cambia, no se copian filas); (2) ese niño juega como en su aparato, sin acceso al correo ni a los otros hijos; (3) un niño que ya está en otra familia se rechaza: solo se suelta desde su familia (`leave_family`) o borrando su cuenta (#63).
