@@ -7,3 +7,4 @@ export * from './regions.js';
 export * from './autotile.js';
 export * from './movement.js';
 export * from './wildlife.js';
+export * from './gates.js';

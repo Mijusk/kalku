@@ -3,7 +3,7 @@ import { createPixelTexture, HERO, PALETTE } from '../art/pixelArt';
 import { createArtTextures } from '../art/textures';
 import { activeClassId, classIdFromSearch, wipeAbandonedClassData } from '../classDevice';
 import { loadProgress } from '../progress';
-import { LOCAL_KEYS, appBackend, needsNickname, startSyncWithTimeout } from '../sync';
+import { LOCAL_KEYS, appBackend, clearAnswerQueue, needsNickname, startSyncWithTimeout } from '../sync';
 
 /** Carga (o genera) todas las texturas antes de empezar. */
 export class BootScene extends Phaser.Scene {
@@ -24,7 +24,7 @@ export class BootScene extends Phaser.Scene {
     const params = new URLSearchParams(window.location.search);
     const battle = params.has('combate');
     // Aparato de clase (#53): si una pestaña anterior dejó datos de un alumno sin salir, se borran.
-    wipeAbandonedClassData(localStorage, sessionStorage, LOCAL_KEYS);
+    if (wipeAbandonedClassData(localStorage, sessionStorage, LOCAL_KEYS)) void clearAnswerQueue();
     // Con el QR de la tarjeta (`?clase=<id>`) o «Entro con mi clase» (`?clase`), el niño elige quién es.
     // Si ya hay un alumno dentro en esta pestaña, sigue jugando.
     if (!battle && params.has('clase') && activeClassId(sessionStorage) === null) {

@@ -149,8 +149,16 @@ describe('salir en un aparato compartido', () => {
     local.setItem('kalku:pending', '1');
     expect(Object.keys(local.data).length).toBeGreaterThan(0);
 
-    const classId = await leaveSharedDevice(login, local, session, { flush: async () => {} });
+    let queueCleared = false;
+    const classId = await leaveSharedDevice(login, local, session, {
+      flush: async () => {},
+      clearQueue: async () => {
+        queueCleared = true;
+      },
+    });
     expect(classId).toBe(CLASS);
+    // Las respuestas sin enviar no pasan al siguiente niño del aparato.
+    expect(queueCleared).toBe(true);
     expect(local.data).toEqual({});
     expect(session.data).toEqual({});
     expect(state.session).toBeNull();

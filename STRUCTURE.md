@@ -62,6 +62,7 @@ kalku/
 │   │   │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
 │   │   │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
 │   │   │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla (16 o 47 variantes)
+│   │   │   ├── gates.ts        Zonas cerradas: isGateClosed, openGate (sin mutar) y zoneInterior (el claro de detrás de la puerta)
 │   │   │   ├── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
 │   │   │   └── wildlife.ts     Criaturas visibles en la hierba alta: aparecer, andar, combate al coincidir, reaparecer
 │   │   └── test/             Tests con vitest
@@ -74,12 +75,14 @@ kalku/
 │   │   │   ├── tileset.ts      Orden del tileset y fotograma de cada casilla del mapa (con autotile de 47 variantes)
 │   │   │   ├── buildings.ts    findBuildings (agrupa casillas) y drawBuilding: casa y tienda de cualquier tamaño
 │   │   │   ├── creatures.ts    CreatureLook (piezas como datos) y drawCreature: 8 fotogramas de 32 px
-│   │   │   └── gems.ts         drawGem: gema de 16 px por operación, encendida o apagada
+│   │   │   ├── gems.ts         drawGem: gema de 16 px por operación, encendida o apagada
+│   │   │   └── objects.ts      drawGate (puerta de piedra de una zona) y drawChest (cofre cerrado y abierto)
 │   │   └── test/             Tests con vitest
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
 │       │   ├── gems.ts         gemStatus: una gema por habilidad de SKILLS, ganada o no
+│       │   ├── zones.ts        Zonas cerradas como datos (requisito de gemas y/o nivel, tesoro es/ca), isZoneOpen (nunca por monedas), missingForZone y lectura del guardado
 │       │   ├── creatures.ts    Familias (sumus, restus, problemus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
 │       │   ├── collection.ts   Rescate y colección: canRescue (25 % de vida, nunca jefes), addToCollection sin mutar, parseCollection, collectionStatus
 │       │   ├── classCodes.ts   Códigos de alumno «LUNA-47» (lista de palabras propia), 6 animales secretos y generateStudentCode sin repetir
@@ -103,6 +106,7 @@ kalku/
             ├── progress.ts     Progreso y ajustes: copia local (localStorage) y conversión a filas del servidor (toServerRows / fromServerRows)
             ├── adultGate.ts    Cuenta con semilla (tipo 47 × 6) que da paso a «Para adultos»
             ├── sync.ts         Cuenta anónima y sincronización con Supabase: bajar al arrancar, migrar lo local una vez, subir tras cada guardado; sin red sigue en local
+            ├── offlineQueue.ts Cola de respuestas pendientes (IndexedDB, con localStorage de reserva) para jugar sin conexión
             ├── teacher.ts      Cuentas de centro y docente: enlace por correo, alta de centro con contrato, código; TeacherBackend falso en los tests
             ├── classes.ts      Clases y tarjetas: alta de alumnos con código (hash sha-256), regenerar, ClassBackend falso en los tests
             ├── classLogin.ts   Entrar en la clase: ClassLoginBackend (función class-session), enterClass y leaveSharedDevice (salir borra lo del alumno); backend falso en los tests
@@ -123,7 +127,7 @@ kalku/
             │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara
             │   ├── BattleScene.ts  Combate por turnos de prueba, con una criatura generada que respira y parpadea; botón «Rescatar» con poca vida
             │   └── CollectionScene.ts Colección: criaturas rescatadas y las que faltan en silueta (HTML), se abre desde el mapa
-            └── ui/             Interfaz HTML encima del canvas
+            └── ui/             Interfaz HTML encima del canvas (incluye el aviso «sin conexión»)
                 ├── ExercisePanel.ts  Ejercicio, altavoz, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio
                 ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz y «Para adultos»

@@ -4,13 +4,16 @@ import {
   defaultProgress,
   fromServerRows,
   hasAttempts,
+  applyServerSkills,
   loadLocalProgress,
+  loadProgress,
   onProgressSaved,
   toServerRows,
   writeLocalProgress,
   type PlayerProgress,
 } from './progress';
 import { CLASS_DEVICE_KEY } from './classDevice';
+import { appQueue, QUEUE_LS_KEY, type QueueItem, type QueueStore } from './offlineQueue';
 import { getSupabase } from './supabase';
 
 /**
@@ -204,35 +207,169 @@ export async function pushProgress(backend: Backend, store: KeyValueStore, progr
   await backend.save(id, nickname, extra);
 }
 
-/**
- * Manda una respuesta (o la prueba de nivel) al servidor y devuelve el dominio
- * que él calcula, o `null` si no se pudo (sin red, función sin desplegar, rechazo):
- * el juego se queda entonces con la copia local. Las respuestas sin conexión no se
- * reintentan todavía (bloque 8).
- */
-export async function submitAnswer(backend: Backend, store: KeyValueStore, progress: PlayerProgress, body: AnswerBody): Promise<ServerSkills | null> {
+/** Lo que queda tras intentar vaciar la cola. */
+export interface DrainResult {
+  /** Dominio que devolvió el servidor (el último gana), o `null` si no llegó nada. */
+  skills: ServerSkills | null;
+  /** Respuestas que siguen en la cola (sin red o servidor caído). */
+  left: number;
+}
+
+/** El servidor dijo que esa respuesta no vale (cuerpo o ejercicio incorrecto): no se reintenta. */
+function isRejection(e: unknown): boolean {
+  return e instanceof AnswerRejected && (e.status === 400 || e.status === 422);
+}
+
+/** Envía una respuesta; si la ficha del niño aún no existe, la crea y reintenta una vez. */
+async function sendOne(backend: Backend, store: KeyValueStore, body: AnswerBody): Promise<ServerSkills> {
+  await ensureAccount(backend);
   try {
-    await ensureAccount(backend);
-    try {
-      return await backend.answer(body);
-    } catch (e) {
-      // La ficha del niño aún no está en el servidor (primer uso o sin red al empezar): se crea y se reintenta una vez.
-      if (!(e instanceof AnswerRejected && e.code === 'no-child')) throw e;
-      await pushProgress(backend, store, progress);
-      return await backend.answer(body);
-    }
-  } catch {
-    return null;
+    return await backend.answer(body);
+  } catch (e) {
+    if (!(e instanceof AnswerRejected && e.code === 'no-child')) throw e;
+    await pushProgress(backend, store, loadLocalProgress() ?? defaultProgress());
+    return await backend.answer(body);
   }
+}
+
+/**
+ * Envía la cola en orden, de una en una.
+ * - Aceptada, o `409 repeated` (el servidor ya la tenía): sale de la cola.
+ * - Rechazada (400/422): sale de la cola y, al acabar, el dominio local se corrige con el del servidor.
+ * - Sin red u otro error: se para y el resto se queda para el siguiente intento.
+ * Nunca lanza.
+ */
+export async function drainQueue(backend: Backend, store: KeyValueStore, queue: QueueStore): Promise<DrainResult> {
+  let skills: ServerSkills | null = null;
+  let rejected = false;
+  let items: QueueItem[];
+  try {
+    items = await queue.all();
+  } catch {
+    return { skills: null, left: 0 };
+  }
+  let left = items.length;
+  for (const item of items) {
+    try {
+      const got = await sendOne(backend, store, item.body);
+      skills = { ...(skills ?? {}), ...got };
+    } catch (e) {
+      if (e instanceof AnswerRejected && e.status === 409 && e.code === 'repeated') {
+        // Ya estaba en el servidor: cuenta como hecha.
+      } else if (isRejection(e)) {
+        rejected = true;
+      } else {
+        break;
+      }
+    }
+    try {
+      await queue.remove(item.id);
+    } catch {
+      break;
+    }
+    left--;
+  }
+  if (rejected) {
+    // Alguna respuesta no valió: el servidor manda y el dominio local pasa a ser el suyo (en silencio).
+    try {
+      const id = await backend.userId();
+      if (id) {
+        const rows = await backend.fetchProgress(id);
+        const server = fromServerRows({}, rows).profile;
+        const fromRows: ServerSkills = {};
+        for (const row of rows) {
+          if ((SKILL_IDS as readonly string[]).includes(row.skill)) fromRows[row.skill as SkillId] = server[row.skill as SkillId];
+        }
+        skills = { ...(skills ?? {}), ...fromRows };
+      }
+    } catch {
+      // Sin red para corregir: se corregirá con la siguiente respuesta aceptada.
+    }
+  }
+  return { skills, left };
+}
+
+let queueStore: QueueStore | undefined;
+const noticeListeners = new Set<() => void>();
+let pendingCount = 0;
+
+function setPending(n: number): void {
+  if (n === pendingCount) return;
+  pendingCount = n;
+  for (const l of noticeListeners) l();
+}
+
+/** Cuántas respuestas esperan a enviarse (para el aviso «sin conexión»). */
+export function pendingAnswers(): number {
+  return pendingCount;
+}
+
+/** Avisa cuando cambia el número de respuestas pendientes. Devuelve cómo dejar de escuchar. */
+export function onPendingChange(listener: () => void): () => void {
+  noticeListeners.add(listener);
+  return () => noticeListeners.delete(listener);
 }
 
 let sending: Promise<unknown> = Promise.resolve();
 
-/** Como `submitAnswer` con el servidor de la app, y de una en una para que lleguen en orden. */
-export function sendAnswer(progress: PlayerProgress, body: AnswerBody): Promise<ServerSkills | null> {
+/**
+ * Pone la respuesta (o la prueba de nivel) en la cola y envía lo pendiente en orden.
+ * Devuelve el dominio que calcula el servidor, o `null` si no llegó nada (sin red,
+ * función sin desplegar): el juego se queda con la copia local y la respuesta
+ * sigue en la cola hasta poder enviarse.
+ */
+export function sendAnswer(_progress: PlayerProgress, body: AnswerBody): Promise<ServerSkills | null> {
   const b = appBackend();
   if (!b || typeof localStorage === 'undefined') return Promise.resolve(null);
-  const result = sending.then(() => submitAnswer(b, localStorage, progress, body));
+  queueStore ??= appQueue();
+  const queue = queueStore;
+  const result = sending.then(async () => {
+    try {
+      await queue.add(body);
+    } catch {
+      return null;
+    }
+    return flushQueue(b, queue);
+  });
+  sending = result.catch(() => undefined);
+  return result;
+}
+
+async function flushQueue(b: Backend, queue: QueueStore): Promise<ServerSkills | null> {
+  const r = await drainQueue(b, localStorage, queue);
+  setPending(r.left);
+  return r.skills;
+}
+
+/**
+ * Borra las respuestas sin enviar (aparato compartido al salir, o cuando la copia local era de otro niño):
+ * si no, se enviarían con la sesión del siguiente. Va en la misma fila que los envíos. Nunca lanza.
+ */
+export function clearAnswerQueue(): Promise<void> {
+  queueStore ??= appQueue();
+  const queue = queueStore;
+  const result = sending.then(async () => {
+    try {
+      await queue.clear();
+    } catch {
+      // Sin almacén: no había nada que borrar.
+    }
+    setPending(0);
+  });
+  sending = result.catch(() => undefined);
+  return result;
+}
+
+/** Vacía la cola pendiente (al arrancar y al volver la conexión) y pone el dominio del servidor en la copia local. */
+export function retryQueue(): Promise<void> {
+  const b = appBackend();
+  if (!b || typeof localStorage === 'undefined') return Promise.resolve();
+  queueStore ??= appQueue();
+  const queue = queueStore;
+  const result = sending.then(async () => {
+    const skills = await flushQueue(b, queue);
+    if (skills) applyServerSkills(loadProgress(), skills);
+  });
   sending = result.catch(() => undefined);
   return result;
 }
@@ -284,7 +421,7 @@ export async function needsNickname(backend: Backend | null, store: KeyValueStor
 }
 
 /** Claves de localStorage que son del niño: se borran con la cuenta. */
-export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING_KEY, OWNER_KEY, CLASS_DEVICE_KEY] as const;
+export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING_KEY, OWNER_KEY, CLASS_DEVICE_KEY, QUEUE_LS_KEY] as const;
 
 /**
  * Marca la copia local como del niño `userId`. Si era de otro niño, la borra antes:
@@ -292,7 +429,11 @@ export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING
  */
 export function claimLocalCopy(store: KeyValueStore, userId: string): void {
   const owner = store.getItem(OWNER_KEY);
-  if (owner && owner !== userId) for (const key of LOCAL_KEYS) store.removeItem?.(key);
+  if (owner && owner !== userId) {
+    for (const key of LOCAL_KEYS) store.removeItem?.(key);
+    // Las respuestas sin enviar eran del otro niño: no se pueden mandar con esta sesión.
+    void clearAnswerQueue();
+  }
   store.setItem(OWNER_KEY, userId);
 }
 
@@ -327,6 +468,7 @@ let activePusher: { flush(): Promise<void> } | undefined;
 /** Sube ya lo que esté pendiente (por ejemplo, antes de salir de una clase). Nunca lanza. */
 export async function flushPending(): Promise<void> {
   try {
+    await retryQueue();
     await activePusher?.flush();
   } catch {
     // Sin red: lo pendiente se pierde al salir (se avisa en la decisión de #53).
@@ -340,6 +482,9 @@ export async function startSync(): Promise<void> {
   const pusher = createPusher(b, localStorage);
   activePusher = pusher;
   onProgressSaved((p) => pusher.push(p));
+  // Lo jugado sin conexión se envía antes de bajar el dominio, para que el servidor no pise respuestas pendientes.
+  await retryQueue();
+  if (typeof window !== 'undefined') window.addEventListener('online', () => void retryQueue());
   await pullProgress(b, localStorage);
 }
 

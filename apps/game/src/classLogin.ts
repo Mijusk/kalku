@@ -3,7 +3,7 @@ import { normalizeCode } from '@kalku/content';
 import { CLASS_ACTIVE_KEY, CLASS_DEVICE_KEY, type Store } from './classDevice';
 import { forgetOtherChild } from './family';
 import { getSupabase } from './supabase';
-import { LOCAL_KEYS, flushPending, pullProgress, type Backend, type KeyValueStore } from './sync';
+import { LOCAL_KEYS, clearAnswerQueue, flushPending, pullProgress, type Backend, type KeyValueStore } from './sync';
 
 /**
  * Entrar en la clase (#53): el niño toca su apodo y su animal, o escribe el código de su tarjeta.
@@ -114,6 +114,8 @@ export interface LeaveOptions {
   waitMs?: number;
   /** Sube lo pendiente. Por defecto, el de la app. */
   flush?: () => Promise<void>;
+  /** Borra las respuestas sin enviar. Por defecto, la cola de la app. */
+  clearQueue?: () => Promise<void>;
 }
 
 /**
@@ -128,6 +130,8 @@ export async function leaveSharedDevice(
 ): Promise<string | null> {
   const classId = session.getItem(CLASS_ACTIVE_KEY);
   await upTo(options.waitMs ?? 3000, options.flush ?? flushPending);
+  // Lo que no se pudo enviar se borra: con la sesión del siguiente niño se le asignaría a él.
+  await upTo(1000, options.clearQueue ?? clearAnswerQueue);
   if (login) await upTo(1000, () => login.signOut());
   for (const key of LOCAL_KEYS) local.removeItem?.(key);
   session.removeItem?.(CLASS_ACTIVE_KEY);

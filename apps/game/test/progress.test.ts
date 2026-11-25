@@ -66,6 +66,24 @@ describe('colección al cargar', () => {
   });
 });
 
+describe('zonas abiertas y tesoros al cargar', () => {
+  it('un guardado antiguo sin zonas se carga vacío', () => {
+    const { zonesOpened: _z, treasures: _t, ...old } = defaultProgress();
+    stubStorage(old);
+    expect(loadProgress().zonesOpened).toEqual([]);
+    expect(loadProgress().treasures).toEqual([]);
+  });
+
+  it('conserva las zonas y tesoros conocidos y descarta lo demás', () => {
+    stubStorage({ ...defaultProgress(), zonesOpened: ['cueva', 'cueva', 'nada', 7], treasures: ['tesoro-cueva', 'x'] });
+    expect(loadProgress().zonesOpened).toEqual(['cueva']);
+    expect(loadProgress().treasures).toEqual(['tesoro-cueva']);
+    stubStorage({ ...defaultProgress(), zonesOpened: 'cueva', treasures: { a: 1 } });
+    expect(loadProgress().zonesOpened).toEqual([]);
+    expect(loadProgress().treasures).toEqual([]);
+  });
+});
+
 describe('XP del personaje', () => {
   it('un guardado antiguo sin xp empieza en 0', () => {
     expect(parseProgress({ version: 1, coins: 5 }).xp).toBe(0);
@@ -104,7 +122,7 @@ describe('ida y vuelta con el servidor', () => {
 
   it('el extra no lleva el dominio ni datos personales', () => {
     const { extra } = toServerRows(defaultProgress());
-    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings'].sort());
+    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings', 'zonesOpened', 'treasures'].sort());
   });
 
   it('el dominio nunca baja de 0 ni sube de 100, y los aciertos no superan los intentos', () => {

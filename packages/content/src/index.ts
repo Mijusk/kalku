@@ -4,3 +4,4 @@ export * from './collection.js';
 export * from './legal.js';
 export * from './classCodes.js';
 export * from './gems.js';
+export * from './zones.js';

@@ -10,6 +10,17 @@ const FAMILY_KEYS: StringKey[] = [
   'familyErrNoChild', 'familyErrNetwork',
 ];
 
+const ZONE_KEYS: StringKey[] = ['zoneNeedGem', 'zoneNeedLevel', 'zoneOpened', 'zoneTreasure', 'treasures', 'treasureHint'];
+
+describe('textos de las zonas', () => {
+  it('existen en castellano y catalán', () => {
+    for (const key of ZONE_KEYS) {
+      expect(tr(key, 'es').trim().length, `${key} es`).toBeGreaterThan(0);
+      expect(tr(key, 'ca').trim().length, `${key} ca`).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe('textos de la cuenta de familia', () => {
   it('existen en castellano y catalán', () => {
     for (const key of FAMILY_KEYS) {

@@ -45,3 +45,5 @@ jobs:
       - run: supabase functions deploy answer --project-ref nxaehojnwutxpshqwzeo --yes
       # child-session necesita además el secreto KALKU_JWT_SECRET (lo pone Luis en Edge Functions → Secrets).
       - run: supabase functions deploy child-session --project-ref nxaehojnwutxpshqwzeo --yes
+      # Entrar en la clase (#53): usa el mismo secreto KALKU_JWT_SECRET que child-session.
+      - run: supabase functions deploy class-session --project-ref nxaehojnwutxpshqwzeo --yes

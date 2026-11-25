@@ -1,7 +1,7 @@
 import { FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js';
 import { SKILL_IDS } from '@kalku/exercises';
 import { PRIVACY_VERSION } from '@kalku/content';
-import { appBackend, LOCAL_KEYS, OWNER_KEY, pullProgress, type KeyValueStore } from './sync';
+import { appBackend, clearAnswerQueue, LOCAL_KEYS, OWNER_KEY, pullProgress, type KeyValueStore } from './sync';
 import { getAdultSupabase, getSupabase } from './supabase';
 
 /**
@@ -182,6 +182,8 @@ export function appFamilyBackend(): FamilyBackend | null {
 export function forgetOtherChild(store: KeyValueStore, childId: string): void {
   if (store.getItem(OWNER_KEY) === childId) return;
   for (const key of LOCAL_KEYS) store.removeItem?.(key);
+  // Las respuestas sin enviar eran del otro niño: no se pueden mandar con la sesión de este.
+  void clearAnswerQueue();
 }
 
 /**

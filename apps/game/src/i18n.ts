@@ -25,6 +25,12 @@ const STRINGS = {
   mastery: { es: 'Dominio', ca: 'Domini' },
   gem: { es: '¡Gema de dominio!', ca: 'Gemma de domini!' },
   myGems: { es: 'Mis gemas', ca: 'Les meves gemmes' },
+  zoneNeedGem: { es: 'Necesitas la gema de', ca: 'Necessites la gemma de' },
+  zoneNeedLevel: { es: 'Necesitas el nivel', ca: 'Necessites el nivell' },
+  zoneOpened: { es: '¡Se ha abierto!', ca: "S'ha obert!" },
+  zoneTreasure: { es: '¡Has encontrado un tesoro!', ca: 'Has trobat un tresor!' },
+  treasures: { es: 'Mis tesoros', ca: 'Els meus tresors' },
+  treasureHint: { es: 'Abre una zona del mapa', ca: 'Obre una zona del mapa' },
   gemHint: { es: 'Domina', ca: 'Domina' },
   challenge: { es: 'Reto', ca: 'Repte' },
   review: { es: 'Repaso', ca: 'Repàs' },
@@ -230,6 +236,7 @@ const STRINGS = {
   classLoginMine: { es: 'Entro con mi clase', ca: 'Entro amb la meva classe' },
   classLeave: { es: 'Salir', ca: 'Sortir' },
   classLeaving: { es: 'Guardando y saliendo…', ca: 'Desant i sortint…' },
+  offlineNotice: { es: 'Sin conexión · se guardará al volver', ca: 'Sense connexió · es desarà en tornar' },
   language: { es: 'Català', ca: 'Castellano' },
 } as const satisfies Record<string, Record<Locale, string>>;
 
