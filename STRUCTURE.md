@@ -48,6 +48,7 @@ kalku/
 │   │   │   ├── placement.ts    Prueba de nivel: sube/baja por el currículo y da el dominio inicial (sin tiempo, sin quitar nada)
 │   │   │   ├── selection.ts    Qué habilidad toca: 60 % actual, 25 % repaso, 15 % reto
 │   │   │   ├── validate.ts     Validación en el servidor: regenera el ejercicio desde la semilla, corrige y aplica el dominio (respuesta y prueba de nivel)
+│   │   │   ├── levels.ts       Nivel del personaje: curva de XP en datos, XP por acierto (sin rapidez ni racha) y nivel calculado solo desde la XP
 │   │   │   ├── speech.ts       Texto para leer el ejercicio en voz alta («cinco más tres son…»), es/ca
 │   │   │   └── scoring.ts      Puntos (Cifras): dificultad, racha, rapidez sin penalizar
 │   │   └── test/             Tests con vitest

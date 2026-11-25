@@ -2,6 +2,13 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-25 · Nivel del personaje (#69)
+
+- **Decisiones de Luis (25 nov):** (1) acierto con pista = la mitad de XP, nunca 0; la rapidez y las rachas no dan XP; (2) XP por acierto = 10 × dificultad, niveles 2 → 400, 3 → 900, 4 → 1.500, 5 → 2.300 y luego ~30 % más por nivel hasta el 30; (3) la XP la escribe el cliente en `children.extra`, sin validar en el servidor por ahora (se validará en `answer` cuando un nivel desbloquee cosas, #71).
+- **Curva en datos:** `LEVELS` en `packages/exercises/src/levels.ts` (XP acumulada por nivel). El nivel **no se guarda**: `levelForXp(xp)` lo calcula siempre. Solo se guarda `xp`.
+- **Reglas:** fallar da 0 XP y nunca resta; `xpForAnswer` no recibe el tiempo. Tests: 1.000 respuestas con semilla fija nunca bajan XP ni nivel.
+- **Subida de nivel:** estrella en pixel art generada por código (`drawStar`) y mensaje en letra clara, es/ca; con voz si «Voz automática» está activa; sin animación con «reducir movimiento».
+
 ## 2026-11-25 · Cuentas de centro y de docente (#51)
 
 - **Decisiones de Luis (25 nov):** (1) la pantalla es una página aparte dentro de `apps/game` (`docentes.html`, sin Phaser) y se moverá a `apps/panel/` en el bloque 9; (2) aquí solo van las tablas `classes` y `class_children`, con permisos y límite de 30; crear clases desde la pantalla, tarjetas y QR van en #52; (3) el código del centro no caduca solo: el director lo renueva y el anterior deja de valer; (4) el borrado a los 30 días (#48) no toca a los niños que están en `class_children`.
