@@ -34,7 +34,7 @@ select is(
      from information_schema.columns
     where table_schema = 'public' and (column_name ilike '%mail%' or column_name ilike '%correo%')),
   'parental_consents.adult_email', 'la única columna de correo de public es parental_consents.adult_email (#48)');
-select columns_are('public', 'families', array['id', 'owner_id', 'created_at'], 'families: solo id, dueño y fecha');
+select columns_are('public', 'families', array['id', 'owner_id', 'created_at', 'summary_locale', 'summary_opt_out_at'], 'families: id, dueño, fecha e idioma y baja del resumen (#56), sin correo');
 select columns_are('public', 'family_children', array['child_id', 'family_id', 'joined_at'], 'family_children: sin datos personales');
 select columns_are('public', 'link_codes', array['code_hash', 'child_id', 'created_at', 'expires_at'], 'link_codes: solo hash y caducidad');
 

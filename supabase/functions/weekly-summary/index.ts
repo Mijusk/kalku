@@ -5,7 +5,7 @@
 //   BREVO_API_KEY       clave de la API de Brevo. Sin ella el envío queda inactivo y no falla nada.
 //   SUMMARY_SENDER      remitente verificado en Brevo.
 //   SUMMARY_CRON_SECRET clave que usa la tarea semanal para llamar a esta función.
-//   SITE_URL            (opcional) dirección pública del juego; por defecto https://kalkujuego.com
+//   SITE_URL            (opcional) dirección pública del juego; por defecto https://kalku-6ty.pages.dev (hasta tener kalkujuego.com)
 // Los datos salen de `weekly_summary_data` (solo familias con correo confirmado, consentimiento y sin baja).
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
   const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const tokenSecret = Deno.env.get('KALKU_JWT_SECRET') ?? Deno.env.get('SUPABASE_JWT_SECRET');
   if (!url || !key || !tokenSecret) return json(500, { error: 'config' });
-  const siteUrl = Deno.env.get('SITE_URL') ?? 'https://kalkujuego.com';
+  const siteUrl = Deno.env.get('SITE_URL') ?? 'https://kalku-6ty.pages.dev';
   const admin = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
   const to = new Date();
