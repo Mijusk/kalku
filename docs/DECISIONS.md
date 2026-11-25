@@ -2,6 +2,13 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-27 · Dominio de la clase para el docente (#55)
+
+- **Decisiones (25 nov, Claude en modo autónomo por encargo de Luis):** (1) el docente nunca ve las respuestas: solo totales por día (intentos y aciertos) y dominio por habilidad, con las funciones `class_mastery` y `class_student_days` (`security definer`, solo para quien lee la clase: su docente y la dirección del centro; `answers` sigue sin política para docentes); (2) «varios días» = 3 días con actividad seguidos por debajo del 70 %, contando solo días con al menos 5 respuestas (`FLAG_DAYS`, `FLAG_MIN_ANSWERS`); un día sin jugar o con pocas respuestas ni cuenta ni rompe la racha; (3) cuatro tramos con icono y número (0–39 «empezando», 40–69 «avanzando», 70–89 «bien», 90–100 «dominada») y casilla vacía si no ha empezado.
+- **La marca se calcula en `@kalku/content` (`classProgress.ts`), no en SQL:** el servidor solo da los totales por día de los últimos 14 días; así la regla es un dato con tests y se puede cambiar sin migración.
+- **Sin rankings:** la tabla va siempre por orden alfabético de apodo, nunca por dominio. Los días se cuentan en hora de Madrid.
+- **Sin probar en local:** el test pgTAP (`panel_dominio.test.sql`) lo ejecuta la CI de Supabase; el panel HTML no tiene test de DOM (el proyecto no usa jsdom), se comprueba a mano.
+
 ## 2026-11-26 · Resumen semanal por correo para las familias (#56)
 
 - **Decisiones (25 nov, Claude en modo autónomo por encargo de Luis):** (1) activado por defecto, solo para adultos con correo confirmado y al menos un niño con consentimiento, con baja en un clic en cada correo; (2) el idioma se guarda en la familia (`families.summary_locale`, por defecto `es`) y se elige en «Familia»; (3) la clave de Brevo y el remitente los pone Luis como secretos de Supabase, nunca en el repo; sin ellos el envío queda inactivo; (4) las funciones `weekly-summary` y `unsubscribe` se despliegan con `supabase-migrar.yml`; la app de Claude no puede editar workflows, así que **Luis añade a mano** al final de ese fichero: `supabase functions deploy weekly-summary --project-ref nxaehojnwutxpshqwzeo --yes --no-verify-jwt` y lo mismo con `unsubscribe` (sin `--no-verify-jwt` la baja no abriría desde el correo).

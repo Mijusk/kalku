@@ -143,3 +143,58 @@ body.teacher .panel a {
     font-weight: 800;
   }
 }
+
+/* Dominio de la clase (#55): el color refuerza, pero cada casilla lleva icono y número. */
+body.teacher #ui:has(.progress-table) {
+  width: min(960px, 100%);
+}
+
+.progress-scroll {
+  overflow-x: auto;
+}
+
+.progress-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.progress-table th,
+.progress-table td {
+  border: 2px solid var(--ink);
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.progress-cell {
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.progress-cell.level-none {
+  background: #fff;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.progress-cell.level-starting {
+  background: #f3c9bd;
+}
+
+.progress-cell.level-progressing {
+  background: #f6e3a1;
+}
+
+.progress-cell.level-good {
+  background: #cfe3b5;
+}
+
+.progress-cell.level-mastered {
+  background: #8fcf9a;
+}
+
+.progress-flag {
+  margin: 4px 0 0;
+  font-weight: 700;
+  color: var(--bad);
+}

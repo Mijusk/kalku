@@ -2,12 +2,16 @@ import { createRng, randomSeed, type Locale } from '@kalku/exercises';
 import { tr } from '../i18n';
 import { addStudentWithCard, animalName, checkStudentNickname, regenerateStudentCard, STUDENT_NICKNAME_MAX, type ClassBackend, type ClassInfo, type StudentCard, type StudentInfo } from '../classes';
 import { toTeacherError } from '../teacher';
+import type { ClassProgressBackend } from '../classProgress';
+import { ClassProgressPanel } from './ClassProgressPanel';
 import { printCards } from './cards';
 import { button, say, show, status, text } from './dom';
 import { ERROR_TEXT } from './teacherErrors';
 
 export interface ClassPanelOptions {
   backend: ClassBackend;
+  /** Dominio de la clase (#55); sin él no sale el botón. */
+  progressBackend?: ClassProgressBackend | null;
   onClose(): void;
 }
 
@@ -84,6 +88,21 @@ export class ClassPanel {
     show(this.root, ...nodes);
   }
 
+  private progressButton(cls: ClassInfo): HTMLElement[] {
+    const { progressBackend } = this.options;
+    if (!progressBackend) return [];
+    return [
+      button('btn btn-primary', tr('progressOpen', this.locale), () => {
+        new ClassProgressPanel(this.root, this.locale, {
+          backend: progressBackend,
+          classId: cls.id,
+          className: cls.name,
+          onClose: () => void this.showClass(cls),
+        });
+      }),
+    ];
+  }
+
   private async showClass(cls: ClassInfo, message?: string): Promise<void> {
     const { locale } = this;
     const { backend } = this.options;
@@ -150,6 +169,7 @@ export class ClassPanel {
       ...(students.length >= 30 ? [] : [add]),
       print,
       text('panel-feedback', tr('classPrintHelp', locale)),
+      ...this.progressButton(cls),
       button('btn btn-small', tr('classBack', locale), () => void this.showClasses()),
     );
     show(this.root, ...nodes);

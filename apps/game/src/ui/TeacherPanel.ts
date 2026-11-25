@@ -3,6 +3,7 @@ import { tr } from '../i18n';
 import { CONTRACT_URL, formatSchoolCode, loadTeacherView, registerSchool, toTeacherError, type SchoolInfo, type TeacherBackend } from '../teacher';
 import type { ClassBackend } from '../classes';
 import { ClassPanel } from './ClassPanel';
+import type { ClassProgressBackend } from '../classProgress';
 import { ERROR_TEXT } from './teacherErrors';
 import { button, say, show, status, text } from './dom';
 
@@ -11,6 +12,7 @@ export interface TeacherCallbacks {
   backend: TeacherBackend | null;
   /** Clases y tarjetas (#52). */
   classBackend?: ClassBackend | null;
+  progressBackend?: ClassProgressBackend | null;
   onClose(): void;
 }
 
@@ -74,7 +76,7 @@ export class TeacherPanel {
     const { classBackend } = this.options;
     if (!classBackend) return null;
     return button('btn btn-primary', tr('teacherMyClasses', this.locale), () => {
-      new ClassPanel(this.root, this.locale, { backend: classBackend, onClose: back });
+      new ClassPanel(this.root, this.locale, { backend: classBackend, progressBackend: this.options.progressBackend ?? null, onClose: back });
     });
   }
 
