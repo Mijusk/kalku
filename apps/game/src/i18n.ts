@@ -211,6 +211,7 @@ const STRINGS = {
   cardAnimal: { es: 'Tu animal secreto', ca: 'El teu animal secret' },
   cardSteps: { es: 'Abre Kalku con el QR, escribe tu código y elige tu animal.', ca: 'Obre Kalku amb el QR, escriu el teu codi i tria el teu animal.' },
   nicknameTooLong: { es: 'Máximo 30 letras.', ca: 'Màxim 30 lletres.' },
+  offlineNotice: { es: 'Sin conexión · se guardará al volver', ca: 'Sense connexió · es desarà en tornar' },
   language: { es: 'Català', ca: 'Castellano' },
 } as const satisfies Record<string, Record<Locale, string>>;
 
