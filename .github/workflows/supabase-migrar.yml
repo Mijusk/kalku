@@ -1,9 +1,21 @@
 name: Supabase · aplicar migraciones
 
-# Solo lo lanza Luis a mano desde Actions, después de fusionar.
-# Aplica las migraciones y despliega la Edge Function `answer` (#46).
+# Se lanza solo al fusionar en main algo que toque supabase/ o el paquete de
+# ejercicios (la función `answer` lo lleva dentro). También se puede lanzar a
+# mano desde Actions, por ejemplo sobre la rama de un PR para probar su vista previa.
+# Aplica las migraciones y despliega las Edge Functions `answer` y `child-session`.
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/**'
+      - 'packages/exercises/**'
   workflow_dispatch:
+
+# Nunca dos a la vez contra la misma base de datos.
+concurrency:
+  group: supabase-migrar
+  cancel-in-progress: false
 
 jobs:
   migrar:
@@ -19,7 +31,7 @@ jobs:
           # Versión fija: «latest» consulta la API de GitHub y a veces falla por límite de peticiones.
           version: 3.2.0
       - run: supabase link --project-ref nxaehojnwutxpshqwzeo
-      # Lanzarlo a mano ya es la confirmación: --yes evita la pregunta interactiva.
+      # Fusionar o lanzarlo a mano ya es la confirmación: --yes evita la pregunta interactiva.
       - run: supabase db push --remote --yes
       # La función lleva @kalku/exercises dentro: se empaqueta antes de subirla.
       - uses: actions/setup-node@v4

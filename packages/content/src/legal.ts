@@ -7,8 +7,11 @@ import type { Locale } from '@kalku/exercises';
  */
 
 /** Versión de la política; súbela cada vez que cambie el contenido. */
-export const PRIVACY_VERSION = '0.2';
-export const PRIVACY_DATE = '2026-11-24';
+export const PRIVACY_VERSION = '0.3';
+export const PRIVACY_DATE = '2026-11-25';
+
+/** Versión de la plantilla del contrato de encargo (docs/legal/) que acepta el centro al darse de alta. */
+export const CONTRACT_VERSION = '0.1';
 
 /**
  * Mientras sea `true`, la página y las plantillas muestran «Borrador pendiente
@@ -40,7 +43,7 @@ const RETENTION_CHILD: Localized = {
 
 export interface ServerDataItem {
   /** Tabla de Supabase. `auth.users` es el login anónimo. */
-  table: 'children' | 'progress' | 'answers' | 'families' | 'family_children' | 'link_codes' | 'parental_consents' | 'auth.users';
+  table: 'children' | 'progress' | 'answers' | 'families' | 'family_children' | 'link_codes' | 'parental_consents' | 'schools' | 'teachers' | 'school_contracts' | 'classes' | 'class_children' | 'auth.users';
   /** Columnas tal como están en `supabase/migrations/` (un test las comprueba). */
   columns: readonly string[];
   what: Localized;
@@ -57,8 +60,8 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
     table: 'auth.users',
     columns: [],
     what: {
-      es: 'Niño: un identificador anónimo generado por el sistema de acceso (sin correo ni contraseña). Adulto de una cuenta de familia: su correo electrónico y un identificador. El correo se guarda solo aquí, nunca en los datos del niño.',
-      ca: 'Infant: un identificador anònim generat pel sistema d’accés (sense correu ni contrasenya). Adult d’un compte de família: el seu correu electrònic i un identificador. El correu es guarda només aquí, mai a les dades de l’infant.',
+      es: 'Niño: un identificador anónimo generado por el sistema de acceso (sin correo ni contraseña). Adulto de una cuenta de familia, de centro o de docente: su correo electrónico y un identificador. El correo se guarda solo aquí, nunca en los datos del niño.',
+      ca: 'Infant: un identificador anònim generat pel sistema d’accés (sense correu ni contrasenya). Adult d’un compte de família, de centre o de docent: el seu correu electrònic i un identificador. El correu es guarda només aquí, mai a les dades de l’infant.',
     },
     purpose: {
       es: 'Niño: recuperar su progreso sin dar ningún dato personal. Adulto: entrar con un enlace enviado por correo (sin contraseña) para ver el progreso de sus hijos y recuperarlo en otro aparato.',
@@ -163,6 +166,83 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
       ca: 'Fins que es retiri el consentiment (s’esborra l’infant amb totes les seves dades), es deixi anar l’infant de la família o s’esborri el compte de l’adult.',
     },
   },
+  {
+    table: 'schools',
+    columns: ['id', 'name', 'join_code_hash', 'created_at'],
+    what: {
+      es: 'Un centro educativo: su identificador, su nombre, la huella (hash) del código con el que se unen sus docentes y la fecha de alta. El código no se guarda en claro.',
+      ca: 'Un centre educatiu: el seu identificador, el seu nom, l’empremta (hash) del codi amb què s’uneixen els seus docents i la data d’alta. El codi no es guarda en clar.',
+    },
+    purpose: {
+      es: 'Que un colegio dé de alta a sus docentes sin intermediarios.',
+      ca: 'Que una escola doni d’alta els seus docents sense intermediaris.',
+    },
+    retention: {
+      es: 'Mientras el centro siga dado de alta. Los datos de los alumnos se rigen por el contrato de encargo de tratamiento con el centro.',
+      ca: 'Mentre el centre continuï d’alta. Les dades dels alumnes es regeixen pel contracte d’encàrrec de tractament amb el centre.',
+    },
+  },
+  {
+    table: 'teachers',
+    columns: ['user_id', 'school_id', 'role', 'created_at'],
+    what: {
+      es: 'Qué adulto es docente o director, de qué centro (si tiene) y desde cuándo. El correo del docente no se copia aquí: está solo en el sistema de acceso.',
+      ca: 'Quin adult és docent o director, de quin centre (si en té) i des de quan. El correu del docent no es copia aquí: és només al sistema d’accés.',
+    },
+    purpose: {
+      es: 'Saber qué clases puede ver cada docente y cuáles puede ver la dirección del centro.',
+      ca: 'Saber quines classes pot veure cada docent i quines pot veure la direcció del centre.',
+    },
+    retention: {
+      es: 'Hasta que el docente deje el centro o borre su cuenta.',
+      ca: 'Fins que el docent deixi el centre o esborri el seu compte.',
+    },
+  },
+  {
+    table: 'school_contracts',
+    columns: ['school_id', 'contract_version', 'accepted_by', 'accepted_at'],
+    what: {
+      es: 'La prueba de que el centro aceptó el contrato de encargo de tratamiento: qué centro, qué versión del contrato, qué adulto (solo su identificador) y la fecha.',
+      ca: 'La prova que el centre va acceptar el contracte d’encàrrec de tractament: quin centre, quina versió del contracte, quin adult (només el seu identificador) i la data.',
+    },
+    purpose: {
+      es: 'Poder demostrar que el centro encargó el tratamiento de los datos de sus alumnos, como exige el RGPD.',
+      ca: 'Poder demostrar que el centre va encarregar el tractament de les dades dels seus alumnes, com exigeix el RGPD.',
+    },
+    retention: {
+      es: 'Mientras el centro siga dado de alta y durante los plazos legales después.',
+      ca: 'Mentre el centre continuï d’alta i durant els terminis legals després.',
+    },
+  },
+  {
+    table: 'classes',
+    columns: ['id', 'teacher_id', 'name', 'created_at'],
+    what: {
+      es: 'Una clase: su identificador, el docente que la lleva, su nombre (por ejemplo «3.º A») y la fecha de creación.',
+      ca: 'Una classe: el seu identificador, el docent que la porta, el seu nom (per exemple «3r A») i la data de creació.',
+    },
+    purpose: {
+      es: 'Que el docente vea el progreso de su grupo.',
+      ca: 'Que el docent vegi el progrés del seu grup.',
+    },
+    retention: {
+      es: 'Hasta que el docente la borre o borre su cuenta.',
+      ca: 'Fins que el docent l’esborri o esborri el seu compte.',
+    },
+  },
+  {
+    table: 'class_children',
+    columns: ['child_id', 'class_id', 'joined_at'],
+    what: {
+      es: 'Qué niños (hasta 30) están en cada clase y desde cuándo. Un niño está como mucho en una clase.',
+      ca: 'Quins infants (fins a 30) són a cada classe i des de quan. Un infant és com a màxim en una classe.',
+    },
+    purpose: {
+      es: 'Saber qué progreso puede ver cada docente. Los niños de una clase no se borran a los 30 días sin consentimiento: los cubre el contrato del centro.',
+      ca: 'Saber quin progrés pot veure cada docent. Els infants d’una classe no s’esborren als 30 dies sense consentiment: els cobreix el contracte del centre.',
+    },
+    retention: RETENTION_CHILD,
+  },
 ];
 
 export interface Subprocessor {
@@ -190,10 +270,10 @@ export const SUBPROCESSORS: readonly Subprocessor[] = [
   },
   {
     name: 'Brevo',
-    role: { es: 'Envío de correos a las familias', ca: 'Enviament de correus a les famílies' },
+    role: { es: 'Envío de correos a las familias y a los docentes', ca: 'Enviament de correus a les famílies i als docents' },
     location: { es: 'Francia (UE)', ca: 'França (UE)' },
     future: false,
-    note: { es: 'Solo envía el enlace de acceso al correo del adulto de una cuenta de familia.', ca: 'Només envia l’enllaç d’accés al correu de l’adult d’un compte de família.' },
+    note: { es: 'Solo envía el enlace de acceso al correo del adulto de una cuenta de familia, de centro o de docente.', ca: 'Només envia l’enllaç d’accés al correu de l’adult d’un compte de família, de centre o de docent.' },
   },
 ];
 
@@ -251,6 +331,10 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
         es: 'En casa, con el consentimiento de los padres o tutores (los menores de 14 años no pueden darlo por sí mismos): al unir al niño a su familia, el adulto confirma con su correo que es su madre, padre o tutor y acepta esta política; guardamos la fecha, la versión y su correo como prueba. En clase, el centro educativo actúa como responsable y nosotros como encargados del tratamiento, según el contrato del artículo 28 del RGPD.',
         ca: 'A casa, amb el consentiment dels pares o tutors (els menors de 14 anys no el poden donar per si mateixos): en unir l’infant a la seva família, l’adult confirma amb el seu correu que és la seva mare, pare o tutor i accepta aquesta política; en guardem la data, la versió i el seu correu com a prova. A classe, el centre educatiu actua com a responsable i nosaltres com a encarregats del tractament, segons el contracte de l’article 28 del RGPD.',
       },
+      {
+        es: 'En clase, el centro es el responsable de los datos de sus alumnos y Kalku actúa como encargado del tratamiento, según el contrato de encargo que el centro acepta al darse de alta. Un docente sin centro que crea una clase gratuita (hasta 30 alumnos) es quien responde de ella.',
+        ca: 'A classe, el centre és el responsable de les dades dels seus alumnes i Kalku actua com a encarregat del tractament, segons el contracte d’encàrrec que el centre accepta en donar-se d’alta. Un docent sense centre que crea una classe gratuïta (fins a 30 alumnes) és qui en respon.',
+      },
     ],
   },
   {
@@ -289,8 +373,8 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: { es: '8. Lo que todavía no existe', ca: '8. El que encara no existeix' },
     paragraphs: [
       {
-        es: 'Del niño no guardamos nunca ningún correo electrónico. Solo si un adulto crea una cuenta de familia guardamos su correo en el sistema de acceso, para enviarle el enlace con el que entra (con Brevo), y, si da su consentimiento por un niño, también como prueba de ese consentimiento. Los informes y avisos por correo todavía no existen; antes de enviarlos avisaremos y actualizaremos esta política.',
-        ca: 'De l’infant no guardem mai cap correu electrònic. Només si un adult crea un compte de família guardem el seu correu al sistema d’accés, per enviar-li l’enllaç amb què entra (amb Brevo), i, si dona el seu consentiment per un infant, també com a prova d’aquest consentiment. Els informes i avisos per correu encara no existeixen; abans d’enviar-los avisarem i actualitzarem aquesta política.',
+        es: 'Del niño no guardamos nunca ningún correo electrónico. Solo si un adulto crea una cuenta de familia, de centro o de docente guardamos su correo en el sistema de acceso, para enviarle el enlace con el que entra (con Brevo), y, si da su consentimiento por un niño, también como prueba de ese consentimiento. Los informes y avisos por correo todavía no existen; antes de enviarlos avisaremos y actualizaremos esta política.',
+        ca: 'De l’infant no guardem mai cap correu electrònic. Només si un adult crea un compte de família, de centre o de docent guardem el seu correu al sistema d’accés, per enviar-li l’enllaç amb què entra (amb Brevo), i, si dona el seu consentiment per un infant, també com a prova d’aquest consentiment. Els informes i avisos per correu encara no existeixen; abans d’enviar-los avisarem i actualitzarem aquesta política.',
       },
     ],
   },

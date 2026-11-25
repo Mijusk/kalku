@@ -1,0 +1,21 @@
+/* Página de docentes: el mismo panel del juego, centrado y sin el lienzo de Phaser. */
+body.teacher #app {
+  height: auto;
+  min-height: 100dvh;
+  flex-direction: column;
+  justify-content: center;
+}
+
+body.teacher #ui {
+  width: min(560px, 100%);
+  margin: 0 auto;
+}
+
+body.teacher .panel {
+  border: 4px solid var(--ink);
+  border-radius: var(--radius);
+}
+
+body.teacher .panel a {
+  color: var(--primary);
+}

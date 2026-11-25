@@ -6,11 +6,12 @@ export default defineConfig({
   build: {
     // Phaser ocupa ~1 MB; es normal y se cachea con el service worker.
     chunkSizeWarningLimit: 2000,
-    // Dos entradas: el juego y /privacidad (sin Phaser).
+    // Tres entradas: el juego, /privacidad y /docentes (sin Phaser).
     rollupOptions: {
       input: {
         main: 'index.html',
         privacidad: 'privacidad.html',
+        docentes: 'docentes.html',
       },
     },
   },
@@ -32,8 +33,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,json}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        // /privacidad es una página propia: no se sustituye por index.html.
-        navigateFallbackDenylist: [/^\/privacidad/],
+        // /privacidad y /docentes son páginas propias: no se sustituyen por index.html.
+        navigateFallbackDenylist: [/^\/privacidad/, /^\/docentes/],
       },
     }),
   ],

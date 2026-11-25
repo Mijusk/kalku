@@ -11,12 +11,12 @@ kalku/
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
-├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato) y tests/ (pgTAP: permisos, privacidad, familias y consentimiento)
+├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato) y tests/ (pgTAP: permisos, privacidad, familias, consentimiento y centros/docentes)
 ├── scripts/bundle-function.mjs Empaqueta la Edge Function con @kalku/exercises dentro (`npm run build:function`)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
 │   ├── workflows/supabase.yml  CI de la base de datos: migraciones desde cero + tests pgTAP (si cambia supabase/)
-│   ├── workflows/supabase-migrar.yml Manual (solo Luis): aplica las migraciones al proyecto real
+│   ├── workflows/supabase-migrar.yml Aplica las migraciones y despliega las funciones al proyecto real (solo al fusionar en main o a mano)
 │   ├── workflows/claude.yml    Claude desde las issues: etiquetas plan/dev, /revisar tras CodeRabbit, @claude
 │   ├── ISSUE_TEMPLATE/tarea.md Plantilla de issue de tarea
 │   └── pull_request_template.md Plantilla de PR (Closes #, cómo probar, criterios)
@@ -88,6 +88,7 @@ kalku/
     └── game/                 @kalku/game: el juego, web instalable (PWA)
         ├── index.html          Contenedores #game (canvas) y #ui (HTML)
         ├── privacidad.html     Página /privacidad (entrada aparte de Vite, sin Phaser)
+        ├── docentes.html       Página /docentes: alta de centro y unirse con código (entrada aparte, sin Phaser)
         ├── vite.config.ts      Vite + PWA (manifest y service worker)
         ├── public/             Ficheros estáticos (icono, _headers de caché para Cloudflare Pages)
         └── src/
@@ -99,6 +100,8 @@ kalku/
             ├── progress.ts     Progreso y ajustes: copia local (localStorage) y conversión a filas del servidor (toServerRows / fromServerRows)
             ├── adultGate.ts    Cuenta con semilla (tipo 47 × 6) que da paso a «Para adultos»
             ├── sync.ts         Cuenta anónima y sincronización con Supabase: bajar al arrancar, migrar lo local una vez, subir tras cada guardado; sin red sigue en local
+            ├── teacher.ts      Cuentas de centro y docente: enlace por correo, alta de centro con contrato, código; TeacherBackend falso en los tests
+            ├── docentes.ts     Arranca la página /docentes (TeacherPanel)
             ├── privacidad.ts   Pinta la política de privacidad (idioma, versión, tablas) desde @kalku/content
             ├── privacyLocale.ts Elige el idioma de /privacidad: ?lang=, ajuste guardado o navegador
             ├── nickname.ts     Apodos propuestos (es/ca) y validación (1–30 caracteres; avisa si parece nombre y apellido)
