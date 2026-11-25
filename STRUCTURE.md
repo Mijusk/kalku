@@ -73,11 +73,13 @@ kalku/
 │   │   │   ├── tiles.ts        Casillas de 16 px: hierba, flores, hierba alta, piedra, árbol, jefe, agua animada y camino
 │   │   │   ├── tileset.ts      Orden del tileset y fotograma de cada casilla del mapa (con autotile de 47 variantes)
 │   │   │   ├── buildings.ts    findBuildings (agrupa casillas) y drawBuilding: casa y tienda de cualquier tamaño
-│   │   │   └── creatures.ts    CreatureLook (piezas como datos) y drawCreature: 8 fotogramas de 32 px
+│   │   │   ├── creatures.ts    CreatureLook (piezas como datos) y drawCreature: 8 fotogramas de 32 px
+│   │   │   └── gems.ts         drawGem: gema de 16 px por operación, encendida o apagada
 │   │   └── test/             Tests con vitest
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
+│       │   ├── gems.ts         gemStatus: una gema por habilidad de SKILLS, ganada o no
 │       │   ├── creatures.ts    Familias (sumus, restus, problemus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
 │       │   ├── collection.ts   Rescate y colección: canRescue (25 % de vida, nunca jefes), addToCollection sin mutar, parseCollection, collectionStatus
 │       │   ├── classCodes.ts   Códigos de alumno «LUNA-47» (lista de palabras propia), 6 animales secretos y generateStudentCode sin repetir
