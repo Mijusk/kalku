@@ -11,9 +11,11 @@ import {
   getHint,
   getSkill,
   isMastered,
+  levelForXp,
   pickSkill,
   randomSeed,
   scoreAnswer,
+  xpForAnswer,
   type Exercise,
   type Hint,
   type Rng,
@@ -37,6 +39,7 @@ import { applyServerSkills, applyTextSize, loadProgress, saveProgress, type Play
 import { exerciseView, sendAnswer } from '../sync';
 import { ExercisePanel } from '../ui/ExercisePanel';
 import { Hud } from '../ui/Hud';
+import { showLevelUp } from '../ui/LevelUp';
 import { SettingsPanel } from '../ui/SettingsPanel';
 import { WORLD_STATE_KEY, type EncounterData, type WorldState } from '../worldState';
 
@@ -336,6 +339,10 @@ export class BattleScene extends Phaser.Scene {
     });
     this.streak = correct ? this.streak + 1 : 0;
     this.progress.coins += score.total;
+    // La XP solo sube (fallar da 0) y no mira el tiempo ni la racha; el nivel sale de ella.
+    const levelBefore = levelForXp(this.progress.xp);
+    this.progress.xp += xpForAnswer({ correct, difficulty: turn.exercise.difficulty, helped });
+    const levelAfter = levelForXp(this.progress.xp);
 
     const locale = this.progress.locale;
     if (correct) {
@@ -367,6 +374,10 @@ export class BattleScene extends Phaser.Scene {
     }
     saveProgress(this.progress);
     this.refreshHud();
+    if (levelAfter > levelBefore) {
+      const ui = document.getElementById('ui');
+      if (ui) showLevelUp(ui, levelAfter, locale, this.progress.settings.autoVoice);
+    }
     this.reportAnswer(turn, helped);
 
     this.time.delayedCall(900, () => {
@@ -479,6 +490,7 @@ export class BattleScene extends Phaser.Scene {
     this.hud.update({
       locale: this.progress.locale,
       coins: this.progress.coins,
+      xp: this.progress.xp,
       gems: this.progress.gems.length,
       skillName: getSkill(skill).name[this.progress.locale],
       mastery: this.progress.profile[skill].mastery,

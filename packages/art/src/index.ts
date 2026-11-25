@@ -5,3 +5,4 @@ export * from './tileset.js';
 export * from './buildings.js';
 export * from './creatures.js';
 export * from './gems.js';
+export * from './effects.js';

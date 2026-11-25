@@ -1,5 +1,5 @@
 import { parseCollection, parseEncounters, type Collection, type EncounterCounts } from '@kalku/content';
-import { createProfile, SKILL_IDS, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
+import { createProfile, sanitizeXp, SKILL_IDS, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
 
 /**
  * Progreso del jugador.
@@ -35,6 +35,8 @@ export interface PlayerProgress {
   version: 1;
   locale: Locale;
   coins: number;
+  /** Experiencia del personaje. Solo sube; el nivel se calcula a partir de ella (`levelForXp`). */
+  xp: number;
   profile: MasteryProfile;
   /** Habilidades por las que ya se ha dado la gema de dominio. */
   gems: string[];
@@ -54,6 +56,7 @@ export function defaultProgress(): PlayerProgress {
     version: 1,
     locale: 'es',
     coins: 0,
+    xp: 0,
     profile: createProfile(),
     gems: [],
     settings: { ...DEFAULT_SETTINGS },
@@ -77,7 +80,7 @@ export function parseProgress(raw: unknown): PlayerProgress {
   // Un guardado antiguo con intentos cuenta como hecho: no se molesta a quien ya juega.
   const placementDone = typeof parsed.placementDone === 'boolean' ? parsed.placementDone : hasAttempts(profile);
   const coins = typeof parsed.coins === 'number' && Number.isFinite(parsed.coins) ? Math.max(0, parsed.coins) : 0;
-  return { ...defaultProgress(), ...parsed, locale, coins, profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection) };
+  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection) };
 }
 
 /** Dominio entre 0 y 100, intentos enteros ≥ 0 y aciertos ≤ intentos (lo mismo que exige la base de datos). */
@@ -111,6 +114,7 @@ export function loadProgress(): PlayerProgress {
 export interface ExtraData {
   locale: Locale;
   coins: number;
+  xp: number;
   gems: string[];
   settings: Settings;
   encounters: EncounterCounts;

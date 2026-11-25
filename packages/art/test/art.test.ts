@@ -8,6 +8,8 @@ import {
   drawCreature,
   drawCreatureFrame,
   drawGem,
+  drawStar,
+  STAR_SIZE,
   drawGrass,
   drawPath,
   drawWater,
@@ -188,5 +190,15 @@ describe('gemas', () => {
     lit.delete(EMPTY);
     lit.delete(OUTLINE);
     for (const v of drawGem('+', false).px) expect(lit.has(v)).toBe(false);
+  });
+});
+
+describe('estrella de subida de nivel', () => {
+  it('se dibuja con contorno, dentro de su caja y de forma estable', () => {
+    const g = drawStar();
+    expect([g.width, g.height]).toEqual([STAR_SIZE, STAR_SIZE]);
+    expect(g.px.filter((c) => c !== EMPTY).length).toBeGreaterThan(40);
+    expect(g.px.includes(OUTLINE)).toBe(true);
+    expect(drawStar().px).toEqual(g.px);
   });
 });

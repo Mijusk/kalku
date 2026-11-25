@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createProfile } from '@kalku/exercises';
-import { defaultProgress, fromServerRows, loadProgress, toServerRows } from '../src/progress';
+import { defaultProgress, fromServerRows, loadProgress, parseProgress, toServerRows } from '../src/progress';
 
 function stubStorage(value: unknown): void {
   const raw = typeof value === 'string' ? value : JSON.stringify(value);
@@ -66,10 +66,30 @@ describe('colección al cargar', () => {
   });
 });
 
+describe('XP del personaje', () => {
+  it('un guardado antiguo sin xp empieza en 0', () => {
+    expect(parseProgress({ version: 1, coins: 5 }).xp).toBe(0);
+  });
+
+  it('valores corruptos (negativos, texto, NaN) dan 0 y los decimales se redondean hacia abajo', () => {
+    for (const bad of [-10, 'mucha', Number.NaN, null, {}]) expect(parseProgress({ version: 1, xp: bad }).xp).toBe(0);
+    expect(parseProgress({ version: 1, xp: 450.8 }).xp).toBe(450);
+  });
+
+  it('va en children.extra y vuelve del servidor', () => {
+    const p = defaultProgress();
+    p.xp = 777;
+    const { extra, rows } = toServerRows(p);
+    expect(extra.xp).toBe(777);
+    expect(fromServerRows(JSON.parse(JSON.stringify(extra)), rows).xp).toBe(777);
+  });
+});
+
 describe('ida y vuelta con el servidor', () => {
   it('PlayerProgress → filas → PlayerProgress sin pérdidas', () => {
     const p = defaultProgress();
     p.coins = 42;
+    p.xp = 1234;
     p.gems = ['add-within-10'];
     p.locale = 'ca';
     p.placementDone = true;
@@ -84,7 +104,7 @@ describe('ida y vuelta con el servidor', () => {
 
   it('el extra no lleva el dominio ni datos personales', () => {
     const { extra } = toServerRows(defaultProgress());
-    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'encounters', 'gems', 'locale', 'placementDone', 'settings'].sort());
+    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings'].sort());
   });
 
   it('el dominio nunca baja de 0 ni sube de 100, y los aciertos no superan los intentos', () => {
@@ -106,6 +126,7 @@ describe('ida y vuelta con el servidor', () => {
     expect(back).toEqual(defaultProgress());
     const odd = fromServerRows({ coins: 'mucho', gems: [1, 'a'], locale: 'fr' }, []);
     expect(odd.coins).toBe(0);
+    expect(odd.xp).toBe(0);
     expect(odd.gems).toEqual(['a']);
     expect(odd.locale).toBe('es');
   });
