@@ -6,11 +6,14 @@ import { BootScene } from './scenes/BootScene';
 import { NicknameScene } from './scenes/NicknameScene';
 import { PlacementScene } from './scenes/PlacementScene';
 import { WorldScene } from './scenes/WorldScene';
+import { mountOfflineNotice } from './ui/OfflineNotice';
 import { getAdultSupabase } from './supabase';
 import './ui/styles.css';
 
 // El cliente del adulto lee el enlace de acceso del correo al abrir el juego (#47).
 getAdultSupabase();
+
+mountOfflineNotice();
 
 new Phaser.Game({
   type: Phaser.AUTO,

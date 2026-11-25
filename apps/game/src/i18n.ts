@@ -183,6 +183,7 @@ const STRINGS = {
   teacherErrNotAdult: { es: 'Entra primero con tu correo.', ca: 'Entra primer amb el teu correu.' },
   teacherErrNetwork: { es: 'No se ha podido. Mira la conexión e inténtalo otra vez.', ca: 'No s’ha pogut. Mira la connexió i torna-ho a provar.' },
   nicknameTooLong: { es: 'Máximo 30 letras.', ca: 'Màxim 30 lletres.' },
+  offlineNotice: { es: 'Sin conexión · se guardará al volver', ca: 'Sense connexió · es desarà en tornar' },
   language: { es: 'Català', ca: 'Castellano' },
 } as const satisfies Record<string, Record<Locale, string>>;
 
