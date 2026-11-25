@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { showGemCelebration } from '../ui/gemCelebration';
 import { CREATURE_FRAMES, flowerFrame, FLOWER_VARIANTS, grassFrame, GRASS_VARIANTS } from '@kalku/art';
 import {
   applyAnswer,
@@ -369,6 +370,7 @@ export class BattleScene extends Phaser.Scene {
     if (!wasMastered && isMastered(this.progress.profile[skill]) && !this.progress.gems.includes(skill)) {
       this.progress.gems.push(skill);
       this.panel.showFeedback(`${tr('gem', locale)} ${getSkill(skill).name[locale]}`, 'good');
+      showGemCelebration(getSkill(skill), locale);
     }
     saveProgress(this.progress);
     this.refreshHud();
