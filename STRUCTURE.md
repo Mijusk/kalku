@@ -11,7 +11,7 @@ kalku/
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
-├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato) y tests/ (pgTAP: permisos, privacidad, familias, consentimiento y centros/docentes y alumnos de clase)
+├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato), functions/weekly-summary/ (resumen semanal por Brevo) y functions/unsubscribe/ (baja en un clic) y tests/ (pgTAP: permisos, privacidad, familias, consentimiento y centros/docentes y alumnos de clase)
 ├── scripts/bundle-function.mjs Empaqueta la Edge Function con @kalku/exercises dentro (`npm run build:function`)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
@@ -86,6 +86,8 @@ kalku/
 │       │   ├── creatures.ts    Familias (sumus, restus, problemus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
 │       │   ├── collection.ts   Rescate y colección: canRescue (25 % de vida, nunca jefes), addToCollection sin mutar, parseCollection, collectionStatus
 │       │   ├── classCodes.ts   Códigos de alumno «LUNA-47» (lista de palabras propia), 6 animales secretos y generateStudentCode sin repetir
+│       │   ├── weeklySummary.ts Resumen semanal: buildWeeklySummary, selectRecipients, correo es/ca de texto plano y cuerpo para Brevo (sin seguimiento)
+│       │   ├── summaryToken.ts Token firmado (HMAC) del enlace de baja del resumen
 │       │   ├── legal.ts        Textos legales como datos: política es/ca, versión para niños, datos del servidor, subencargados, LEGAL_DRAFT
 │       │   └── weakness.ts     Debilidad por operación inversa (damageMultiplier; los problemus no tienen) y contador de encuentros para el cartel
 │       └── test/             Tests con vitest
@@ -94,6 +96,7 @@ kalku/
     └── game/                 @kalku/game: el juego, web instalable (PWA)
         ├── index.html          Contenedores #game (canvas) y #ui (HTML)
         ├── privacidad.html     Página /privacidad (entrada aparte de Vite, sin Phaser)
+        ├── baja.html           Página /baja: darse de baja del resumen semanal desde el enlace del correo (entrada aparte, sin Phaser)
         ├── docentes.html       Página /docentes: alta de centro, unirse con código, clases y tarjetas (entrada aparte, sin Phaser)
         ├── vite.config.ts      Vite + PWA (manifest y service worker)
         ├── public/             Ficheros estáticos (icono, _headers de caché para Cloudflare Pages)
@@ -110,6 +113,7 @@ kalku/
             ├── teacher.ts      Cuentas de centro y docente: enlace por correo, alta de centro con contrato, código; TeacherBackend falso en los tests
             ├── classes.ts      Clases y tarjetas: alta de alumnos con código (hash sha-256), regenerar, ClassBackend falso en los tests
             ├── docentes.ts     Arranca la página /docentes (TeacherPanel)
+            ├── baja.ts / unsubscribe.ts Página de baja del resumen: lee el token del fragmento y llama a la función `unsubscribe`
             ├── privacidad.ts   Pinta la política de privacidad (idioma, versión, tablas) desde @kalku/content
             ├── privacyLocale.ts Elige el idioma de /privacidad: ?lang=, ajuste guardado o navegador
             ├── nickname.ts     Apodos propuestos (es/ca) y validación (1–30 caracteres; avisa si parece nombre y apellido)

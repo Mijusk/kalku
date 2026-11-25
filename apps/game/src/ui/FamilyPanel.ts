@@ -1,5 +1,5 @@
 import type { Locale } from '@kalku/exercises';
-import { enterAsChildHere, guardianConsent, joinThisDevice, MAX_CHILDREN, toFamilyError, type FamilyBackend, type FamilyChild, type FamilyErrorCode } from '../family';
+import { enterAsChildHere, guardianConsent, joinThisDevice, MAX_CHILDREN, toFamilyError, type FamilyBackend, type FamilyChild, type FamilyErrorCode, type SummaryPrefs } from '../family';
 import { tr, type StringKey } from '../i18n';
 import { button, say, show, status, text } from './dom';
 
@@ -137,6 +137,7 @@ export class FamilyPanel {
       void backend.signOutAdult().then(() => this.showLogin(backend));
     });
 
+    const prefs = children.length ? await backend.getSummaryPrefs().catch(() => null) : null;
     const nodes: HTMLElement[] = [
       text('panel-title', `${tr('familyChildren', locale)} (${children.length}/${MAX_CHILDREN})`),
       children.length ? list : text('panel-feedback', tr('familyNoChildren', locale)),
@@ -154,6 +155,7 @@ export class FamilyPanel {
       );
     }
     nodes.splice(2, 0, consent.box);
+    if (prefs) nodes.push(this.summaryBox(backend, prefs, feedback));
     nodes.push(code, join, feedback, out, this.backButton());
     show(this.root, ...nodes);
   }
@@ -177,6 +179,47 @@ export class FamilyPanel {
     box.className = 'column';
     box.append(input, label, link, text('panel-feedback', tr('familyConsentNote', locale)));
     return { box, input };
+  }
+
+  /** Resumen semanal por correo (#56): activar o desactivar y elegir idioma. Se guarda al cambiar. */
+  private summaryBox(backend: FamilyBackend, initial: SummaryPrefs, feedback: HTMLElement): HTMLElement {
+    const { locale } = this;
+    const prefs = { ...initial };
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.id = 'family-summary';
+    check.checked = prefs.enabled;
+    const label = document.createElement('label');
+    label.htmlFor = check.id;
+    label.className = 'panel-feedback';
+    label.textContent = tr('familySummary', locale);
+    const select = document.createElement('select');
+    select.setAttribute('aria-label', tr('familySummaryLanguage', locale));
+    for (const [value, name] of [['es', 'Castellano'], ['ca', 'Català']] as const) {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = name;
+      select.append(option);
+    }
+    select.value = prefs.locale;
+    const save = (): void => {
+      const next: SummaryPrefs = { enabled: check.checked, locale: select.value === 'ca' ? 'ca' : 'es' };
+      void this.run(feedback, async () => {
+        await backend.setSummaryPrefs(next);
+        Object.assign(prefs, next);
+        say(feedback, tr('familySummarySaved', locale), 'good');
+      }).then(() => {
+        // Si falló, la casilla vuelve a lo que de verdad tiene el servidor.
+        check.checked = prefs.enabled;
+        select.value = prefs.locale;
+      });
+    };
+    check.addEventListener('change', save);
+    select.addEventListener('change', save);
+    const box = document.createElement('div');
+    box.className = 'column';
+    box.append(check, label, select, text('panel-feedback', tr('familySummaryNote', locale)));
+    return box;
   }
 
   private showWithdraw(backend: FamilyBackend, child: FamilyChild): void {

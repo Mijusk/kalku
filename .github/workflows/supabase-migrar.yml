@@ -3,7 +3,7 @@ name: Supabase · aplicar migraciones
 # Se lanza solo al fusionar en main algo que toque supabase/ o el paquete de
 # ejercicios (la función `answer` lo lleva dentro). También se puede lanzar a
 # mano desde Actions, por ejemplo sobre la rama de un PR para probar su vista previa.
-# Aplica las migraciones y despliega las Edge Functions `answer` y `child-session`.
+# Aplica las migraciones y despliega las Edge Functions `answer`, `child-session`, `weekly-summary` y `unsubscribe`.
 on:
   push:
     branches: [main]
@@ -45,3 +45,7 @@ jobs:
       - run: supabase functions deploy answer --project-ref nxaehojnwutxpshqwzeo --yes
       # child-session necesita además el secreto KALKU_JWT_SECRET (lo pone Luis en Edge Functions → Secrets).
       - run: supabase functions deploy child-session --project-ref nxaehojnwutxpshqwzeo --yes
+      # Resumen semanal (#56). Necesita BREVO_API_KEY, SUMMARY_SENDER y SUMMARY_CRON_SECRET (los pone Luis); sin ellos no envía.
+      - run: supabase functions deploy weekly-summary --project-ref nxaehojnwutxpshqwzeo --yes --no-verify-jwt
+      # La baja se abre desde el enlace del correo: sin inicio de sesión.
+      - run: supabase functions deploy unsubscribe --project-ref nxaehojnwutxpshqwzeo --yes --no-verify-jwt
