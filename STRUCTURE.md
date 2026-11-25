@@ -11,7 +11,7 @@ kalku/
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
-├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato), functions/class-session/ (el alumno entra en su clase con animal o código), functions/weekly-summary/ (resumen semanal por Brevo), functions/unsubscribe/ (baja en un clic) y tests/ (pgTAP: permisos, privacidad, familias, consentimiento, centros/docentes, alumnos de clase, entrar en clase y resumen semanal)
+├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato), functions/class-session/ (el alumno entra en su clase con animal o código), functions/weekly-summary/ (resumen semanal por Brevo), functions/unsubscribe/ (baja en un clic) y tests/ (pgTAP: permisos, privacidad, familias, consentimiento, centros/docentes, alumnos de clase, entrar en clase y resumen semanal y dominio de la clase)
 ├── scripts/bundle-function.mjs Empaqueta la Edge Function con @kalku/exercises dentro (`npm run build:function`)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
@@ -86,6 +86,7 @@ kalku/
 │       │   ├── creatures.ts    Familias (sumus, restus, problemus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
 │       │   ├── collection.ts   Rescate y colección: canRescue (25 % de vida, nunca jefes), addToCollection sin mutar, parseCollection, collectionStatus
 │       │   ├── classCodes.ts   Códigos de alumno «LUNA-47» (lista de palabras propia), 6 animales secretos y generateStudentCode sin repetir
+│       │   ├── classProgress.ts Dominio de la clase para el docente: tramos de color con icono y número, marca «varios días bajo el 70 %», fichas por alumno (alfabético, sin rankings)
 │       │   ├── weeklySummary.ts Resumen semanal: buildWeeklySummary, selectRecipients, correo es/ca de texto plano y cuerpo para Brevo (sin seguimiento)
 │       │   ├── summaryToken.ts Token firmado (HMAC) del enlace de baja del resumen
 │       │   ├── legal.ts        Textos legales como datos: política es/ca, versión para niños, datos del servidor, subencargados, LEGAL_DRAFT
@@ -112,6 +113,7 @@ kalku/
             ├── offlineQueue.ts Cola de respuestas pendientes (IndexedDB, con localStorage de reserva) para jugar sin conexión
             ├── teacher.ts      Cuentas de centro y docente: enlace por correo, alta de centro con contrato, código; TeacherBackend falso en los tests
             ├── classes.ts      Clases y tarjetas: alta de alumnos con código (hash sha-256), regenerar, ClassBackend falso en los tests
+            ├── classProgress.ts ClassProgressBackend: lee `class_mastery` y `class_student_days` (solo totales); backend falso en los tests
             ├── classLogin.ts   Entrar en la clase: ClassLoginBackend (función class-session), enterClass y leaveSharedDevice (salir borra lo del alumno); backend falso en los tests
             ├── classDevice.ts  Aparato compartido: ?clase del QR, marcas en localStorage/sessionStorage y borrado de lo que dejó una pestaña cerrada
             ├── docentes.ts     Arranca la página /docentes (TeacherPanel)

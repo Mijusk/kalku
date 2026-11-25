@@ -35,3 +35,18 @@ describe('textos de la cuenta de familia', () => {
     }
   });
 });
+
+// Panel de dominio del docente (#55): todos los textos existen en es y ca.
+describe('textos del panel de dominio', () => {
+  const KEYS: StringKey[] = [
+    'progressOpen', 'progressTitle', 'progressIntro', 'progressEmpty', 'progressStudent', 'progressFlag', 'progressFlagShort',
+    'progressBackToClass', 'progressBackToTable', 'progressInProgress', 'progressNoneInProgress', 'progressSessions',
+    'progressNoSessions', 'progressSessionLine', 'progressNotStarted',
+  ];
+  it('están en es y ca', () => {
+    for (const key of KEYS) {
+      expect(tr(key, 'es').trim().length, `${key} es`).toBeGreaterThan(0);
+      expect(tr(key, 'ca').trim().length, `${key} ca`).toBeGreaterThan(0);
+    }
+  });
+});
