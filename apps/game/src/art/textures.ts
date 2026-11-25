@@ -1,7 +1,9 @@
 import { CREATURES } from '@kalku/content';
 import {
   drawBuilding,
+  drawChest,
   drawCreature,
+  drawGate,
   TILE_PX,
   tilesetGrids,
   toSheet,
@@ -16,6 +18,10 @@ export const TILE_SIZE = TILE_PX;
 
 /** Claves de los tilesets: el mismo mapa con cada fotograma de la animación del agua. */
 export const TILESET_KEYS: readonly string[] = Array.from({ length: WATER_FRAMES }, (_, f) => `tileset-${f}`);
+
+/** Texturas de la puerta de las zonas y del cofre (cerrado y abierto). */
+export const GATE_TEXTURE = 'zone-gate';
+export const CHEST_TEXTURES = { closed: 'zone-chest-closed', open: 'zone-chest-open' } as const;
 
 /** Cuánto dura cada fotograma de las animaciones (ms). */
 export const ANIMATION_MS = 170;
@@ -35,6 +41,9 @@ function addSheet(scene: Phaser.Scene, key: string, sheet: Sheet): void {
 /** Genera todas las texturas del mundo y las criaturas a partir de los datos. */
 export function createArtTextures(scene: Phaser.Scene): void {
   TILESET_KEYS.forEach((key, frame) => addSheet(scene, key, toSheet(tilesetGrids(frame))));
+  addSheet(scene, GATE_TEXTURE, toSheet([drawGate()]));
+  addSheet(scene, CHEST_TEXTURES.closed, toSheet([drawChest(false)]));
+  addSheet(scene, CHEST_TEXTURES.open, toSheet([drawChest(true)]));
   for (const creature of CREATURES) addSheet(scene, creature.sprite, toSheet(drawCreature(creature.look)));
 }
 

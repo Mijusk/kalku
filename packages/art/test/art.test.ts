@@ -7,7 +7,10 @@ import {
   drawBuilding,
   drawCreature,
   drawCreatureFrame,
+  drawChest,
+  drawGate,
   drawGem,
+  OBJECT_PX,
   drawStar,
   STAR_SIZE,
   drawGrass,
@@ -200,5 +203,31 @@ describe('estrella de subida de nivel', () => {
     expect(g.px.filter((c) => c !== EMPTY).length).toBeGreaterThan(40);
     expect(g.px.includes(OUTLINE)).toBe(true);
     expect(drawStar().px).toEqual(g.px);
+  });
+});
+
+describe('puerta y cofre de las zonas', () => {
+  it('miden una casilla, tienen contorno y son iguales siempre', () => {
+    for (const make of [() => drawGate(), () => drawChest(false), () => drawChest(true)]) {
+      const g = make();
+      expect(g.width).toBe(OBJECT_PX);
+      expect(g.height).toBe(OBJECT_PX);
+      expect(Array.from(g.px)).toContain(OUTLINE);
+      expect(same(g, make())).toBe(true);
+    }
+  });
+
+  it('el cofre abierto se ve distinto del cerrado', () => {
+    expect(same(drawChest(true), drawChest(false))).toBe(false);
+  });
+
+  it('el mapa dibuja la puerta y el cofre sobre hierba (los pone el juego encima)', () => {
+    const map = generateRegion(PRADERA_UNO, 42);
+    const data = tilemapData(map, 42);
+    const gate = map.places.find((p) => p.gate)?.gate;
+    expect(gate).toBeDefined();
+    const frame = data[gate?.y ?? 0]?.[gate?.x ?? 0] ?? -1;
+    expect(frame).toBeGreaterThanOrEqual(0);
+    expect(frame).toBeLessThan(tilesetGrids(0).length);
   });
 });

@@ -62,6 +62,7 @@ kalku/
 │   │   │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
 │   │   │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
 │   │   │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla (16 o 47 variantes)
+│   │   │   ├── gates.ts        Zonas cerradas: isGateClosed, openGate (sin mutar) y zoneInterior (el claro de detrás de la puerta)
 │   │   │   ├── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
 │   │   │   └── wildlife.ts     Criaturas visibles en la hierba alta: aparecer, andar, combate al coincidir, reaparecer
 │   │   └── test/             Tests con vitest
@@ -74,12 +75,14 @@ kalku/
 │   │   │   ├── tileset.ts      Orden del tileset y fotograma de cada casilla del mapa (con autotile de 47 variantes)
 │   │   │   ├── buildings.ts    findBuildings (agrupa casillas) y drawBuilding: casa y tienda de cualquier tamaño
 │   │   │   ├── creatures.ts    CreatureLook (piezas como datos) y drawCreature: 8 fotogramas de 32 px
-│   │   │   └── gems.ts         drawGem: gema de 16 px por operación, encendida o apagada
+│   │   │   ├── gems.ts         drawGem: gema de 16 px por operación, encendida o apagada
+│   │   │   └── objects.ts      drawGate (puerta de piedra de una zona) y drawChest (cofre cerrado y abierto)
 │   │   └── test/             Tests con vitest
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
 │       │   ├── index.ts        Exporta todo el paquete
 │       │   ├── gems.ts         gemStatus: una gema por habilidad de SKILLS, ganada o no
+│       │   ├── zones.ts        Zonas cerradas como datos (requisito de gemas y/o nivel, tesoro es/ca), isZoneOpen (nunca por monedas), missingForZone y lectura del guardado
 │       │   ├── creatures.ts    Familias (sumus, restus, problemus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
 │       │   ├── collection.ts   Rescate y colección: canRescue (25 % de vida, nunca jefes), addToCollection sin mutar, parseCollection, collectionStatus
 │       │   ├── classCodes.ts   Códigos de alumno «LUNA-47» (lista de palabras propia), 6 animales secretos y generateStudentCode sin repetir
