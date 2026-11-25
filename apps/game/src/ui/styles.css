@@ -483,3 +483,71 @@ a.btn {
   gap: 12px;
   width: min(480px, 100%);
 }
+
+/* Gemas de dominio. */
+.gem-sprite {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+}
+
+.gem-item[data-earned='false'] {
+  background: #e9ecef;
+}
+
+.gem-hint {
+  font-size: 0.9rem;
+  text-align: center;
+  color: #4a5360;
+}
+
+.gem-celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+  background: rgba(20, 30, 40, 0.55);
+  color: #fff;
+  animation: gem-fade 2.4s ease both;
+}
+
+.gem-big {
+  width: 160px;
+  height: 160px;
+  image-rendering: pixelated;
+  animation: gem-pop 1.2s ease-out both, gem-spin 1.2s ease-in-out 0.2s both;
+}
+
+.gem-glow {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 244, 170, 0.9), rgba(255, 244, 170, 0) 70%);
+  animation: gem-pulse 1.2s ease-in-out infinite;
+}
+
+.gem-celebration-title,
+.gem-celebration-name {
+  position: relative;
+  margin: 0;
+  font-weight: 800;
+  text-align: center;
+}
+
+.gem-celebration-title { font-size: 1.75rem; }
+.gem-celebration-name { font-size: 1.25rem; }
+
+@keyframes gem-fade { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes gem-pop { from { transform: scale(0.1); } to { transform: scale(1); } }
+@keyframes gem-spin { from { rotate: -360deg; } to { rotate: 0deg; } }
+@keyframes gem-pulse { 50% { transform: scale(1.2); opacity: 0.7; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .gem-big, .gem-glow { animation: none; }
+}

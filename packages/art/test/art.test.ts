@@ -7,13 +7,16 @@ import {
   drawBuilding,
   drawCreature,
   drawCreatureFrame,
+  drawGem,
   drawGrass,
   drawPath,
   drawWater,
   EMPTY,
   EYES,
   findBuildings,
+  GEM_PX,
   gridToRgba,
+  OUTLINE,
   RAMP_NAMES,
   TILE_PX,
   tilemapData,
@@ -166,5 +169,24 @@ describe('paso a textura', () => {
     expect([sheet.width, sheet.height, sheet.cell]).toEqual([CREATURE_PX * CREATURE_FRAMES, CREATURE_PX, CREATURE_PX]);
     expect(sheet.rgba).toHaveLength(sheet.width * sheet.height * 4);
     expect(gridToRgba(drawGrass(1))[3]).toBe(255);
+  });
+});
+
+describe('gemas', () => {
+  it('miden 16×16, son deterministas y tienen contorno', () => {
+    for (const op of ['+', '-', '×', '÷', 'mixed', 'otra']) {
+      const g = drawGem(op, true);
+      expect(g.width).toBe(GEM_PX);
+      expect(g.height).toBe(GEM_PX);
+      expect(same(g, drawGem(op, true))).toBe(true);
+      expect(Array.from(g.px)).toContain(OUTLINE);
+    }
+  });
+
+  it('la apagada no usa ningún color de la encendida (salvo el contorno)', () => {
+    const lit = new Set(Array.from(drawGem('+', true).px));
+    lit.delete(EMPTY);
+    lit.delete(OUTLINE);
+    for (const v of drawGem('+', false).px) expect(lit.has(v)).toBe(false);
   });
 });

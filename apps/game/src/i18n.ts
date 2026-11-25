@@ -22,6 +22,8 @@ const STRINGS = {
   coins: { es: 'Cifras', ca: 'Xifres' },
   mastery: { es: 'Dominio', ca: 'Domini' },
   gem: { es: '¡Gema de dominio!', ca: 'Gemma de domini!' },
+  myGems: { es: 'Mis gemas', ca: 'Les meves gemmes' },
+  gemHint: { es: 'Domina', ca: 'Domina' },
   challenge: { es: 'Reto', ca: 'Repte' },
   review: { es: 'Repaso', ca: 'Repàs' },
   settings: { es: 'Ajustes', ca: 'Ajustos' },

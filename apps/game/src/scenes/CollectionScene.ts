@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
-import { collectionStatus, type CreatureDefinition } from '@kalku/content';
+import { collectionStatus, gemStatus, type CreatureDefinition } from '@kalku/content';
 import type { Locale } from '@kalku/exercises';
 import { tr } from '../i18n';
 import { applyTextSize, loadProgress } from '../progress';
+import { gemCanvas } from '../ui/gemCanvas';
 
 /** Color de la silueta de las criaturas que faltan. */
 const SILHOUETTE = '#1b2a1f';
@@ -57,7 +58,30 @@ export class CollectionScene extends Phaser.Scene {
     back.textContent = tr('back', locale);
     back.addEventListener('click', () => this.scene.start('world'));
 
-    root.append(title, grid, back);
+    const gems = gemStatus(progress.gems);
+    const gemsTitle = document.createElement('p');
+    gemsTitle.className = 'panel-title';
+    gemsTitle.textContent = `${tr('myGems', locale)} · ${gems.filter((g) => g.earned).length}/${gems.length}`;
+    const gemGrid = document.createElement('ul');
+    gemGrid.className = 'collection-grid gem-grid';
+    for (const { skill, earned } of gems) {
+      const item = document.createElement('li');
+      item.className = 'collection-item gem-item';
+      item.dataset.earned = String(earned);
+      const name = document.createElement('span');
+      name.className = 'collection-name';
+      name.textContent = skill.name[locale];
+      item.append(gemCanvas(skill, earned, 'gem-sprite'), name);
+      if (!earned) {
+        const hint = document.createElement('span');
+        hint.className = 'gem-hint';
+        hint.textContent = `${tr('gemHint', locale)}: ${skill.name[locale]}`;
+        item.append(hint);
+      }
+      gemGrid.append(item);
+    }
+
+    root.append(title, grid, gemsTitle, gemGrid, back);
     ui.append(root);
   }
 
