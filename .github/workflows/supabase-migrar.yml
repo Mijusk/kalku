@@ -45,5 +45,8 @@ jobs:
       - run: supabase functions deploy answer --project-ref nxaehojnwutxpshqwzeo --yes
       # child-session necesita además el secreto KALKU_JWT_SECRET (lo pone Luis en Edge Functions → Secrets).
       - run: supabase functions deploy child-session --project-ref nxaehojnwutxpshqwzeo --yes
+      # Resumen semanal (#56): sin los secretos BREVO_API_KEY, SUMMARY_SENDER y SUMMARY_CRON_SECRET no envía nada.
+      - run: supabase functions deploy weekly-summary --project-ref nxaehojnwutxpshqwzeo --yes
+      - run: supabase functions deploy unsubscribe --project-ref nxaehojnwutxpshqwzeo --yes
       # Entrar en la clase (#53): usa el mismo secreto KALKU_JWT_SECRET que child-session.
       - run: supabase functions deploy class-session --project-ref nxaehojnwutxpshqwzeo --yes

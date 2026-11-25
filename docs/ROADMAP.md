@@ -25,7 +25,7 @@ Bloques de desarrollo: 1 Publicar · 2 Mapa · 3 Encuentros · 4 Gráficos y tie
 - [x] Cuenta de centro, clases con QR, tarjetas imprimibles, «toca tu animal»
 - [x] Validación de respuestas en el servidor; sin conexión con sincronización
 - [ ] Pradera Uno completa con 5 criaturas como datos
-- [ ] Panel docente básico y resumen semanal para familias
+- [ ] Panel docente básico y resumen semanal para familias (resumen semanal hecho en #56)
 - [ ] Consentimiento parental, privacidad y contrato de datos para centros
 
 ## Fase 3 · Piloto · abril–junio 2027

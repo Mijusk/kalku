@@ -128,3 +128,31 @@ revoke all on function public.list_class_nicknames(uuid) from public, anon, auth
 revoke all on function public.class_login(uuid, uuid, text, text) from public, anon, authenticated;
 grant execute on function public.list_class_nicknames(uuid) to anon, authenticated;
 grant execute on function public.class_login(uuid, uuid, text, text) to service_role;
+
+-- El export del niño (RGPD) incluye su fila de alumno de clase: apodo, animal y clase, nunca el hash del código.
+create or replace function public.export_my_data()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then
+    raise exception 'Sin sesión' using errcode = '28000';
+  end if;
+  return jsonb_build_object(
+    'exported_at', now(),
+    'children', coalesce((select jsonb_agg(to_jsonb(c)) from public.children c where c.id = uid), '[]'::jsonb),
+    'progress', coalesce((select jsonb_agg(to_jsonb(p) order by p.skill) from public.progress p where p.child_id = uid), '[]'::jsonb),
+    'answers', coalesce((select jsonb_agg(to_jsonb(a) order by a.id) from public.answers a where a.child_id = uid), '[]'::jsonb),
+    'family_children', coalesce((select jsonb_agg(to_jsonb(fc)) from public.family_children fc where fc.child_id = uid), '[]'::jsonb),
+    'link_codes', coalesce((select jsonb_agg(jsonb_build_object('created_at', lc.created_at, 'expires_at', lc.expires_at)) from public.link_codes lc where lc.child_id = uid), '[]'::jsonb),
+    'parental_consents', coalesce((select jsonb_agg(jsonb_build_object('child_id', pc.child_id, 'policy_version', pc.policy_version, 'consented_at', pc.consented_at)) from public.parental_consents pc where pc.child_id = uid), '[]'::jsonb),
+    'class_children', coalesce((select jsonb_agg(to_jsonb(cc)) from public.class_children cc where cc.child_id = uid), '[]'::jsonb),
+    'class_students', coalesce((select jsonb_agg(jsonb_build_object('class_id', cs.class_id, 'nickname', cs.nickname, 'animal', cs.animal, 'created_at', cs.created_at)) from public.class_students cs where cs.child_id = uid), '[]'::jsonb)
+  );
+end;
+$$;

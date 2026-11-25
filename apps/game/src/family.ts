@@ -1,5 +1,5 @@
 import { FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js';
-import { SKILL_IDS } from '@kalku/exercises';
+import { SKILL_IDS, type Locale } from '@kalku/exercises';
 import { PRIVACY_VERSION } from '@kalku/content';
 import { appBackend, clearAnswerQueue, LOCAL_KEYS, OWNER_KEY, pullProgress, type KeyValueStore } from './sync';
 import { getAdultSupabase, getSupabase } from './supabase';
@@ -55,6 +55,12 @@ export interface FamilyChild {
   averageMastery: number;
 }
 
+/** Resumen semanal por correo (#56): si lo recibe y en qué idioma. */
+export interface SummaryPrefs {
+  enabled: boolean;
+  locale: Locale;
+}
+
 export interface ProgressRow {
   child_id: string;
   skill: string;
@@ -87,6 +93,9 @@ export interface FamilyBackend {
   leave(childId: string): Promise<void>;
   /** Retira el consentimiento: borra al niño con todos sus datos. */
   withdrawConsent(childId: string): Promise<void>;
+  /** Preferencias del resumen semanal, o `null` si el adulto aún no tiene familia. */
+  getSummaryPrefs(): Promise<SummaryPrefs | null>;
+  setSummaryPrefs(prefs: SummaryPrefs): Promise<void>;
   /** Pide al servidor una sesión de ese niño y la pone en este aparato. */
   enterAsChild(childId: string): Promise<void>;
 }
@@ -146,6 +155,16 @@ export function supabaseFamilyBackend(child: SupabaseClient, adult: SupabaseClie
     },
     async withdrawConsent(childId) {
       const { error } = await adult.rpc('withdraw_consent', { p_child: childId });
+      if (error) throw toFamilyError(error);
+    },
+    async getSummaryPrefs() {
+      const { data, error } = await adult.from('families').select('summary_locale, summary_opt_out_at').maybeSingle();
+      if (error) throw toFamilyError(error);
+      if (!data) return null;
+      return { enabled: data.summary_opt_out_at === null, locale: data.summary_locale === 'ca' ? 'ca' : 'es' };
+    },
+    async setSummaryPrefs(prefs) {
+      const { error } = await adult.rpc('set_summary_preferences', { p_locale: prefs.locale, p_enabled: prefs.enabled });
       if (error) throw toFamilyError(error);
     },
     async enterAsChild(childId) {

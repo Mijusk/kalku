@@ -36,6 +36,10 @@ function fakeFamily(overrides: Partial<FamilyBackend> = {}): FamilyBackend & { e
     async withdrawConsent(id: string) {
       f.withdrawn.push(id);
     },
+    async getSummaryPrefs() {
+      return { enabled: true, locale: 'es' as const };
+    },
+    async setSummaryPrefs() {},
     async enterAsChild(id: string) {
       f.entered.push(id);
     },

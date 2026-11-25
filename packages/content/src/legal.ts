@@ -7,7 +7,7 @@ import type { Locale } from '@kalku/exercises';
  */
 
 /** Versión de la política; súbela cada vez que cambie el contenido. */
-export const PRIVACY_VERSION = '0.3';
+export const PRIVACY_VERSION = '0.4';
 export const PRIVACY_DATE = '2026-11-25';
 
 /** Versión de la plantilla del contrato de encargo (docs/legal/) que acepta el centro al darse de alta. */
@@ -110,10 +110,10 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
   },
   {
     table: 'families',
-    columns: ['id', 'owner_id', 'created_at'],
+    columns: ['id', 'owner_id', 'created_at', 'summary_locale', 'summary_opt_out_at'],
     what: {
-      es: 'Una familia: su identificador, el identificador del adulto que la lleva y la fecha de creación.',
-      ca: 'Una família: el seu identificador, l’identificador de l’adult que la porta i la data de creació.',
+      es: 'Una familia: su identificador, el identificador del adulto que la lleva, la fecha de creación, el idioma del resumen semanal y la fecha en que se dio de baja de él (si lo hizo).',
+      ca: 'Una família: el seu identificador, l’identificador de l’adult que la porta, la data de creació, l’idioma del resum setmanal i la data en què se’n va donar de baixa (si ho va fer).',
     },
     purpose: {
       es: 'Que el adulto vea el progreso de sus hijos y los recupere en otro aparato.',
@@ -305,7 +305,7 @@ export const SUBPROCESSORS: readonly Subprocessor[] = [
     role: { es: 'Envío de correos a las familias y a los docentes', ca: 'Enviament de correus a les famílies i als docents' },
     location: { es: 'Francia (UE)', ca: 'França (UE)' },
     future: false,
-    note: { es: 'Solo envía el enlace de acceso al correo del adulto de una cuenta de familia, de centro o de docente.', ca: 'Només envia l’enllaç d’accés al correu de l’adult d’un compte de família, de centre o de docent.' },
+    note: { es: 'Envía el enlace de acceso al correo del adulto de una cuenta de familia, de centro o de docente y, a las familias, el resumen semanal (solo texto, sin seguimiento de aperturas ni de clics).', ca: 'Envia l’enllaç d’accés al correu de l’adult d’un compte de família, de centre o de docent i, a les famílies, el resum setmanal (només text, sense seguiment d’obertures ni de clics).' },
   },
 ];
 
@@ -405,8 +405,8 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: { es: '8. Lo que todavía no existe', ca: '8. El que encara no existeix' },
     paragraphs: [
       {
-        es: 'Del niño no guardamos nunca ningún correo electrónico. Solo si un adulto crea una cuenta de familia, de centro o de docente guardamos su correo en el sistema de acceso, para enviarle el enlace con el que entra (con Brevo), y, si da su consentimiento por un niño, también como prueba de ese consentimiento. Los informes y avisos por correo todavía no existen; antes de enviarlos avisaremos y actualizaremos esta política.',
-        ca: 'De l’infant no guardem mai cap correu electrònic. Només si un adult crea un compte de família, de centre o de docent guardem el seu correu al sistema d’accés, per enviar-li l’enllaç amb què entra (amb Brevo), i, si dona el seu consentiment per un infant, també com a prova d’aquest consentiment. Els informes i avisos per correu encara no existeixen; abans d’enviar-los avisarem i actualitzarem aquesta política.',
+        es: 'Del niño no guardamos nunca ningún correo electrónico. Solo si un adulto crea una cuenta de familia, de centro o de docente guardamos su correo en el sistema de acceso, para enviarle el enlace con el que entra (con Brevo) y, si es una familia, un resumen semanal de lo que ha jugado cada niño (solo texto, sin imágenes ni seguimiento, con un enlace para darse de baja en un clic o desde Familia), y, si da su consentimiento por un niño, también como prueba de ese consentimiento. Los informes de pago y otros avisos por correo todavía no existen; antes de enviarlos avisaremos y actualizaremos esta política.',
+        ca: 'De l’infant no guardem mai cap correu electrònic. Només si un adult crea un compte de família, de centre o de docent guardem el seu correu al sistema d’accés, per enviar-li l’enllaç amb què entra (amb Brevo) i, si és una família, un resum setmanal del que ha jugat cada infant (només text, sense imatges ni seguiment, amb un enllaç per donar-se de baixa amb un clic o des de Família), i, si dona el seu consentiment per un infant, també com a prova d’aquest consentiment. Els informes de pagament i altres avisos per correu encara no existeixen; abans d’enviar-los avisarem i actualitzarem aquesta política.',
       },
     ],
   },
