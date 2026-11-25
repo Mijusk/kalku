@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { enterAsChildHere, FamilyError, forgetOtherChild, joinThisDevice, summarize, toFamilyError, type FamilyBackend } from '../src/family';
+import { enterAsChildHere, FamilyError, forgetOtherChild, guardianConsent, joinThisDevice, summarize, toFamilyError, type FamilyBackend } from '../src/family';
+import { PRIVACY_VERSION } from '@kalku/content';
 import { defaultProgress } from '../src/progress';
 import { LOCAL_KEYS, NICKNAME_KEY, OWNER_KEY, type KeyValueStore } from '../src/sync';
 
@@ -8,10 +9,11 @@ function memoryStore(initial: Record<string, string> = {}): KeyValueStore & { da
   return { data, getItem: (k) => data[k] ?? null, setItem: (k, v) => void (data[k] = v), removeItem: (k) => void delete data[k] };
 }
 
-function fakeFamily(overrides: Partial<FamilyBackend> = {}): FamilyBackend & { entered: string[]; joined: string[] } {
+function fakeFamily(overrides: Partial<FamilyBackend> = {}): FamilyBackend & { entered: string[]; joined: string[]; withdrawn: string[] } {
   const f = {
     entered: [] as string[],
     joined: [] as string[],
+    withdrawn: [] as string[],
     async adultId() {
       return 'adult';
     },
@@ -31,6 +33,9 @@ function fakeFamily(overrides: Partial<FamilyBackend> = {}): FamilyBackend & { e
       return [];
     },
     async leave() {},
+    async withdrawConsent(id: string) {
+      f.withdrawn.push(id);
+    },
     async enterAsChild(id: string) {
       f.entered.push(id);
     },
@@ -46,6 +51,11 @@ describe('errores de la familia', () => {
     expect(toFamilyError({ message: 'child-in-family' }).code).toBe('child-in-family');
     expect(toFamilyError({ message: 'P0001: family-full' }).code).toBe('family-full');
     expect(toFamilyError({ message: 'invalid-code' }).code).toBe('invalid-code');
+  });
+
+  it('reconoce los errores del consentimiento', () => {
+    expect(toFamilyError({ message: 'consent-required' }).code).toBe('consent-required');
+    expect(toFamilyError({ message: 'email-not-confirmed' }).code).toBe('email-not-confirmed');
   });
 
   it('lo desconocido es un fallo de red', () => {
@@ -87,7 +97,7 @@ describe('resumen de hijos', () => {
 describe('unir desde este aparato', () => {
   it('el niño pide el código y el adulto lo usa; devuelve el apodo', async () => {
     const f = fakeFamily();
-    expect(await joinThisDevice(f)).toBe('Zorro');
+    expect(await joinThisDevice(f, guardianConsent(true))).toBe('Zorro');
     expect(f.joined).toEqual(['ABCD2345']);
   });
 
@@ -97,7 +107,7 @@ describe('unir desde este aparato', () => {
         throw new FamilyError('family-full');
       },
     });
-    await expect(joinThisDevice(f)).rejects.toMatchObject({ code: 'family-full' });
+    await expect(joinThisDevice(f, guardianConsent(true))).rejects.toMatchObject({ code: 'family-full' });
   });
 });
 
@@ -137,5 +147,21 @@ describe('entrar como un niño', () => {
     const store = memoryStore(Object.fromEntries(LOCAL_KEYS.map((k) => [k, 'x'])));
     forgetOtherChild(store, 'kid-9');
     expect(Object.keys(store.data)).toEqual([]);
+  });
+});
+
+describe('consentimiento', () => {
+  it('la casilla y la versión de la política vigente viajan al unir', () => {
+    expect(guardianConsent(true)).toEqual({ isGuardian: true, policyVersion: PRIVACY_VERSION });
+    expect(guardianConsent(false).isGuardian).toBe(false);
+  });
+
+  it('unir sin la declaración falla con consent-required y no llega a unir', async () => {
+    const f = fakeFamily({
+      async joinWithCode() {
+        throw new FamilyError('consent-required');
+      },
+    });
+    await expect(joinThisDevice(f, guardianConsent(false))).rejects.toMatchObject({ code: 'consent-required' });
   });
 });

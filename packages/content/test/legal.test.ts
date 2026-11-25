@@ -99,7 +99,7 @@ describe('datos del servidor', () => {
   const tables = migrationColumns();
 
   it('lee las tablas de las migraciones', () => {
-    expect([...tables.keys()].sort()).toEqual(['answers', 'children', 'families', 'family_children', 'link_codes', 'progress']);
+    expect([...tables.keys()].sort()).toEqual(['answers', 'children', 'families', 'family_children', 'link_codes', 'parental_consents', 'progress']);
   });
 
   it('cada columna de las migraciones aparece en la política, y al revés', () => {

@@ -114,6 +114,30 @@ const STRINGS = {
   familyErrNotAdult: { es: 'Entra primero con tu correo.', ca: 'Entra primer amb el teu correu.' },
   familyErrNoChild: { es: 'Este aparato aún no tiene cuenta de niño.', ca: 'Aquest aparell encara no té compte d’infant.' },
   familyErrNetwork: { es: 'No se ha podido. Mira la conexión e inténtalo otra vez.', ca: 'No s’ha pogut. Mira la connexió i torna-ho a provar.' },
+  familyConsent: {
+    es: 'Soy su madre, padre o tutor y acepto la política de privacidad.',
+    ca: 'Sóc la seva mare, pare o tutor i accepto la política de privacitat.',
+  },
+  familyPrivacyLink: { es: 'Leer la política de privacidad', ca: 'Llegir la política de privacitat' },
+  familyConsentNote: {
+    es: 'Guardamos la fecha, la versión de la política y tu correo como prueba del consentimiento.',
+    ca: 'Guardem la data, la versió de la política i el teu correu com a prova del consentiment.',
+  },
+  familyErrConsent: { es: 'Marca la casilla para dar tu consentimiento.', ca: 'Marca la casella per donar el teu consentiment.' },
+  familyErrEmailNotConfirmed: { es: 'Primero confirma tu correo con el enlace que te enviamos.', ca: 'Primer confirma el teu correu amb l’enllaç que t’hem enviat.' },
+  familyWithdraw: { es: 'Retirar el consentimiento', ca: 'Retirar el consentiment' },
+  familyWithdrawTitle: { es: '¿Retirar el consentimiento?', ca: 'Retirar el consentiment?' },
+  familyWithdrawText: {
+    es: 'Se borrará a este niño con todo su progreso y sus respuestas. No se puede deshacer.',
+    ca: 'S’esborrarà aquest infant amb tot el seu progrés i les seves respostes. No es pot desfer.',
+  },
+  familyWithdrawYes: { es: 'Sí, borrar todo', ca: 'Sí, esborrar-ho tot' },
+  familyWithdrawNo: { es: 'No, volver', ca: 'No, tornar' },
+  familyWithdrawn: { es: 'Consentimiento retirado. Se han borrado los datos del niño.', ca: 'Consentiment retirat. S’han esborrat les dades de l’infant.' },
+  adultsExpiry: {
+    es: 'Si ningún adulto da su consentimiento en Familia, el progreso se borra tras 30 días sin jugar.',
+    ca: 'Si cap adult no dona el seu consentiment a Família, el progrés s’esborra després de 30 dies sense jugar.',
+  },
   nicknameTooLong: { es: 'Máximo 30 letras.', ca: 'Màxim 30 lletres.' },
   language: { es: 'Català', ca: 'Castellano' },
 } as const satisfies Record<string, Record<Locale, string>>;

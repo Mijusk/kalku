@@ -7,8 +7,8 @@ import type { Locale } from '@kalku/exercises';
  */
 
 /** Versión de la política; súbela cada vez que cambie el contenido. */
-export const PRIVACY_VERSION = '0.1';
-export const PRIVACY_DATE = '2026-11-22';
+export const PRIVACY_VERSION = '0.2';
+export const PRIVACY_DATE = '2026-11-24';
 
 /**
  * Mientras sea `true`, la página y las plantillas muestran «Borrador pendiente
@@ -34,13 +34,13 @@ export const PENDING = {
 
 /** Frase de «hasta cuándo se guardan los datos»; la usan la tabla y la política. */
 const RETENTION_CHILD: Localized = {
-  es: 'Hasta que la familia o el centro pidan borrarlo, o 12 meses sin jugar.',
-  ca: 'Fins que la família o el centre demanin esborrar-ho, o 12 mesos sense jugar.',
+  es: 'Hasta que la familia o el centro pidan borrarlo, o 12 meses sin jugar. Si ningún adulto ha dado su consentimiento: 30 días sin jugar.',
+  ca: 'Fins que la família o el centre demanin esborrar-ho, o 12 mesos sense jugar. Si cap adult no ha donat el consentiment: 30 dies sense jugar.',
 };
 
 export interface ServerDataItem {
   /** Tabla de Supabase. `auth.users` es el login anónimo. */
-  table: 'children' | 'progress' | 'answers' | 'families' | 'family_children' | 'link_codes' | 'auth.users';
+  table: 'children' | 'progress' | 'answers' | 'families' | 'family_children' | 'link_codes' | 'parental_consents' | 'auth.users';
   /** Columnas tal como están en `supabase/migrations/` (un test las comprueba). */
   columns: readonly string[];
   what: Localized;
@@ -68,10 +68,10 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
   },
   {
     table: 'children',
-    columns: ['id', 'nickname', 'created_at', 'extra'],
+    columns: ['id', 'nickname', 'created_at', 'extra', 'last_active_at'],
     what: {
-      es: 'El identificador anónimo, un apodo (de 1 a 30 letras, no debe ser el nombre real), la fecha de creación y el resto de la partida: monedas del juego, gemas, criaturas rescatadas, ajustes e idioma.',
-      ca: 'L’identificador anònim, un malnom (d’1 a 30 lletres, no ha de ser el nom real), la data de creació i la resta de la partida: monedes del joc, gemmes, criatures rescatades, ajustos i idioma.',
+      es: 'El identificador anónimo, un apodo (de 1 a 30 letras, no debe ser el nombre real), la fecha de creación, la fecha de la última vez que jugó y el resto de la partida: monedas del juego, gemas, criaturas rescatadas, ajustes e idioma.',
+      ca: 'L’identificador anònim, un malnom (d’1 a 30 lletres, no ha de ser el nom real), la data de creació, la data de l’última vegada que va jugar i la resta de la partida: monedes del joc, gemmes, criatures rescatades, ajustos i idioma.',
     },
     purpose: {
       es: 'Mostrar el apodo en el juego, saber a quién pertenece cada progreso y que la partida siga igual al volver a entrar.',
@@ -145,6 +145,22 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
     retention: {
       es: '10 minutos, o hasta que se use.',
       ca: '10 minuts, o fins que s’utilitzi.',
+    },
+  },
+  {
+    table: 'parental_consents',
+    columns: ['child_id', 'adult_id', 'adult_email', 'policy_version', 'consented_at'],
+    what: {
+      es: 'La prueba del consentimiento de los padres: qué niño, qué adulto lo dio, el correo de ese adulto, la versión de la política que aceptó y la fecha. Es el único sitio donde se guarda un correo fuera del sistema de acceso, y nadie puede leerlo desde el juego.',
+      ca: 'La prova del consentiment dels pares: quin infant, quin adult el va donar, el correu d’aquest adult, la versió de la política que va acceptar i la data. És l’únic lloc on es guarda un correu fora del sistema d’accés, i ningú no el pot llegir des del joc.',
+    },
+    purpose: {
+      es: 'Poder demostrar que una madre, padre o tutor consintió, como exige la ley para menores de 14 años.',
+      ca: 'Poder demostrar que una mare, pare o tutor va consentir, com exigeix la llei per a menors de 14 anys.',
+    },
+    retention: {
+      es: 'Hasta que se retire el consentimiento (se borra al niño con todos sus datos), se suelte al niño de la familia o se borre la cuenta del adulto.',
+      ca: 'Fins que es retiri el consentiment (s’esborra l’infant amb totes les seves dades), es deixi anar l’infant de la família o s’esborri el compte de l’adult.',
     },
   },
 ];
@@ -232,8 +248,8 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: { es: '4. Por qué podemos usar estos datos', ca: '4. Per què podem fer servir aquestes dades' },
     paragraphs: [
       {
-        es: 'En casa, con el consentimiento de los padres o tutores (los menores de 14 años no pueden darlo por sí mismos). En clase, el centro educativo actúa como responsable y nosotros como encargados del tratamiento, según el contrato del artículo 28 del RGPD.',
-        ca: 'A casa, amb el consentiment dels pares o tutors (els menors de 14 anys no el poden donar per si mateixos). A classe, el centre educatiu actua com a responsable i nosaltres com a encarregats del tractament, segons el contracte de l’article 28 del RGPD.',
+        es: 'En casa, con el consentimiento de los padres o tutores (los menores de 14 años no pueden darlo por sí mismos): al unir al niño a su familia, el adulto confirma con su correo que es su madre, padre o tutor y acepta esta política; guardamos la fecha, la versión y su correo como prueba. En clase, el centro educativo actúa como responsable y nosotros como encargados del tratamiento, según el contrato del artículo 28 del RGPD.',
+        ca: 'A casa, amb el consentiment dels pares o tutors (els menors de 14 anys no el poden donar per si mateixos): en unir l’infant a la seva família, l’adult confirma amb el seu correu que és la seva mare, pare o tutor i accepta aquesta política; en guardem la data, la versió i el seu correu com a prova. A classe, el centre educatiu actua com a responsable i nosaltres com a encarregats del tractament, segons el contracte de l’article 28 del RGPD.',
       },
     ],
   },
@@ -253,8 +269,8 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: { es: '6. Cuánto tiempo los guardamos', ca: '6. Quant de temps les guardem' },
     paragraphs: [
       {
-        es: 'La cuenta del niño se borra tras 12 meses sin jugar y siempre que la familia o el centro lo pidan. Los datos de un centro se borran al terminar el contrato con él.',
-        ca: 'El compte de l’infant s’esborra després de 12 mesos sense jugar i sempre que la família o el centre ho demanin. Les dades d’un centre s’esborren en acabar el contracte amb ell.',
+        es: 'La cuenta de un niño sin consentimiento de sus padres se borra sola a los 30 días sin jugar. Con consentimiento, tras 12 meses sin jugar y siempre que la familia o el centro lo pidan. Los datos de un centro se borran al terminar el contrato con él.',
+        ca: 'El compte d’un infant sense consentiment dels pares s’esborra sol als 30 dies sense jugar. Amb consentiment, després de 12 mesos sense jugar i sempre que la família o el centre ho demanin. Les dades d’un centre s’esborren en acabar el contracte amb ell.',
       },
     ],
   },
@@ -263,8 +279,8 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: { es: '7. Tus derechos', ca: '7. Els teus drets' },
     paragraphs: [
       {
-        es: 'Puedes pedir acceder a los datos, corregirlos, borrarlos, limitar su uso, llevártelos o oponerte, y retirar tu consentimiento cuando quieras. Desde el juego, en Ajustes → Para adultos, puedes descargar los datos del niño y borrarlos. Para lo demás (o si no tienes el aparato del niño), escríbenos al correo de arriba. Si crees que no tratamos bien los datos, puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).',
-        ca: 'Pots demanar accedir a les dades, corregir-les, esborrar-les, limitar-ne l’ús, endur-te-les o oposar-t’hi, i retirar el consentiment quan vulguis. Des del joc, a Ajustos → Per a adults, pots descarregar les dades de l’infant i esborrar-les. Per a la resta (o si no tens l’aparell de l’infant), escriu-nos al correu de dalt. Si creus que no tractem bé les dades, pots reclamar davant l’Agència Espanyola de Protecció de Dades (aepd.es).',
+        es: 'Puedes pedir acceder a los datos, corregirlos, borrarlos, limitar su uso, llevártelos o oponerte, y retirar tu consentimiento cuando quieras. Desde el juego, en Ajustes → Para adultos, puedes descargar los datos del niño y borrarlos; en Familia, retirar tu consentimiento borra al niño con todos sus datos. Para lo demás (o si no tienes el aparato del niño), escríbenos al correo de arriba. Si crees que no tratamos bien los datos, puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).',
+        ca: 'Pots demanar accedir a les dades, corregir-les, esborrar-les, limitar-ne l’ús, endur-te-les o oposar-t’hi, i retirar el consentiment quan vulguis. Des del joc, a Ajustos → Per a adults, pots descarregar les dades de l’infant i esborrar-les; a Família, retirar el teu consentiment esborra l’infant amb totes les seves dades. Per a la resta (o si no tens l’aparell de l’infant), escriu-nos al correu de dalt. Si creus que no tractem bé les dades, pots reclamar davant l’Agència Espanyola de Protecció de Dades (aepd.es).',
       },
     ],
   },
@@ -273,8 +289,8 @@ export const PRIVACY_SECTIONS: readonly LegalSection[] = [
     heading: { es: '8. Lo que todavía no existe', ca: '8. El que encara no existeix' },
     paragraphs: [
       {
-        es: 'Del niño no guardamos nunca ningún correo electrónico. Solo si un adulto crea una cuenta de familia guardamos su correo, únicamente en el sistema de acceso, para enviarle el enlace con el que entra (con Brevo). Los informes y avisos por correo todavía no existen; antes de enviarlos avisaremos y actualizaremos esta política.',
-        ca: 'De l’infant no guardem mai cap correu electrònic. Només si un adult crea un compte de família guardem el seu correu, únicament al sistema d’accés, per enviar-li l’enllaç amb què entra (amb Brevo). Els informes i avisos per correu encara no existeixen; abans d’enviar-los avisarem i actualitzarem aquesta política.',
+        es: 'Del niño no guardamos nunca ningún correo electrónico. Solo si un adulto crea una cuenta de familia guardamos su correo en el sistema de acceso, para enviarle el enlace con el que entra (con Brevo), y, si da su consentimiento por un niño, también como prueba de ese consentimiento. Los informes y avisos por correo todavía no existen; antes de enviarlos avisaremos y actualizaremos esta política.',
+        ca: 'De l’infant no guardem mai cap correu electrònic. Només si un adult crea un compte de família guardem el seu correu al sistema d’accés, per enviar-li l’enllaç amb què entra (amb Brevo), i, si dona el seu consentiment per un infant, també com a prova d’aquest consentiment. Els informes i avisos per correu encara no existeixen; abans d’enviar-los avisarem i actualitzarem aquesta política.',
       },
     ],
   },

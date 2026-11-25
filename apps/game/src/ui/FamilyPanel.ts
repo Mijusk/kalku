@@ -1,5 +1,5 @@
 import type { Locale } from '@kalku/exercises';
-import { enterAsChildHere, joinThisDevice, MAX_CHILDREN, toFamilyError, type FamilyBackend, type FamilyChild, type FamilyErrorCode } from '../family';
+import { enterAsChildHere, guardianConsent, joinThisDevice, MAX_CHILDREN, toFamilyError, type FamilyBackend, type FamilyChild, type FamilyErrorCode } from '../family';
 import { tr, type StringKey } from '../i18n';
 import { button, say, show, status, text } from './dom';
 
@@ -20,6 +20,8 @@ const ERROR_TEXT: Record<FamilyErrorCode, StringKey> = {
   'not-adult': 'familyErrNotAdult',
   'not-in-family': 'familyErrNetwork',
   'no-child': 'familyErrNoChild',
+  'email-not-confirmed': 'familyErrEmailNotConfirmed',
+  'consent-required': 'familyErrConsent',
   network: 'familyErrNetwork',
 };
 
@@ -121,9 +123,10 @@ export class FamilyPanel {
     code.maxLength = 12;
     code.setAttribute('aria-label', tr('familyCodeInput', locale));
     code.placeholder = tr('familyCodeInput', locale);
+    const consent = this.consentBox();
     const join = button('btn btn-small', tr('familyJoin', locale), () =>
       void this.run(feedback, async () => {
-        await backend.joinWithCode(code.value);
+        await backend.joinWithCode(code.value, guardianConsent(consent.input.checked));
         await this.showFamily(backend);
       }),
     );
@@ -142,7 +145,7 @@ export class FamilyPanel {
       nodes.push(
         button('btn btn-primary', tr('familyJoinHere', locale), () =>
           void this.run(feedback, async () => {
-            const nickname = await joinThisDevice(backend);
+            const nickname = await joinThisDevice(backend, guardianConsent(consent.input.checked));
             await this.showFamily(backend);
             const line = this.root.querySelector<HTMLElement>('[role="status"]');
             if (line) say(line, `${tr('familyJoined', locale)} ${nickname}`, 'good');
@@ -150,8 +153,47 @@ export class FamilyPanel {
         ),
       );
     }
+    nodes.splice(2, 0, consent.box);
     nodes.push(code, join, feedback, out, this.backButton());
     show(this.root, ...nodes);
+  }
+
+  /** Casilla «Soy su madre, padre o tutor…» con el enlace a la política: sin marcarla, el servidor no une. */
+  private consentBox(): { box: HTMLElement; input: HTMLInputElement } {
+    const { locale } = this;
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = 'family-consent';
+    const label = document.createElement('label');
+    label.htmlFor = input.id;
+    label.className = 'panel-feedback';
+    label.textContent = tr('familyConsent', locale);
+    const link = document.createElement('a');
+    link.href = `/privacidad.html?lang=${locale}`;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = tr('familyPrivacyLink', locale);
+    const box = document.createElement('div');
+    box.className = 'column';
+    box.append(input, label, link, text('panel-feedback', tr('familyConsentNote', locale)));
+    return { box, input };
+  }
+
+  private showWithdraw(backend: FamilyBackend, child: FamilyChild): void {
+    const { locale } = this;
+    const feedback = status('', 'bad');
+    feedback.setAttribute('role', 'alert');
+    const yes = button('btn btn-small', tr('familyWithdrawYes', locale), () =>
+      void this.run(feedback, async () => {
+        await backend.withdrawConsent(child.id);
+        await this.showFamily(backend);
+        const line = this.root.querySelector<HTMLElement>('[role="status"]');
+        if (line) say(line, tr('familyWithdrawn', locale), 'good');
+      }),
+    );
+    const no = button('btn btn-primary', tr('familyWithdrawNo', locale), () => void this.showFamily(backend));
+    show(this.root, text('panel-title', tr('familyWithdrawTitle', locale)), text('panel-feedback', `${child.nickname}: ${tr('familyWithdrawText', locale)}`), feedback, yes, no);
+    no.focus();
   }
 
   private childRow(backend: FamilyBackend, child: FamilyChild, feedback: HTMLElement): HTMLElement {
@@ -167,6 +209,7 @@ export class FamilyPanel {
           this.options.onEntered();
         }),
       ),
+      button('btn btn-small', tr('familyWithdraw', locale), () => this.showWithdraw(backend, child)),
       button('btn btn-small', tr('familyRemove', locale), () =>
         void this.run(feedback, async () => {
           await backend.leave(child.id);

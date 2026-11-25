@@ -1,5 +1,6 @@
 import { FunctionsHttpError, type SupabaseClient } from '@supabase/supabase-js';
 import { SKILL_IDS } from '@kalku/exercises';
+import { PRIVACY_VERSION } from '@kalku/content';
 import { appBackend, LOCAL_KEYS, OWNER_KEY, pullProgress, type KeyValueStore } from './sync';
 import { getAdultSupabase, getSupabase } from './supabase';
 
@@ -15,7 +16,7 @@ import { getAdultSupabase, getSupabase } from './supabase';
 export const MAX_CHILDREN = 4;
 
 /** Errores que el servidor dice con su mensaje y que la interfaz sabe explicar. */
-export type FamilyErrorCode = 'invalid-code' | 'child-in-family' | 'family-full' | 'not-adult' | 'not-in-family' | 'no-child' | 'network';
+export type FamilyErrorCode = 'invalid-code' | 'child-in-family' | 'family-full' | 'not-adult' | 'not-in-family' | 'no-child' | 'email-not-confirmed' | 'consent-required' | 'network';
 
 export class FamilyError extends Error {
   constructor(readonly code: FamilyErrorCode) {
@@ -23,13 +24,26 @@ export class FamilyError extends Error {
   }
 }
 
-const KNOWN: readonly FamilyErrorCode[] = ['invalid-code', 'child-in-family', 'family-full', 'not-adult', 'not-in-family', 'no-child'];
+const KNOWN: readonly FamilyErrorCode[] = ['invalid-code', 'child-in-family', 'family-full', 'not-adult', 'not-in-family', 'no-child', 'email-not-confirmed', 'consent-required'];
 
 /** Pasa el mensaje de error del servidor a un código conocido (o `network`). */
 export function toFamilyError(e: unknown): FamilyError {
   if (e instanceof FamilyError) return e;
   const message = typeof e === 'object' && e !== null && 'message' in e ? String((e as { message: unknown }).message) : '';
   return new FamilyError(KNOWN.find((code) => message.includes(code)) ?? 'network');
+}
+
+/** Consentimiento que da el adulto al unir a un niño (LOPDGDD art. 7). */
+export interface Consent {
+  /** Declara ser su madre, padre o tutor. */
+  isGuardian: boolean;
+  /** Versión de la política de privacidad que acepta. */
+  policyVersion: string;
+}
+
+/** El consentimiento que corresponde a marcar la casilla de la pantalla (con la política vigente). */
+export function guardianConsent(isGuardian: boolean): Consent {
+  return { isGuardian, policyVersion: PRIVACY_VERSION };
 }
 
 export interface FamilyChild {
@@ -67,10 +81,12 @@ export interface FamilyBackend {
   signOutAdult(): Promise<void>;
   /** Con la sesión del niño: código de un solo uso de 10 minutos. */
   createLinkCode(): Promise<string>;
-  /** Con la sesión del adulto: une al niño del código a su familia. */
-  joinWithCode(code: string): Promise<{ childId: string; nickname: string }>;
+  /** Con la sesión del adulto: une al niño del código a su familia y registra el consentimiento. */
+  joinWithCode(code: string, consent: Consent): Promise<{ childId: string; nickname: string }>;
   listChildren(): Promise<FamilyChild[]>;
   leave(childId: string): Promise<void>;
+  /** Retira el consentimiento: borra al niño con todos sus datos. */
+  withdrawConsent(childId: string): Promise<void>;
   /** Pide al servidor una sesión de ese niño y la pone en este aparato. */
   enterAsChild(childId: string): Promise<void>;
 }
@@ -98,8 +114,12 @@ export function supabaseFamilyBackend(child: SupabaseClient, adult: SupabaseClie
       if (error || typeof data !== 'string') throw toFamilyError(error);
       return data;
     },
-    async joinWithCode(code) {
-      const { data, error } = await adult.rpc('join_family_with_code', { p_code: code });
+    async joinWithCode(code, consent) {
+      const { data, error } = await adult.rpc('join_family_with_code', {
+        p_code: code,
+        p_policy_version: consent.policyVersion,
+        p_is_guardian: consent.isGuardian,
+      });
       if (error) throw toFamilyError(error);
       const r = (data ?? {}) as { child_id?: unknown; nickname?: unknown };
       return { childId: String(r.child_id ?? ''), nickname: String(r.nickname ?? '') };
@@ -122,6 +142,10 @@ export function supabaseFamilyBackend(child: SupabaseClient, adult: SupabaseClie
     },
     async leave(childId) {
       const { error } = await adult.rpc('leave_family', { p_child: childId });
+      if (error) throw toFamilyError(error);
+    },
+    async withdrawConsent(childId) {
+      const { error } = await adult.rpc('withdraw_consent', { p_child: childId });
       if (error) throw toFamilyError(error);
     },
     async enterAsChild(childId) {
@@ -176,7 +200,7 @@ export async function enterAsChildHere(family: FamilyBackend, store: KeyValueSto
  * Une al niño de este aparato a la familia del adulto con sesión (mismo aparato):
  * el niño pide el código y el adulto lo usa. Devuelve el apodo.
  */
-export async function joinThisDevice(family: FamilyBackend): Promise<string> {
+export async function joinThisDevice(family: FamilyBackend, consent: Consent): Promise<string> {
   const code = await family.createLinkCode();
-  return (await family.joinWithCode(code)).nickname;
+  return (await family.joinWithCode(code, consent)).nickname;
 }
