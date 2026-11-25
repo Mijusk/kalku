@@ -2,6 +2,13 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-25 · Nivel del personaje (#69)
+
+- **Decisiones de Luis (25 nov):** (1) acierto con pista = la mitad de XP, nunca 0; la rapidez y las rachas no dan XP; (2) XP por acierto = 10 × dificultad, niveles 2 → 400, 3 → 900, 4 → 1.500, 5 → 2.300 y luego ~30 % más por nivel hasta el 30; (3) la XP la escribe el cliente en `children.extra`, sin validar en el servidor por ahora (se validará en `answer` cuando un nivel desbloquee cosas, #71).
+- **Curva en datos:** `LEVELS` en `packages/exercises/src/levels.ts` (XP acumulada por nivel). El nivel **no se guarda**: `levelForXp(xp)` lo calcula siempre. Solo se guarda `xp`.
+- **Reglas:** fallar da 0 XP y nunca resta; `xpForAnswer` no recibe el tiempo. Tests: 1.000 respuestas con semilla fija nunca bajan XP ni nivel.
+- **Subida de nivel:** estrella en pixel art generada por código (`drawStar`) y mensaje en letra clara, es/ca; con voz si «Voz automática» está activa; sin animación con «reducir movimiento».
+
 ## 2026-11-24 · Consentimiento de los padres (#48)
 
 - **Decisiones de Luis (24 nov):** (1) sin segundo correo: basta el enlace de acceso; al unir, el adulto marca «Soy su madre, padre o tutor» y acepta la política, y el servidor exige el correo confirmado; (2) los 30 días se cuentan **sin jugar** desde `children.last_active_at`, y «Para adultos» avisa de que sin familia el progreso caduca; (3) el correo del adulto solo en `parental_consents.adult_email`, sin lectura salvo funciones del servidor.

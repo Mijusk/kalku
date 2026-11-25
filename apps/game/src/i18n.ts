@@ -20,6 +20,8 @@ const STRINGS = {
   nextBattle: { es: 'Siguiente combate', ca: 'Següent combat' },
   backToMap: { es: 'Seguir explorando', ca: 'Seguir explorant' },
   coins: { es: 'Cifras', ca: 'Xifres' },
+  level: { es: 'Nivel', ca: 'Nivell' },
+  levelUp: { es: '¡Has subido de nivel!', ca: 'Has pujat de nivell!' },
   mastery: { es: 'Dominio', ca: 'Domini' },
   gem: { es: '¡Gema de dominio!', ca: 'Gemma de domini!' },
   challenge: { es: 'Reto', ca: 'Repte' },
