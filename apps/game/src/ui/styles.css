@@ -629,3 +629,41 @@ a.btn {
     animation: none;
   }
 }
+
+/* Cartel de las zonas cerradas del mapa: letra clara, nunca pixel. */
+.zone-sign {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(440px, calc(100% - 24px));
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #fffdf5;
+  color: #1c2430;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: 1.1rem;
+}
+
+.zone-sign-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.zone-sign-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.zone-sign-gem {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+}

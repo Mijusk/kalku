@@ -16,6 +16,8 @@ const STEP_COST: Readonly<Record<TileKind, number>> = {
   tree: 8,
   // Mucho más caro que cualquier rodeo por tierra: solo se cruza si no hay otra forma de llegar.
   water: 1_000_000,
+  gate: Number.POSITIVE_INFINITY,
+  chest: 2,
   house: Number.POSITIVE_INFINITY,
   shop: Number.POSITIVE_INFINITY,
 };
@@ -60,7 +62,15 @@ export function generateRegion(region: RegionSpec, seed: number): RegionMap {
       }
     }
     const link = { x: place.x + place.piece.link.x, y: place.y + place.piece.link.y };
-    return { id, x: place.x, y: place.y, width: size.width, height: size.height, link };
+    const found: { gate?: Point; chest?: Point } = {};
+    grid.forEach((row, dy) =>
+      row.forEach((kind, dx) => {
+        if (kind === 'gate') found.gate = { x: place.x + dx, y: place.y + dy };
+        if (kind === 'chest') found.chest = { x: place.x + dx, y: place.y + dy };
+      }),
+    );
+    const zone = place.zone === undefined ? {} : { zone: place.zone };
+    return { id, x: place.x, y: place.y, width: size.width, height: size.height, link, ...found, ...zone };
   });
 
   // Claro de hierba alrededor de la entrada y de cada enlace, para que el
@@ -78,9 +88,12 @@ export function generateRegion(region: RegionSpec, seed: number): RegionMap {
   }
 
   tiles[index(entrance)] = 'path';
-  for (let s = 1; s < stops.length; s++) {
-    const from = stops[s - 1] as Point;
-    const to = stops[s] as Point;
+  // Camino principal: entrada → lugar → lugar… Una zona sale en ramal del último lugar que no es zona.
+  let anchor: Point = entrance;
+  for (const [k, place] of places.entries()) {
+    const from = anchor;
+    const to = place.link;
+    if (region.places[k]?.zone === undefined) anchor = to;
     const route = cheapestRoute(tiles, locked, width, height, index(from), index(to));
     if (route === null) {
       throw new RangeError(`No hay forma de llegar de (${from.x}, ${from.y}) a (${to.x}, ${to.y}): revisa las piezas`);

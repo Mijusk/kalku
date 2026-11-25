@@ -1,10 +1,10 @@
-import { ARENA_PRADERA, PUEBLO_PRADERA } from './pieces.js';
+import { ARENA_PRADERA, PUEBLO_PRADERA, ZONA_CUEVA, ZONA_PUENTE, ZONA_PUERTA } from './pieces.js';
 import type { RegionSpec } from './types.js';
 
 /**
  * Pradera Uno: la primera región (1.º: contar, sumas y restas hasta 20).
- * Se entra por la izquierda; el pueblo está arriba en el centro y la arena
- * del jefe abajo a la derecha.
+ * Se entra por la izquierda; el pueblo está arriba en el centro, la arena
+ * del jefe abajo a la derecha y tres zonas cerradas repartidas por el mapa.
  */
 export const PRADERA_UNO: RegionSpec = {
   id: 'pradera-uno',
@@ -20,6 +20,10 @@ export const PRADERA_UNO: RegionSpec = {
   places: [
     { piece: PUEBLO_PRADERA, x: 22, y: 6 },
     { piece: ARENA_PRADERA, x: 50, y: 26 },
+    // Zonas cerradas: se abren con gemas o nivel (requisitos en `ZONES`, @kalku/content).
+    { piece: ZONA_PUENTE, x: 8, y: 28, zone: 'puente-roto' },
+    { piece: ZONA_CUEVA, x: 42, y: 8, zone: 'cueva' },
+    { piece: ZONA_PUERTA, x: 30, y: 30, zone: 'puerta-de-piedra' },
   ],
   wildlife: {
     max: 3,

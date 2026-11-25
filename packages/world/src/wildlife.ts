@@ -36,6 +36,9 @@ function isTall(map: WorldMap, p: Point): boolean {
   return map.tiles[p.y * map.width + p.x] === 'tallGrass';
 }
 
+/** Filtro opcional de casillas: con él, las criaturas no salen ni andan por donde devuelve false (por ejemplo, zonas cerradas). */
+export type TileFilter = (p: Point) => boolean;
+
 const same = (a: Point, b: Point): boolean => a.x === b.x && a.y === b.y;
 const distance = (a: Point, b: Point): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
@@ -58,9 +61,10 @@ function spawnTile(
   taken: readonly Point[],
   hero: Point,
   rng: Rng,
+  allow: TileFilter,
 ): Point | undefined {
   const free = tallGrassTiles(map).filter(
-    (t) => distance(t, hero) >= spec.minSpawnDistance && !taken.some((o) => same(o, t)),
+    (t) => allow(t) && distance(t, hero) >= spec.minSpawnDistance && !taken.some((o) => same(o, t)),
   );
   return free.length > 0 ? rng.pick(free) : undefined;
 }
@@ -71,11 +75,12 @@ function spawn<T>(
   state: WildlifeState<T>,
   hero: Point,
   rng: Rng,
-  assign: (rng: Rng) => T,
+  assign: (rng: Rng, tile: Point) => T,
+  allow: TileFilter,
 ): WildlifeState<T> | undefined {
-  const tile = spawnTile(map, spec, state.wanderers.map((w) => w.tile), hero, rng);
+  const tile = spawnTile(map, spec, state.wanderers.map((w) => w.tile), hero, rng, allow);
   if (!tile) return undefined;
-  const wanderer: Wanderer<T> = { id: state.nextId, tile, moveIn: rng.int(0, spec.moveEveryMs), data: assign(rng) };
+  const wanderer: Wanderer<T> = { id: state.nextId, tile, moveIn: rng.int(0, spec.moveEveryMs), data: assign(rng, tile) };
   return { ...state, wanderers: [...state.wanderers, wanderer], nextId: state.nextId + 1 };
 }
 
@@ -85,11 +90,12 @@ export function createWildlife<T>(
   spec: WildlifeSpec,
   hero: Point,
   rng: Rng,
-  assign: (rng: Rng) => T,
+  assign: (rng: Rng, tile: Point) => T,
+  allow: TileFilter = () => true,
 ): WildlifeState<T> {
   let state: WildlifeState<T> = { wanderers: [], respawns: [], grace: 0, nextId: 1 };
   for (let i = 0; i < spec.max; i++) {
-    state = spawn(map, spec, state, hero, rng, assign) ?? state;
+    state = spawn(map, spec, state, hero, rng, assign, allow) ?? state;
   }
   return state;
 }
@@ -105,7 +111,8 @@ export function tickWildlife<T>(
   dtMs: number,
   hero: Point,
   rng: Rng,
-  assign: (rng: Rng) => T,
+  assign: (rng: Rng, tile: Point) => T,
+  allow: TileFilter = () => true,
 ): WildlifeState<T> {
   const moved: Wanderer<T>[] = [];
   for (const w of state.wanderers) {
@@ -113,7 +120,7 @@ export function tickWildlife<T>(
     if (current.moveIn <= 0) {
       const occupied = [...moved, ...state.wanderers.filter((o) => o.id > w.id)].map((o) => o.tile);
       const options = STEPS.map((d) => ({ x: w.tile.x + d.x, y: w.tile.y + d.y })).filter(
-        (t) => isTall(map, t) && !occupied.some((o) => same(o, t)),
+        (t) => isTall(map, t) && allow(t) && !occupied.some((o) => same(o, t)),
       );
       const tile = options.length > 0 ? rng.pick(options) : w.tile;
       current = { ...current, tile, moveIn: current.moveIn + spec.moveEveryMs };
@@ -132,7 +139,7 @@ export function tickWildlife<T>(
   // sitio libre y lejos, se queda en 0 y se reintenta en el siguiente tick.
   const waiting: number[] = [];
   for (const t of next.respawns) {
-    const spawned = t === 0 ? spawn(map, spec, next, hero, rng, assign) : undefined;
+    const spawned = t === 0 ? spawn(map, spec, next, hero, rng, assign, allow) : undefined;
     if (spawned) next = spawned;
     else waiting.push(t);
   }

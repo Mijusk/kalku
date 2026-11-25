@@ -14,6 +14,8 @@ import type { PieceSpec, TileKind } from './types.js';
  * | `C`   | casa         |
  * | `S`   | tienda       |
  * | `J`   | jefe         |
+ * | `G`   | puerta (cerrada, no se pisa hasta abrirla) |
+ * | `K`   | cofre        |
  */
 export const PIECE_LEGEND: Readonly<Record<string, TileKind>> = {
   '.': 'grass',
@@ -25,10 +27,12 @@ export const PIECE_LEGEND: Readonly<Record<string, TileKind>> = {
   C: 'house',
   S: 'shop',
   J: 'boss',
+  G: 'gate',
+  K: 'chest',
 };
 
 /** Casillas por las que se puede andar. */
-const WALKABLE: ReadonlySet<TileKind> = new Set<TileKind>(['grass', 'tallGrass', 'flowers', 'path', 'boss']);
+const WALKABLE: ReadonlySet<TileKind> = new Set<TileKind>(['grass', 'tallGrass', 'flowers', 'path', 'boss', 'chest']);
 
 export function isWalkable(kind: TileKind | undefined): boolean {
   return kind !== undefined && WALKABLE.has(kind);
@@ -104,3 +108,26 @@ export const ARENA_PRADERA: PieceSpec = {
   ],
   link: { x: 0, y: 3 },
 };
+
+/**
+ * Zona cerrada (PROVISIONAL): un claro con hierba alta y un cofre, rodeado
+ * de árboles, con una puerta (`G`) abajo. El camino llega al enlace, justo
+ * delante de la puerta. Cada zona de Pradera Uno usa esta forma con su id.
+ */
+function zonePiece(id: string): PieceSpec {
+  return {
+    id,
+    rows: [
+      'TTTTTTT',
+      'T"""""T',
+      'T".K."T',
+      'TTTGTTT',
+      '...#...',
+    ],
+    link: { x: 3, y: 4 },
+  };
+}
+
+export const ZONA_PUENTE: PieceSpec = zonePiece('zona-puente');
+export const ZONA_CUEVA: PieceSpec = zonePiece('zona-cueva');
+export const ZONA_PUERTA: PieceSpec = zonePiece('zona-puerta');

@@ -2,6 +2,16 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-25 · Zonas del mapa que se abren con gemas o nivel (#71)
+
+- **Decisiones (25 nov, Claude en modo autónomo por encargo de Luis):** (1) el cofre de cada zona da un «tesoro» cosmético (id en los datos, guardado en `treasures` y visible en la Colección); se conectará al personaje cuando existan #11/#12 y nunca da ventaja en combate; (2) dentro salen las criaturas existentes con la habilidad de reto (`challengeSkill`); las raras nuevas irán aparte, como datos; (3) requisitos provisionales, en datos: puente roto = gema de restas llevando, cueva = nivel 3, puerta de piedra = gema de sumas llevando + nivel 5.
+- **Una zona = una entrada en `ZONES` (`@kalku/content`) + un lugar con `zone` en `regions.ts` (`@kalku/world`).** La pieza se escribe como texto con `G` (puerta, no se pisa) y `K` (cofre). El mapa generado sale con la puerta cerrada y `openGate` devuelve uno nuevo con ella abierta. Las zonas salen en ramal del último lugar que no es zona, no en el camino principal.
+- **`isZoneOpen(requisito, { gems, level })` no recibe monedas:** no hay forma de abrir una zona con ellas (regla 1). La prueba de nivel no da gemas ni XP, así que no abre nada; se gana jugando.
+- **Se abre al acercarse (≤ 2 casillas) si se cumple el requisito**, con una animación de la puerta una sola vez; queda guardado en `zonesOpened` (en `children.extra`, sin migración de SQL) y no se repite. Sin «reducir movimiento» desaparece sin animar.
+- **Cartel:** HTML con letra clara y la gema dibujada («Necesitas la gema de …», «Necesitas el nivel N»), es/ca.
+- **Criaturas:** no salen ni andan dentro de una zona cerrada (filtro opcional en `wildlife.ts`); `assign` recibe la casilla para decidir la habilidad.
+- **Provisional:** las tres puertas usan el mismo dibujo de piedra y el mismo claro; falta distinguir puente, cueva y puerta con dibujos propios. El nivel no se valida en el servidor todavía (ver #69).
+
 ## 2026-11-25 · Clases con tarjetas imprimibles (#52)
 
 - **Decisiones (25 nov, tomadas por Claude en modo autónomo por encargo de Luis):** (1) del código solo se guarda el hash y una pista (sus dos primeras letras); el docente no puede volver a verlo y, si se pierde la tarjeta, regenera e imprime; (2) el QR se genera con `qrcode-generator` (MIT, sin dependencias, versión fija 2.0.4) y solo lleva `/?clase=<id>`, sin datos del alumno; (3) la tarjeta lleva impreso el apodo del docente y la hoja no se guarda en el servidor.

@@ -71,7 +71,13 @@ describe('generateRegion: Pradera Uno', () => {
 
   it('ninguna pieza se sale del mapa ni se pisa con otra', () => {
     const map = generateRegion(PRADERA_UNO, 42);
-    expect(map.places.map((p) => p.id)).toEqual(['pueblo-pradera', 'arena-pradera']);
+    expect(map.places.map((p) => p.id)).toEqual([
+      'pueblo-pradera',
+      'arena-pradera',
+      'zona-puente',
+      'zona-cueva',
+      'zona-puerta',
+    ]);
     let cellsInPieces = 0;
     for (const p of map.places) {
       expect(p.x).toBeGreaterThanOrEqual(0);

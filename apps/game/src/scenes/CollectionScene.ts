@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { collectionStatus, gemStatus, type CreatureDefinition } from '@kalku/content';
+import { collectionStatus, gemStatus, ZONES, type CreatureDefinition } from '@kalku/content';
+import { drawChest, gridToRgba, OBJECT_PX } from '@kalku/art';
 import type { Locale } from '@kalku/exercises';
 import { tr } from '../i18n';
 import { applyTextSize, loadProgress } from '../progress';
@@ -81,8 +82,48 @@ export class CollectionScene extends Phaser.Scene {
       gemGrid.append(item);
     }
 
-    root.append(title, grid, gemsTitle, gemGrid, back);
+    const treasuresTitle = document.createElement('p');
+    treasuresTitle.className = 'panel-title';
+    const owned = ZONES.filter((z) => progress.treasures.includes(z.treasure.id)).length;
+    treasuresTitle.textContent = `${tr('treasures', locale)} · ${owned}/${ZONES.length}`;
+    const treasureGrid = document.createElement('ul');
+    treasureGrid.className = 'collection-grid gem-grid';
+    for (const zone of ZONES) {
+      const has = progress.treasures.includes(zone.treasure.id);
+      const item = document.createElement('li');
+      item.className = 'collection-item gem-item';
+      item.dataset.earned = String(has);
+      const name = document.createElement('span');
+      name.className = 'collection-name';
+      name.textContent = has ? zone.treasure.name[locale] : '?';
+      item.append(this.chestCanvas(has), name);
+      if (!has) {
+        const hint = document.createElement('span');
+        hint.className = 'gem-hint';
+        hint.textContent = `${tr('treasureHint', locale)}: ${zone.name[locale]}`;
+        item.append(hint);
+      }
+      treasureGrid.append(item);
+    }
+
+    root.append(title, grid, gemsTitle, gemGrid, treasuresTitle, treasureGrid, back);
     ui.append(root);
+  }
+
+  /** Cofre dibujado por código: abierto si ya tienes el tesoro, cerrado si no. */
+  private chestCanvas(open: boolean): HTMLCanvasElement {
+    const canvas = document.createElement('canvas');
+    canvas.className = 'gem-sprite';
+    canvas.width = OBJECT_PX;
+    canvas.height = OBJECT_PX;
+    canvas.setAttribute('aria-hidden', 'true');
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const image = ctx.createImageData(OBJECT_PX, OBJECT_PX);
+      image.data.set(gridToRgba(drawChest(open)));
+      ctx.putImageData(image, 0, 0);
+    }
+    return canvas;
   }
 
   /** Primer fotograma de la criatura en un canvas HTML; en silueta si no está rescatada. */

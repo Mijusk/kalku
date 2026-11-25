@@ -1,6 +1,7 @@
 /**
  * Tipos de casilla del mapa.
- * `house`, `shop` y `boss` solo salen de piezas escritas a mano (pueblo, arena).
+ * `house`, `shop`, `boss`, `gate` (puerta de una zona cerrada) y `chest` (cofre)
+ * solo salen de piezas escritas a mano (pueblo, arena).
  */
 export type TileKind =
   | 'grass'
@@ -11,7 +12,9 @@ export type TileKind =
   | 'flowers'
   | 'house'
   | 'shop'
-  | 'boss';
+  | 'boss'
+  | 'gate'
+  | 'chest';
 
 /** Casillas que una región reparte por proporción. La hierba es lo que sobra. */
 export type FeatureKind = 'water' | 'tree' | 'tallGrass' | 'flowers';
@@ -55,6 +58,12 @@ export interface PieceSpec {
 /** Una pieza colocada en la región, con su esquina de arriba a la izquierda en (x, y). */
 export interface PlaceSpec {
   readonly piece: PieceSpec;
+  /**
+   * Id de la zona (ver `ZONES` en `@kalku/content`) si el lugar es una zona
+   * cerrada. Una zona no está en el camino principal: se llega a ella con
+   * un ramal desde el lugar anterior que no sea zona (o desde la entrada).
+   */
+  readonly zone?: string;
   readonly x: number;
   readonly y: number;
 }
@@ -95,6 +104,12 @@ export interface PlacedPiece {
   readonly width: number;
   readonly height: number;
   readonly link: Point;
+  /** Id de la zona, si el lugar es una zona cerrada. */
+  readonly zone?: string;
+  /** Casilla de la puerta (`G`) de la pieza, en coordenadas del mapa. */
+  readonly gate?: Point;
+  /** Casilla del cofre (`K`) de la pieza, en coordenadas del mapa. */
+  readonly chest?: Point;
 }
 
 /** Mapa de una región con su entrada y sus lugares. */
