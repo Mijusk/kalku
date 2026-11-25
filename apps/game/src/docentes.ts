@@ -1,4 +1,5 @@
 import { pickPrivacyLocale, readStoredProgress } from './privacyLocale';
+import { appClassBackend } from './classes';
 import { appTeacherBackend } from './teacher';
 import { TeacherPanel } from './ui/TeacherPanel';
 import './ui/styles.css';
@@ -9,5 +10,5 @@ const root = document.getElementById('teacher');
 if (root) {
   const locale = pickPrivacyLocale(location.search, readStoredProgress(), navigator.languages ?? []);
   document.documentElement.lang = locale;
-  new TeacherPanel(root, locale, { backend: appTeacherBackend(), onClose: () => location.assign('/') });
+  new TeacherPanel(root, locale, { backend: appTeacherBackend(), classBackend: appClassBackend(), onClose: () => location.assign('/') });
 }

@@ -1,27 +1,20 @@
 import type { Locale } from '@kalku/exercises';
-import { tr, type StringKey } from '../i18n';
-import { CONTRACT_URL, formatSchoolCode, loadTeacherView, registerSchool, toTeacherError, type SchoolInfo, type TeacherBackend, type TeacherErrorCode } from '../teacher';
+import { tr } from '../i18n';
+import { CONTRACT_URL, formatSchoolCode, loadTeacherView, registerSchool, toTeacherError, type SchoolInfo, type TeacherBackend } from '../teacher';
+import type { ClassBackend } from '../classes';
+import { ClassPanel } from './ClassPanel';
+import { ERROR_TEXT } from './teacherErrors';
 import { button, say, show, status, text } from './dom';
 
 export interface TeacherCallbacks {
   /** `null` sin servidor: el panel solo avisa. */
   backend: TeacherBackend | null;
+  /** Clases y tarjetas (#52). */
+  classBackend?: ClassBackend | null;
   onClose(): void;
 }
 
-const ERROR_TEXT: Record<TeacherErrorCode, StringKey> = {
-  'invalid-code': 'teacherErrInvalidCode',
-  'already-in-school': 'teacherErrInSchool',
-  'not-director': 'teacherErrNotDirector',
-  'director-cannot-leave': 'teacherErrDirectorLeave',
-  'contract-required': 'teacherErrContract',
-  'invalid-name': 'teacherErrName',
-  'email-not-confirmed': 'teacherErrEmail',
-  'not-adult': 'teacherErrNotAdult',
-  network: 'teacherErrNetwork',
-};
-
-function field(label: string, type = 'text'): HTMLInputElement {
+export function field(label: string, type = 'text'): HTMLInputElement {
   const input = document.createElement('input');
   input.type = type;
   input.className = 'nickname-input';
@@ -75,6 +68,14 @@ export class TeacherPanel {
     } finally {
       this.busy = false;
     }
+  }
+
+  private classesButton(back: () => void): HTMLButtonElement | null {
+    const { classBackend } = this.options;
+    if (!classBackend) return null;
+    return button('btn btn-primary', tr('teacherMyClasses', this.locale), () => {
+      new ClassPanel(this.root, this.locale, { backend: classBackend, onClose: back });
+    });
   }
 
   private signOutButton(backend: TeacherBackend): HTMLButtonElement {
@@ -149,7 +150,8 @@ export class TeacherPanel {
     createBox.className = 'column';
     createBox.append(text('panel-title', tr('teacherCreateTitle', locale)), name, accepts, label, link, create);
 
-    show(this.root, text('panel-title', tr('teacherTitle', locale)), feedback, joinBox, createBox, this.signOutButton(backend), this.backButton());
+    const classes = this.classesButton(() => this.showNoSchool(backend));
+    show(this.root, text('panel-title', tr('teacherTitle', locale)), feedback, ...(classes ? [classes] : []), joinBox, createBox, this.signOutButton(backend), this.backButton());
   }
 
   /** Adulto con centro. `message` y `newCode` solo al llegar de unirse, dar de alta o renovar. */
@@ -186,6 +188,8 @@ export class TeacherPanel {
         ),
       );
     }
+    const classes = this.classesButton(() => this.showSchool(backend, school));
+    if (classes) nodes.push(classes);
     nodes.push(this.signOutButton(backend), this.backButton());
     show(this.root, ...nodes);
   }

@@ -43,7 +43,7 @@ const RETENTION_CHILD: Localized = {
 
 export interface ServerDataItem {
   /** Tabla de Supabase. `auth.users` es el login anónimo. */
-  table: 'children' | 'progress' | 'answers' | 'families' | 'family_children' | 'link_codes' | 'parental_consents' | 'schools' | 'teachers' | 'school_contracts' | 'classes' | 'class_children' | 'auth.users';
+  table: 'children' | 'progress' | 'answers' | 'families' | 'family_children' | 'link_codes' | 'parental_consents' | 'schools' | 'teachers' | 'school_contracts' | 'classes' | 'class_children' | 'class_students' | 'auth.users';
   /** Columnas tal como están en `supabase/migrations/` (un test las comprueba). */
   columns: readonly string[];
   what: Localized;
@@ -242,6 +242,22 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
       ca: 'Saber quin progrés pot veure cada docent. Els infants d’una classe no s’esborren als 30 dies sense consentiment: els cobreix el contracte del centre.',
     },
     retention: RETENTION_CHILD,
+  },
+  {
+    table: 'class_students',
+    columns: ['id', 'class_id', 'nickname', 'code_hash', 'code_hint', 'animal', 'created_at'],
+    what: {
+      es: 'Los alumnos de una clase que tienen tarjeta: un apodo o iniciales (el docente no escribe apellidos), una huella irreversible del código de la tarjeta, las dos primeras letras del código y el animal secreto. El código en claro no se guarda.',
+      ca: 'Els alumnes d’una classe que tenen targeta: un malnom o inicials (el docent no escriu cognoms), una empremta irreversible del codi de la targeta, les dues primeres lletres del codi i l’animal secret. El codi en clar no es desa.',
+    },
+    purpose: {
+      es: 'Que el alumno entre en su clase con la tarjeta, sin correo ni contraseña, y que el docente reparta las tarjetas sin confundirlas.',
+      ca: 'Que l’alumne entri a la seva classe amb la targeta, sense correu ni contrasenya, i que el docent reparteixi les targetes sense confondre-les.',
+    },
+    retention: {
+      es: 'Hasta que el docente quite al alumno, borre la clase o borre su cuenta.',
+      ca: 'Fins que el docent tregui l’alumne, esborri la classe o esborri el seu compte.',
+    },
   },
 ];
 

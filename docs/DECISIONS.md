@@ -2,6 +2,15 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-25 · Clases con tarjetas imprimibles (#52)
+
+- **Decisiones de Luis (25 nov):** (1) del código solo se guarda el hash y una pista (sus dos primeras letras); el docente no puede volver a verlo y, si se pierde la tarjeta, regenera e imprime; (2) el QR se genera con `qrcode-generator` (MIT, sin dependencias, versión fija 2.0.4) y solo lleva `/?clase=<id>`, sin datos del alumno; (3) la tarjeta lleva impreso el apodo del docente y la hoja no se guarda en el servidor.
+- **Alumnos de clase aparte de `children`:** un alumno con tarjeta aún no ha entrado nunca, así que tiene su propia tabla `class_students` (apodo de 1 a 20 letras, hash, pista, animal). Entrar con la tarjeta (siguiente issue) lo enlazará con un niño. Mismo límite de 30 con trigger. RLS forzada: lee quien lee la clase; escribe solo el docente que la creó, por funciones (`create_class`, `add_student`, `regenerate_student_code`, `remove_student`). La dirección ve, no escribe. El cliente no puede leer el hash.
+- **Códigos:** `PALABRA-NN` con una lista propia de 60 palabras sin tildes (`packages/content/src/classCodes.ts`, con test de vetadas y repetidas) y 90 números: 5.400 códigos por clase. Se generan con `createRng(randomSeed())` en el aparato del docente; el hash es sha-256 de `<id de la clase>:<CÓDIGO>` (la clase hace de sal) y es único por clase. Si el servidor dice `code-taken`, se prueba con otro. 6 animales secretos como datos con nombre es/ca.
+- **Regenerar** cambia código y animal; el anterior deja de existir porque ya no hay nada que lo reconozca.
+- **Impresión:** hojas A4 de 8 tarjetas (2×4, 105×74,25 mm) con CSS `@media print`, cada tarjeta en castellano y catalán. Los códigos en claro solo viven en memoria hasta cerrar la página: hay que imprimir antes de salir.
+- **Privacidad:** el apodo avisa si parece nombre y apellido (el docente puede seguir). `class_students` está en la política de privacidad; no se cambia su versión porque solo afecta a datos de docentes y alumnos de centro, cubiertos por el contrato del centro.
+
 ## 2026-11-25 · Cuentas de centro y de docente (#51)
 
 - **Decisiones de Luis (25 nov):** (1) la pantalla es una página aparte dentro de `apps/game` (`docentes.html`, sin Phaser) y se moverá a `apps/panel/` en el bloque 9; (2) aquí solo van las tablas `classes` y `class_children`, con permisos y límite de 30; crear clases desde la pantalla, tarjetas y QR van en #52; (3) el código del centro no caduca solo: el director lo renueva y el anterior deja de valer; (4) el borrado a los 30 días (#48) no toca a los niños que están en `class_children`.
