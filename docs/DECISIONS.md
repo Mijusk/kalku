@@ -344,3 +344,10 @@ Nombre provisional anterior: Mundo Cifra. «Kalku» viene de cálculo / càlcul;
 ## 2026-11-04 · Ajustes del jugador: tiempo, tamaño de texto y voz
 
 Los ajustes (`settings`) viven en el progreso: tiempo sí/no, texto normal/grande y voz automática. Sin tiempo, `BattleScene` no mide y llama a `scoreAnswer` sin `elapsedMs`: sin bonus de rapidez y con los mismos puntos que responder despacio (principio 3). No se sube `version` del progreso: al cargar se completan los valores que falten o que no sean válidos. El idioma no está en `settings`: sigue en `locale`, aunque se cambia desde la misma pantalla. El ajuste de voz solo se guarda; la lectura en voz alta irá en otra tarea.
+
+## Cola de respuestas sin conexión (#54)
+
+- **Toda respuesta pasa por una cola** (IndexedDB; `localStorage` si el navegador no la ofrece) antes de enviarse, y sale solo cuando el servidor la acepta o la rechaza. Se envían de una en una y en el orden jugado; se vacía tras cada respuesta, al arrancar (antes de bajar el dominio, para no pisar lo pendiente) y al evento `online`.
+- **`409 repeated` cuenta como hecha**: el servidor ya la tenía (`unique (child_id, seed)`), así reenviar una cola no duplica nada.
+- **Rechazo (400/422):** sale de la cola y el dominio local se sustituye por el del servidor, solo el dominio (monedas y ajustes siguen locales). No se avisa al niño. Otros errores (red, 5xx, 401/404) paran el envío y la cola se conserva.
+- **Aviso «Sin conexión · se guardará al volver»** (es/ca), sin contador, mientras no haya red o queden respuestas pendientes. No bloquea el juego.

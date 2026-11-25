@@ -106,6 +106,7 @@ kalku/
             ├── progress.ts     Progreso y ajustes: copia local (localStorage) y conversión a filas del servidor (toServerRows / fromServerRows)
             ├── adultGate.ts    Cuenta con semilla (tipo 47 × 6) que da paso a «Para adultos»
             ├── sync.ts         Cuenta anónima y sincronización con Supabase: bajar al arrancar, migrar lo local una vez, subir tras cada guardado; sin red sigue en local
+            ├── offlineQueue.ts Cola de respuestas pendientes (IndexedDB, con localStorage de reserva) para jugar sin conexión
             ├── teacher.ts      Cuentas de centro y docente: enlace por correo, alta de centro con contrato, código; TeacherBackend falso en los tests
             ├── classes.ts      Clases y tarjetas: alta de alumnos con código (hash sha-256), regenerar, ClassBackend falso en los tests
             ├── docentes.ts     Arranca la página /docentes (TeacherPanel)
@@ -123,7 +124,7 @@ kalku/
             │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara
             │   ├── BattleScene.ts  Combate por turnos de prueba, con una criatura generada que respira y parpadea; botón «Rescatar» con poca vida
             │   └── CollectionScene.ts Colección: criaturas rescatadas y las que faltan en silueta (HTML), se abre desde el mapa
-            └── ui/             Interfaz HTML encima del canvas
+            └── ui/             Interfaz HTML encima del canvas (incluye el aviso «sin conexión»)
                 ├── ExercisePanel.ts  Ejercicio, altavoz, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio
                 ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz y «Para adultos»

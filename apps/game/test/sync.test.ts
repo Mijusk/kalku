@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createProfile } from '@kalku/exercises';
+import { memoryQueue } from '../src/offlineQueue';
 import { defaultProgress, type PlayerProgress } from '../src/progress';
 import {
   AnswerRejected,
@@ -15,7 +16,7 @@ import {
   parseServerSkills,
   PENDING_KEY,
   pullProgress,
-  submitAnswer,
+  drainQueue,
   type AnswerBody,
   type Backend,
   type KeyValueStore,
@@ -306,8 +307,10 @@ describe('respuestas al servidor (#46)', () => {
   it('devuelve el dominio que calcula el servidor', async () => {
     const b = fakeBackend();
     b.answerWith = () => ({ 'add-within-10': { mastery: 8, attempts: 1, correct: 1 } });
-    const r = await submitAnswer(b, memoryStore({ [NICKNAME_KEY]: 'Zorro' }), defaultProgress(), body);
-    expect(r).toEqual({ 'add-within-10': { mastery: 8, attempts: 1, correct: 1 } });
+    const q = memoryQueue();
+    await q.add(body);
+    const r = await drainQueue(b, memoryStore({ [NICKNAME_KEY]: 'Zorro' }), q);
+    expect(r.skills).toEqual({ 'add-within-10': { mastery: 8, attempts: 1, correct: 1 } });
     expect(b.answers).toEqual([body]);
   });
 
@@ -325,16 +328,24 @@ describe('respuestas al servidor (#46)', () => {
     const b = fakeBackend();
     b.answerWith = { reject: 'no-child' };
     const store = memoryStore({ [NICKNAME_KEY]: 'Zorro' });
-    const r = await submitAnswer(b, store, defaultProgress(), body);
+    const q = memoryQueue();
+    await q.add(body);
+    const r = await drainQueue(b, store, q);
     expect(b.saves).toHaveLength(1);
     expect(b.answers).toHaveLength(2);
-    expect(r).toEqual({ 'add-within-10': { mastery: 8, attempts: 1, correct: 1 } });
+    expect(r.skills).toEqual({ 'add-within-10': { mastery: 8, attempts: 1, correct: 1 } });
   });
 
-  it.each([['rechazo', { reject: 'exercise-mismatch' }], ['sin red', 'offline' as const]])('con %s devuelve null y no lanza', async (_n, how) => {
+  it.each([['rechazo', { reject: 'exercise-mismatch' }, 0], ['sin red', 'offline' as const, 1]])('con %s no lanza y %s respuestas se quedan en la cola', async (_n, how, left) => {
     const b = fakeBackend();
     b.answerWith = how;
-    await expect(submitAnswer(b, memoryStore({ [NICKNAME_KEY]: 'Zorro' }), defaultProgress(), body)).resolves.toBeNull();
+    const q = memoryQueue();
+    await q.add(body);
+    const r = await drainQueue(b, memoryStore({ [NICKNAME_KEY]: 'Zorro' }), q);
+    // Con rechazo se baja el dominio del servidor (aquí vacío); sin red no llega nada.
+    expect(r.skills).toEqual(left === 0 ? {} : null);
+    expect(r.left).toBe(left);
+    expect(await q.all()).toHaveLength(left);
   });
 
   it('parseServerSkills ignora lo que no es un dominio válido', () => {
