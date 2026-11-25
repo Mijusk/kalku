@@ -16,7 +16,7 @@ kalku/
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
 │   ├── workflows/supabase.yml  CI de la base de datos: migraciones desde cero + tests pgTAP (si cambia supabase/)
-│   ├── workflows/supabase-migrar.yml Manual (solo Luis): aplica las migraciones al proyecto real
+│   ├── workflows/supabase-migrar.yml Aplica las migraciones y despliega las funciones al proyecto real (solo al fusionar en main o a mano)
 │   ├── workflows/claude.yml    Claude desde las issues: etiquetas plan/dev, /revisar tras CodeRabbit, @claude
 │   ├── ISSUE_TEMPLATE/tarea.md Plantilla de issue de tarea
 │   └── pull_request_template.md Plantilla de PR (Closes #, cómo probar, criterios)
