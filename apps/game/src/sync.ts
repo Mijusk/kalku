@@ -10,6 +10,7 @@ import {
   writeLocalProgress,
   type PlayerProgress,
 } from './progress';
+import { CLASS_DEVICE_KEY } from './classDevice';
 import { getSupabase } from './supabase';
 
 /**
@@ -283,7 +284,7 @@ export async function needsNickname(backend: Backend | null, store: KeyValueStor
 }
 
 /** Claves de localStorage que son del niño: se borran con la cuenta. */
-export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING_KEY, OWNER_KEY] as const;
+export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING_KEY, OWNER_KEY, CLASS_DEVICE_KEY] as const;
 
 /**
  * Marca la copia local como del niño `userId`. Si era de otro niño, la borra antes:
@@ -321,11 +322,23 @@ export function appBackend(): Backend | null {
   return backend;
 }
 
+let activePusher: { flush(): Promise<void> } | undefined;
+
+/** Sube ya lo que esté pendiente (por ejemplo, antes de salir de una clase). Nunca lanza. */
+export async function flushPending(): Promise<void> {
+  try {
+    await activePusher?.flush();
+  } catch {
+    // Sin red: lo pendiente se pierde al salir (se avisa en la decisión de #53).
+  }
+}
+
 /** Arranque del juego: baja el progreso y empieza a subir cada guardado. */
 export async function startSync(): Promise<void> {
   const b = appBackend();
   if (!b || typeof localStorage === 'undefined') return;
   const pusher = createPusher(b, localStorage);
+  activePusher = pusher;
   onProgressSaved((p) => pusher.push(p));
   await pullProgress(b, localStorage);
 }

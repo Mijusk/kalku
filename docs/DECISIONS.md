@@ -2,6 +2,16 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-25 · Entrar en la clase con apodo + animal o con el código (#53)
+
+- **Decisiones (25 nov, de Luis en la issue):** (1) límite de intentos en el servidor por alumno: tras 3 fallos seguidos, 30 s, luego 1 min y 5 min como tope; un acierto lo pone a cero y un fallo de hace más de una hora no cuenta; sin pantalla de desbloqueo (el docente regenera la tarjeta si hace falta); (2) con el QR o el id de la clase solo se ven apodos, nunca hash, pista ni animal; (3) al salir se sube lo pendiente 3 s como mucho y luego se borra todo lo local, haya red o no (la última partida sin subir se pierde); (4) `class-session` firma con `KALKU_JWT_SECRET` y se despliega sola desde `supabase-migrar.yml`.
+- **Quien comprueba es el servidor.** La función SQL `class_login` (solo `service_role`) mira el animal o el hash, cuenta los fallos con la fila bloqueada (sin carreras) y devuelve el niño del alumno. La Edge Function `class-session` solo valida la petición, calcula el hash y firma la sesión (un día, sin refresco). Sin `verify_jwt`: el niño aún no tiene sesión. El mismo mensaje para «no existe» y «no es tu animal».
+- **El niño nace al primer acceso:** `class_students.child_id` se rellena entonces, y se crean su cuenta anónima, su `children` y su `class_children`; así el docente ve su progreso con los permisos de #51. Regenerar la tarjeta no cambia su niño: conserva el progreso.
+- **Código de la tarjeta:** además del límite por alumno, hay otro por clase (`class_login_limits`) para los códigos que no existen: tras 10 seguidos, 30 s, 1 min y 5 min; sin él, quien tuviera el QR podría probar los 5.400 códigos. 10 y no 3 para que un error de tecleo de un niño no frene a la clase.
+- **Aparato compartido:** si la dirección lleva `?clase` (QR o «Entro con mi clase»), la sesión de Supabase se guarda en `sessionStorage`, no en `localStorage`. La copia local del progreso sí va en `localStorage` (jugar sin red) y se marca con `kalku:class-device`. «Salir» la borra (y la sesión). Si cierran la pestaña sin salir, la copia queda marcada pero sin sesión: al abrir el juego se borra. Entrar un alumno distinto borra siempre lo del anterior.
+- **Sin código corto de clase:** las clases no tienen un código corto escribible (solo su id). Si no hay QR se pide el enlace de la tarjeta o el id de la clase. Un código corto de clase pediría esquema y pantalla del docente: queda como idea para una issue aparte.
+- **Animales con dibujo:** cada animal secreto lleva un emoji (dato en `SECRET_ANIMALS`) para que los reconozca un niño que lee poco; la tarjeta impresa sigue con el nombre.
+
 ## 2026-11-25 · Clases con tarjetas imprimibles (#52)
 
 - **Decisiones (25 nov, tomadas por Claude en modo autónomo por encargo de Luis):** (1) del código solo se guarda el hash y una pista (sus dos primeras letras); el docente no puede volver a verlo y, si se pierde la tarjeta, regenera e imprime; (2) el QR se genera con `qrcode-generator` (MIT, sin dependencias, versión fija 2.0.4) y solo lleva `/?clase=<id>`, sin datos del alumno; (3) la tarjeta lleva impreso el apodo del docente y la hoja no se guarda en el servidor.

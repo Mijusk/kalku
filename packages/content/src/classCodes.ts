@@ -28,17 +28,19 @@ const BANNED: readonly string[] = [
 
 export interface SecretAnimal {
   id: string;
+  /** Dibujo para que lo reconozca un niño que aún lee poco (en la pantalla de entrada a la clase). */
+  emoji: string;
   name: Record<Locale, string>;
 }
 
 /** Los 6 animales secretos entre los que se elige uno por alumno (datos: añadir uno no toca lógica). */
 export const SECRET_ANIMALS: readonly SecretAnimal[] = [
-  { id: 'fox', name: { es: 'Zorro', ca: 'Guineu' } },
-  { id: 'owl', name: { es: 'Búho', ca: 'Mussol' } },
-  { id: 'frog', name: { es: 'Rana', ca: 'Granota' } },
-  { id: 'whale', name: { es: 'Ballena', ca: 'Balena' } },
-  { id: 'hedgehog', name: { es: 'Erizo', ca: 'Eriçó' } },
-  { id: 'turtle', name: { es: 'Tortuga', ca: 'Tortuga' } },
+  { id: 'fox', emoji: '🦊', name: { es: 'Zorro', ca: 'Guineu' } },
+  { id: 'owl', emoji: '🦉', name: { es: 'Búho', ca: 'Mussol' } },
+  { id: 'frog', emoji: '🐸', name: { es: 'Rana', ca: 'Granota' } },
+  { id: 'whale', emoji: '🐋', name: { es: 'Ballena', ca: 'Balena' } },
+  { id: 'hedgehog', emoji: '🦔', name: { es: 'Erizo', ca: 'Eriçó' } },
+  { id: 'turtle', emoji: '🐢', name: { es: 'Tortuga', ca: 'Tortuga' } },
 ];
 
 export interface StudentCode {

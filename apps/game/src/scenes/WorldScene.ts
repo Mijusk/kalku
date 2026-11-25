@@ -17,6 +17,8 @@ import { tr } from '../i18n';
 import { loadProgress } from '../progress';
 import { WORLD_STATE_KEY, type EncounterData, type WildData, type WorldState } from '../worldState';
 import { findBuildings, tilemapData } from '@kalku/art';
+import { activeClassId } from '../classDevice';
+import { appClassLoginBackend, leaveSharedDevice } from '../classLogin';
 import { ANIMATION_MS, buildingTexture, TILE_SIZE, TILESET_KEYS } from '../art/textures';
 
 /** Semilla fija de Pradera Uno: todos los niños ven el mismo mapa. */
@@ -104,6 +106,24 @@ export class WorldScene extends Phaser.Scene {
     button.addEventListener('pointerdown', (e) => e.stopPropagation());
     button.addEventListener('click', () => this.openCollection());
     ui.replaceChildren(button);
+    // En un aparato de clase (#53), «Salir» deja el aparato limpio para el siguiente alumno.
+    if (activeClassId(sessionStorage) !== null) {
+      const leave = document.createElement('button');
+      leave.type = 'button';
+      leave.className = 'btn btn-small world-button world-button-left';
+      leave.textContent = tr('classLeave', loadProgress().locale);
+      leave.addEventListener('pointerdown', (e) => e.stopPropagation());
+      leave.addEventListener('click', () => void this.leaveClass(leave));
+      ui.append(leave);
+    }
+  }
+
+  private async leaveClass(leave: HTMLButtonElement): Promise<void> {
+    leave.disabled = true;
+    leave.textContent = tr('classLeaving', loadProgress().locale);
+    const classId = await leaveSharedDevice(appClassLoginBackend(), localStorage, sessionStorage);
+    // Se recarga la página: sin memoria del alumno anterior y lista para el QR de la clase.
+    window.location.assign(classId ? `${window.location.pathname}?clase=${encodeURIComponent(classId)}` : window.location.pathname);
   }
 
   private openCollection(): void {

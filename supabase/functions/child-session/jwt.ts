@@ -21,14 +21,14 @@ export async function signJwt(payload: Record<string, unknown>, secret: string):
 export const CHILD_SESSION_DAYS = 7;
 
 /** Claims de la sesión de un niño: el mismo `sub` que su cuenta anónima, marcada como anónima. */
-export function childClaims(childId: string, issuer: string, nowSeconds: number): Record<string, unknown> {
+export function childClaims(childId: string, issuer: string, nowSeconds: number, days = CHILD_SESSION_DAYS): Record<string, unknown> {
   return {
     aud: 'authenticated',
     role: 'authenticated',
     sub: childId,
     iss: issuer,
     iat: nowSeconds,
-    exp: nowSeconds + CHILD_SESSION_DAYS * 24 * 3600,
+    exp: nowSeconds + days * 24 * 3600,
     is_anonymous: true,
     app_metadata: { provider: 'anonymous', providers: ['anonymous'] },
     user_metadata: {},

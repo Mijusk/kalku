@@ -33,3 +33,10 @@ entrypoint = "./functions/answer/dist/index.js"
 enabled = true
 verify_jwt = true
 entrypoint = "./functions/child-session/dist/index.js"
+
+# El niño entra en su clase con apodo + animal o con el código de la tarjeta (#53). Necesita el
+# mismo secreto KALKU_JWT_SECRET. Sin verify_jwt: el niño aún no tiene sesión (o la tiene caducada).
+[functions.class-session]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/class-session/dist/index.js"

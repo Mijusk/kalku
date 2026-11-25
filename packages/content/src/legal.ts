@@ -43,7 +43,7 @@ const RETENTION_CHILD: Localized = {
 
 export interface ServerDataItem {
   /** Tabla de Supabase. `auth.users` es el login anónimo. */
-  table: 'children' | 'progress' | 'answers' | 'families' | 'family_children' | 'link_codes' | 'parental_consents' | 'schools' | 'teachers' | 'school_contracts' | 'classes' | 'class_children' | 'class_students' | 'auth.users';
+  table: 'children' | 'progress' | 'answers' | 'families' | 'family_children' | 'link_codes' | 'parental_consents' | 'schools' | 'teachers' | 'school_contracts' | 'classes' | 'class_children' | 'class_students' | 'class_login_limits' | 'auth.users';
   /** Columnas tal como están en `supabase/migrations/` (un test las comprueba). */
   columns: readonly string[];
   what: Localized;
@@ -245,10 +245,10 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
   },
   {
     table: 'class_students',
-    columns: ['id', 'class_id', 'nickname', 'code_hash', 'code_hint', 'animal', 'created_at'],
+    columns: ['id', 'class_id', 'nickname', 'code_hash', 'code_hint', 'animal', 'created_at', 'child_id', 'failed_attempts', 'last_failed_at', 'locked_until'],
     what: {
-      es: 'Los alumnos de una clase que tienen tarjeta: un apodo o iniciales (el docente no escribe apellidos), una huella irreversible del código de la tarjeta, las dos primeras letras del código y el animal secreto. El código en claro no se guarda.',
-      ca: 'Els alumnes d’una classe que tenen targeta: un malnom o inicials (el docent no escriu cognoms), una empremta irreversible del codi de la targeta, les dues primeres lletres del codi i l’animal secret. El codi en clar no es desa.',
+      es: 'Los alumnos de una clase que tienen tarjeta: un apodo o iniciales (el docente no escribe apellidos), una huella irreversible del código de la tarjeta, las dos primeras letras del código y el animal secreto. El código en claro no se guarda. Cuando el alumno entra por primera vez, se guarda el enlace con su cuenta de niño y, para frenar a quien pruebe animales al azar, cuántos fallos seguidos lleva y hasta cuándo debe esperar.',
+      ca: 'Els alumnes d’una classe que tenen targeta: un malnom o inicials (el docent no escriu cognoms), una empremta irreversible del codi de la targeta, les dues primeres lletres del codi i l’animal secret. El codi en clar no es desa. Quan l’alumne entra per primera vegada, es desa l’enllaç amb el seu compte d’infant i, per frenar qui provi animals a l’atzar, quants errors seguits porta i fins quan ha d’esperar.',
     },
     purpose: {
       es: 'Que el alumno entre en su clase con la tarjeta, sin correo ni contraseña, y que el docente reparta las tarjetas sin confundirlas.',
@@ -257,6 +257,22 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
     retention: {
       es: 'Hasta que el docente quite al alumno, borre la clase o borre su cuenta.',
       ca: 'Fins que el docent tregui l’alumne, esborri la classe o esborri el seu compte.',
+    },
+  },
+  {
+    table: 'class_login_limits',
+    columns: ['class_id', 'failed_attempts', 'last_failed_at', 'locked_until'],
+    what: {
+      es: 'Por clase: cuántos códigos de tarjeta que no existen se han probado seguidos y hasta cuándo se espera. Ningún dato de personas.',
+      ca: 'Per classe: quants codis de targeta que no existeixen s’han provat seguits i fins quan s’espera. Cap dada de persones.',
+    },
+    purpose: {
+      es: 'Evitar que alguien pruebe códigos de tarjeta al azar para entrar en una clase.',
+      ca: 'Evitar que algú provi codis de targeta a l’atzar per entrar en una classe.',
+    },
+    retention: {
+      es: 'Hasta que el docente borre la clase o su cuenta.',
+      ca: 'Fins que el docent esborri la classe o el seu compte.',
     },
   },
 ];

@@ -111,7 +111,9 @@ export class NicknameScene extends Phaser.Scene {
         () => this.render(root, progress),
       ),
     );
-    root.replaceChildren(text('panel-title', tr('nicknameTitle', locale)), text('panel-feedback', tr('nicknameHint', locale)), choices, input, warning, go, family);
+    // Un alumno de clase entra con la tarjeta: la página se recarga como aparato de clase (sesión solo en esta pestaña).
+    const classroom = button('btn btn-small', tr('classLoginMine', locale), () => window.location.assign(`${window.location.pathname}?clase`));
+    root.replaceChildren(text('panel-title', tr('nicknameTitle', locale)), text('panel-feedback', tr('nicknameHint', locale)), choices, input, warning, go, classroom, family);
     refresh();
   }
 }
