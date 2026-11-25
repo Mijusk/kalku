@@ -26,6 +26,11 @@ export type TeacherErrorCode =
   | 'invalid-name'
   | 'email-not-confirmed'
   | 'not-adult'
+  | 'not-your-class'
+  | 'invalid-nickname'
+  | 'code-taken'
+  | 'class-full'
+  | 'invalid-student'
   | 'network';
 
 const KNOWN: readonly TeacherErrorCode[] = [
@@ -37,6 +42,11 @@ const KNOWN: readonly TeacherErrorCode[] = [
   'invalid-name',
   'email-not-confirmed',
   'not-adult',
+  'not-your-class',
+  'invalid-nickname',
+  'code-taken',
+  'class-full',
+  'invalid-student',
 ];
 
 export class TeacherError extends Error {

@@ -11,7 +11,7 @@ kalku/
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
-├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato) y tests/ (pgTAP: permisos, privacidad, familias, consentimiento y centros/docentes)
+├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato) y tests/ (pgTAP: permisos, privacidad, familias, consentimiento y centros/docentes y alumnos de clase)
 ├── scripts/bundle-function.mjs Empaqueta la Edge Function con @kalku/exercises dentro (`npm run build:function`)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
@@ -82,6 +82,7 @@ kalku/
 │       │   ├── gems.ts         gemStatus: una gema por habilidad de SKILLS, ganada o no
 │       │   ├── creatures.ts    Familias (sumus, restus, problemus) y criaturas de Pradera Uno con sus piezas (`look`); creaturesForSkill; validateCreatures
 │       │   ├── collection.ts   Rescate y colección: canRescue (25 % de vida, nunca jefes), addToCollection sin mutar, parseCollection, collectionStatus
+│       │   ├── classCodes.ts   Códigos de alumno «LUNA-47» (lista de palabras propia), 6 animales secretos y generateStudentCode sin repetir
 │       │   ├── legal.ts        Textos legales como datos: política es/ca, versión para niños, datos del servidor, subencargados, LEGAL_DRAFT
 │       │   └── weakness.ts     Debilidad por operación inversa (damageMultiplier; los problemus no tienen) y contador de encuentros para el cartel
 │       └── test/             Tests con vitest
@@ -90,7 +91,7 @@ kalku/
     └── game/                 @kalku/game: el juego, web instalable (PWA)
         ├── index.html          Contenedores #game (canvas) y #ui (HTML)
         ├── privacidad.html     Página /privacidad (entrada aparte de Vite, sin Phaser)
-        ├── docentes.html       Página /docentes: alta de centro y unirse con código (entrada aparte, sin Phaser)
+        ├── docentes.html       Página /docentes: alta de centro, unirse con código, clases y tarjetas (entrada aparte, sin Phaser)
         ├── vite.config.ts      Vite + PWA (manifest y service worker)
         ├── public/             Ficheros estáticos (icono, _headers de caché para Cloudflare Pages)
         └── src/
@@ -103,6 +104,7 @@ kalku/
             ├── adultGate.ts    Cuenta con semilla (tipo 47 × 6) que da paso a «Para adultos»
             ├── sync.ts         Cuenta anónima y sincronización con Supabase: bajar al arrancar, migrar lo local una vez, subir tras cada guardado; sin red sigue en local
             ├── teacher.ts      Cuentas de centro y docente: enlace por correo, alta de centro con contrato, código; TeacherBackend falso en los tests
+            ├── classes.ts      Clases y tarjetas: alta de alumnos con código (hash sha-256), regenerar, ClassBackend falso en los tests
             ├── docentes.ts     Arranca la página /docentes (TeacherPanel)
             ├── privacidad.ts   Pinta la política de privacidad (idioma, versión, tablas) desde @kalku/content
             ├── privacyLocale.ts Elige el idioma de /privacidad: ?lang=, ajuste guardado o navegador

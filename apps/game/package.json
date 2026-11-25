@@ -16,6 +16,7 @@
     "@kalku/exercises": "0.1.0",
     "@kalku/world": "0.1.0",
     "@supabase/supabase-js": "^2.119.2",
-    "phaser": "3.90.0"
+    "phaser": "3.90.0",
+    "qrcode-generator": "2.0.4"
   }
 }
