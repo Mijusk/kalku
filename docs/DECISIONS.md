@@ -2,6 +2,17 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-25 · Cuentas de centro y de docente (#51)
+
+- **Decisiones de Luis (25 nov):** (1) la pantalla es una página aparte dentro de `apps/game` (`docentes.html`, sin Phaser) y se moverá a `apps/panel/` en el bloque 9; (2) aquí solo van las tablas `classes` y `class_children`, con permisos y límite de 30; crear clases desde la pantalla, tarjetas y QR van en #52; (3) el código del centro no caduca solo: el director lo renueva y el anterior deja de valer; (4) el borrado a los 30 días (#48) no toca a los niños que están en `class_children`.
+- **Mismo patrón que la familia:** el docente es un adulto con enlace de correo (cliente de adulto, `is_adult()`); las tablas tienen RLS forzada, el adulto solo lee y todo cambio va por funciones `security definer` (`create_school`, `rotate_school_code`, `join_school_with_code`, `leave_school`). Un niño (anónimo) no puede ejecutar ninguna.
+- **Tablas:** `schools` (nombre y hash del código; el cliente no puede leer el hash), `teachers` (un adulto está en un solo centro o en ninguno; rol `director` o `docente`), `school_contracts` (versión del contrato, fecha y quién lo aceptó, por id), `classes` (de un docente, con o sin centro) y `class_children` (clave primaria = niño: una sola clase; máximo 30 con un trigger que bloquea la fila de la clase). Ninguna guarda correo ni nombre real.
+- **Alta de centro:** exige correo confirmado, nombre y aceptar el contrato de encargo (`CONTRACT_VERSION` en `@kalku/content`, enlazado desde la pantalla al texto de `docs/legal/`, borrador pendiente de revisión legal). Quien lo crea es director. El código (8 caracteres, como el de los niños) solo se muestra una vez, al crearlo o renovarlo; en la base solo queda el hash.
+- **Permisos:** el docente lee sus clases, y de sus alumnos la ficha y el dominio; nunca las respuestas. El director lee además las clases de los docentes de su centro. Un docente sin centro tiene sus clases igual. Un docente no puede estar en dos centros, y el director no puede dejar el suyo (nadie renovaría el código); un docente que sale conserva sus clases.
+- **Un niño, una clase.** Si más adelante hace falta que esté en varias, se cambia la clave de `class_children`.
+- **Política de privacidad 0.3** (borrador): tablas nuevas, el centro como responsable y Kalku como encargado, y el correo del docente en el sistema de acceso. La exportación del niño incluye su fila de `class_children`.
+- **Pendiente de Luis:** el contrato del centro sigue siendo una plantilla sin revisar por un abogado; hasta entonces no hay que dar de alta centros reales.
+
 ## 2026-11-24 · Consentimiento de los padres (#48)
 
 - **Decisiones de Luis (24 nov):** (1) sin segundo correo: basta el enlace de acceso; al unir, el adulto marca «Soy su madre, padre o tutor» y acepta la política, y el servidor exige el correo confirmado; (2) los 30 días se cuentan **sin jugar** desde `children.last_active_at`, y «Para adultos» avisa de que sin familia el progreso caduca; (3) el correo del adulto solo en `parental_consents.adult_email`, sin lectura salvo funciones del servidor.
