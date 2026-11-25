@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { createPixelTexture, HERO, PALETTE } from '../art/pixelArt';
 import { createArtTextures } from '../art/textures';
+import { activeClassId, classIdFromSearch, wipeAbandonedClassData } from '../classDevice';
 import { loadProgress } from '../progress';
-import { appBackend, needsNickname, startSyncWithTimeout } from '../sync';
+import { LOCAL_KEYS, appBackend, clearAnswerQueue, needsNickname, startSyncWithTimeout } from '../sync';
 
 /** Carga (o genera) todas las texturas antes de empezar. */
 export class BootScene extends Phaser.Scene {
@@ -20,7 +21,16 @@ export class BootScene extends Phaser.Scene {
     createArtTextures(this);
 
     // El juego empieza en el mapa. Para desarrollo, el combate de prueba sigue en ?combate.
-    const battle = new URLSearchParams(window.location.search).has('combate');
+    const params = new URLSearchParams(window.location.search);
+    const battle = params.has('combate');
+    // Aparato de clase (#53): si una pestaña anterior dejó datos de un alumno sin salir, se borran.
+    if (wipeAbandonedClassData(localStorage, sessionStorage, LOCAL_KEYS)) void clearAnswerQueue();
+    // Con el QR de la tarjeta (`?clase=<id>`) o «Entro con mi clase» (`?clase`), el niño elige quién es.
+    // Si ya hay un alumno dentro en esta pestaña, sigue jugando.
+    if (!battle && params.has('clase') && activeClassId(sessionStorage) === null) {
+      this.scene.start('classLogin', { classId: classIdFromSearch(window.location.search) });
+      return;
+    }
     // Sin cuenta, primero el apodo (nunca un nombre real ni correo). ?combate se lo salta.
     if (!battle && (await needsNickname(appBackend(), localStorage))) {
       this.scene.start('nickname');

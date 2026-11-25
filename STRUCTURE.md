@@ -11,7 +11,7 @@ kalku/
 ├── tsconfig.base.json        Opciones de TypeScript comunes (estricto)
 ├── tsconfig.json             Referencias a los proyectos (tsc -b)
 ├── .coderabbit.yaml          Configuración de la revisión automática de PRs (CodeRabbit)
-├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato), functions/weekly-summary/ (resumen semanal por Brevo) y functions/unsubscribe/ (baja en un clic) y tests/ (pgTAP: permisos, privacidad, familias, consentimiento y centros/docentes y alumnos de clase)
+├── supabase/                 Servidor: config.toml, migrations/ (tablas y RLS), functions/answer/ (Edge Function que corrige respuestas), functions/child-session/ (el adulto entra como su niño en otro aparato), functions/class-session/ (el alumno entra en su clase con animal o código), functions/weekly-summary/ (resumen semanal por Brevo), functions/unsubscribe/ (baja en un clic) y tests/ (pgTAP: permisos, privacidad, familias, consentimiento, centros/docentes, alumnos de clase, entrar en clase y resumen semanal)
 ├── scripts/bundle-function.mjs Empaqueta la Edge Function con @kalku/exercises dentro (`npm run build:function`)
 ├── .github/
 │   ├── workflows/ci.yml        CI: typecheck + tests + build en cada push y PR
@@ -112,6 +112,8 @@ kalku/
             ├── offlineQueue.ts Cola de respuestas pendientes (IndexedDB, con localStorage de reserva) para jugar sin conexión
             ├── teacher.ts      Cuentas de centro y docente: enlace por correo, alta de centro con contrato, código; TeacherBackend falso en los tests
             ├── classes.ts      Clases y tarjetas: alta de alumnos con código (hash sha-256), regenerar, ClassBackend falso en los tests
+            ├── classLogin.ts   Entrar en la clase: ClassLoginBackend (función class-session), enterClass y leaveSharedDevice (salir borra lo del alumno); backend falso en los tests
+            ├── classDevice.ts  Aparato compartido: ?clase del QR, marcas en localStorage/sessionStorage y borrado de lo que dejó una pestaña cerrada
             ├── docentes.ts     Arranca la página /docentes (TeacherPanel)
             ├── baja.ts / unsubscribe.ts Página de baja del resumen: lee el token del fragmento y llama a la función `unsubscribe`
             ├── privacidad.ts   Pinta la política de privacidad (idioma, versión, tablas) desde @kalku/content
@@ -123,6 +125,7 @@ kalku/
             │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets (uno por fotograma del agua), criaturas y edificios
             ├── scenes/         Escenas de Phaser
             │   ├── BootScene.ts    Genera las texturas (mundo, criaturas) y elige escena: prueba de nivel la primera vez, si no el mapa, o combate con ?combate
+            │   ├── ClassLoginScene.ts Entrada a la clase del QR: apodo, animal o código de la tarjeta
             │   ├── NicknameScene.ts Pantalla de apodo (lista o escrito) antes de la prueba de nivel, solo si no hay cuenta
             │   ├── PlacementScene.ts Prueba de nivel de la primera vez («¡Vamos a ver qué sabes!»), con «Ahora no»
             │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara

@@ -2,7 +2,7 @@
 // @kalku/exercises). Los `npm:` y `jsr:` los resuelve Deno al ejecutar.
 import { rolldown } from 'rolldown';
 
-for (const name of ['answer', 'child-session', 'weekly-summary', 'unsubscribe']) {
+for (const name of ['answer', 'child-session', 'class-session', 'weekly-summary', 'unsubscribe']) {
   const bundle = await rolldown({
     input: `supabase/functions/${name}/index.ts`,
     platform: 'neutral',

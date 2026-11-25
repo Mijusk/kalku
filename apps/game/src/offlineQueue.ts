@@ -19,6 +19,8 @@ export interface QueueStore {
   /** Todo lo pendiente, en el orden en que se jugó. */
   all(): Promise<QueueItem[]>;
   remove(id: number): Promise<void>;
+  /** Vacía la cola sin enviar nada (al salir de un aparato compartido o al cambiar de niño). */
+  clear(): Promise<void>;
 }
 
 /** Cola en memoria (tests y último recurso). */
@@ -35,10 +37,15 @@ export function memoryQueue(): QueueStore {
     async remove(id) {
       items = items.filter((i) => i.id !== id);
     },
+    async clear() {
+      items = [];
+    },
   };
 }
 
-const LS_KEY = 'kalku:queue';
+/** Clave de la cola en `localStorage` (cuando no hay IndexedDB). Es del niño: va en `LOCAL_KEYS`. */
+export const QUEUE_LS_KEY = 'kalku:queue';
+const LS_KEY = QUEUE_LS_KEY;
 
 /** Cola sobre un almacén de claves (localStorage): para navegadores sin IndexedDB y para tests. */
 export function keyValueQueue(store: KeyValueStore): QueueStore {
@@ -61,6 +68,10 @@ export function keyValueQueue(store: KeyValueStore): QueueStore {
     },
     async remove(id) {
       store.setItem(LS_KEY, JSON.stringify(read().filter((i) => i.id !== id)));
+    },
+    async clear() {
+      if (store.removeItem) store.removeItem(LS_KEY);
+      else store.setItem(LS_KEY, '[]');
     },
   };
 }
@@ -99,6 +110,9 @@ export function indexedDbQueue(idb: IDBFactory): QueueStore {
     async remove(id) {
       await request((await store('readwrite')).delete(id));
     },
+    async clear() {
+      await request((await store('readwrite')).clear());
+    },
   };
 }
 
@@ -120,5 +134,9 @@ export function appQueue(): QueueStore {
     }
     return fn(fallback);
   };
-  return { add: (b) => pick((q) => q.add(b)), all: () => pick((q) => q.all()), remove: (id) => pick((q) => q.remove(id)) };
+  // Vaciar borra las dos: puede quedar algo en localStorage de una vez en que IndexedDB falló.
+  const clear = async (): Promise<void> => {
+    await Promise.allSettled([idb.clear(), fallback.clear()]);
+  };
+  return { add: (b) => pick((q) => q.add(b)), all: () => pick((q) => q.all()), remove: (id) => pick((q) => q.remove(id)), clear };
 }

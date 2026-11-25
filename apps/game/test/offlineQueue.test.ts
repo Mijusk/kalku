@@ -168,3 +168,18 @@ describe('cola de respuestas sin conexión (#54)', () => {
     expect(tr('offlineNotice', 'ca')).not.toBe(tr('offlineNotice', 'es'));
   });
 });
+
+describe('vaciar la cola (aparato compartido, #53)', () => {
+  it('clear deja la cola vacía en memoria y en localStorage', async () => {
+    const mem = memoryQueue();
+    const data = new Map<string, string>();
+    const kv = keyValueQueue({ getItem: (k) => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v) });
+    for (const q of [mem, kv]) {
+      await q.add({ seed: 1, answer: 3, skill: 'add-within-10' } as unknown as AnswerBody);
+      await q.add({ seed: 2, answer: 4, skill: 'add-within-10' } as unknown as AnswerBody);
+      expect(await q.all()).toHaveLength(2);
+      await q.clear();
+      expect(await q.all()).toHaveLength(0);
+    }
+  });
+});

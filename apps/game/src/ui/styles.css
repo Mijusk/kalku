@@ -433,6 +433,11 @@ a.btn {
   z-index: 5;
 }
 
+.world-button-left {
+  right: auto;
+  left: 8px;
+}
+
 /* Pantalla de colección. */
 .collection {
   display: flex;
@@ -628,6 +633,33 @@ a.btn {
   .levelup-star {
     animation: none;
   }
+}
+
+/* Entrar en la clase (#53): botones grandes para niños de 6 años. */
+.class-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  width: min(560px, 100%);
+}
+
+.class-grid .btn {
+  min-height: 72px;
+  font-size: 1.25rem;
+}
+
+.class-grid .btn-animal {
+  min-height: 112px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.btn-animal .animal-emoji {
+  font-size: 2.5rem;
+  line-height: 1;
 }
 
 /* Cartel de las zonas cerradas del mapa: letra clara, nunca pixel. */

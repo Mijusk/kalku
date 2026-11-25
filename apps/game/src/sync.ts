@@ -12,7 +12,8 @@ import {
   writeLocalProgress,
   type PlayerProgress,
 } from './progress';
-import { appQueue, type QueueItem, type QueueStore } from './offlineQueue';
+import { CLASS_DEVICE_KEY } from './classDevice';
+import { appQueue, QUEUE_LS_KEY, type QueueItem, type QueueStore } from './offlineQueue';
 import { getSupabase } from './supabase';
 
 /**
@@ -340,6 +341,25 @@ async function flushQueue(b: Backend, queue: QueueStore): Promise<ServerSkills |
   return r.skills;
 }
 
+/**
+ * Borra las respuestas sin enviar (aparato compartido al salir, o cuando la copia local era de otro niño):
+ * si no, se enviarían con la sesión del siguiente. Va en la misma fila que los envíos. Nunca lanza.
+ */
+export function clearAnswerQueue(): Promise<void> {
+  queueStore ??= appQueue();
+  const queue = queueStore;
+  const result = sending.then(async () => {
+    try {
+      await queue.clear();
+    } catch {
+      // Sin almacén: no había nada que borrar.
+    }
+    setPending(0);
+  });
+  sending = result.catch(() => undefined);
+  return result;
+}
+
 /** Vacía la cola pendiente (al arrancar y al volver la conexión) y pone el dominio del servidor en la copia local. */
 export function retryQueue(): Promise<void> {
   const b = appBackend();
@@ -401,7 +421,7 @@ export async function needsNickname(backend: Backend | null, store: KeyValueStor
 }
 
 /** Claves de localStorage que son del niño: se borran con la cuenta. */
-export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING_KEY, OWNER_KEY] as const;
+export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING_KEY, OWNER_KEY, CLASS_DEVICE_KEY, QUEUE_LS_KEY] as const;
 
 /**
  * Marca la copia local como del niño `userId`. Si era de otro niño, la borra antes:
@@ -409,7 +429,11 @@ export const LOCAL_KEYS = ['kalku:progress', NICKNAME_KEY, MIGRATED_KEY, PENDING
  */
 export function claimLocalCopy(store: KeyValueStore, userId: string): void {
   const owner = store.getItem(OWNER_KEY);
-  if (owner && owner !== userId) for (const key of LOCAL_KEYS) store.removeItem?.(key);
+  if (owner && owner !== userId) {
+    for (const key of LOCAL_KEYS) store.removeItem?.(key);
+    // Las respuestas sin enviar eran del otro niño: no se pueden mandar con esta sesión.
+    void clearAnswerQueue();
+  }
   store.setItem(OWNER_KEY, userId);
 }
 
@@ -439,11 +463,24 @@ export function appBackend(): Backend | null {
   return backend;
 }
 
+let activePusher: { flush(): Promise<void> } | undefined;
+
+/** Sube ya lo que esté pendiente (por ejemplo, antes de salir de una clase). Nunca lanza. */
+export async function flushPending(): Promise<void> {
+  try {
+    await retryQueue();
+    await activePusher?.flush();
+  } catch {
+    // Sin red: lo pendiente se pierde al salir (se avisa en la decisión de #53).
+  }
+}
+
 /** Arranque del juego: baja el progreso y empieza a subir cada guardado. */
 export async function startSync(): Promise<void> {
   const b = appBackend();
   if (!b || typeof localStorage === 'undefined') return;
   const pusher = createPusher(b, localStorage);
+  activePusher = pusher;
   onProgressSaved((p) => pusher.push(p));
   // Lo jugado sin conexión se envía antes de bajar el dominio, para que el servidor no pise respuestas pendientes.
   await retryQueue();

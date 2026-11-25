@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { CLASS_AUTH_KEY, isClassDevice } from './classDevice';
 
 /**
  * Cliente de Supabase (proyecto en Frankfurt). Solo usa la clave pública (anon);
@@ -8,13 +9,20 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 export function createSupabaseClient(
   url: string | undefined,
   anonKey: string | undefined,
-  role: 'child' | 'adult' = 'child',
+  role: 'child' | 'adult' | 'class' = 'child',
 ): SupabaseClient | null {
   if (!url || !anonKey) return null;
   try {
     // El adulto (enlace de correo, #47) tiene su propia sesión, en otra clave de
     // localStorage: así entrar como adulto no pisa la sesión del niño de este aparato.
     // Solo el cliente del adulto lee el enlace de acceso de la URL.
+    // El alumno de un aparato compartido (#53) guarda su sesión en sessionStorage: al cerrar la
+    // pestaña se va sola y no queda nada que herede el siguiente. Sin token de refresco (dura un día).
+    if (role === 'class') {
+      return createClient(url, anonKey, {
+        auth: { persistSession: true, autoRefreshToken: false, storageKey: CLASS_AUTH_KEY, storage: window.sessionStorage, detectSessionInUrl: false },
+      });
+    }
     return createClient(url, anonKey, {
       auth:
         role === 'adult'
@@ -31,9 +39,11 @@ let cached: SupabaseClient | null | undefined;
 /** Cliente de la app, creado la primera vez que se pide. */
 export function getSupabase(): SupabaseClient | null {
   if (cached === undefined) {
+    const classDevice = typeof window !== 'undefined' && isClassDevice(window.location.search, window.sessionStorage);
     cached = createSupabaseClient(
       import.meta.env.VITE_SUPABASE_URL,
       import.meta.env.VITE_SUPABASE_ANON_KEY,
+      classDevice ? 'class' : 'child',
     );
   }
   return cached;

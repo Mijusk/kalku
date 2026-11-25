@@ -34,6 +34,13 @@ enabled = true
 verify_jwt = true
 entrypoint = "./functions/child-session/dist/index.js"
 
+# El niño entra en su clase con apodo + animal o con el código de la tarjeta (#53). Necesita el
+# mismo secreto KALKU_JWT_SECRET. Sin verify_jwt: el niño aún no tiene sesión (o la tiene caducada).
+[functions.class-session]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/class-session/dist/index.js"
+
 # Resumen semanal por correo (#56). Lo llama la tarea semanal de la base de datos con su propia
 # clave (SUMMARY_CRON_SECRET), no con un JWT. Sin BREVO_API_KEY y SUMMARY_SENDER no envía nada.
 [functions.weekly-summary]
