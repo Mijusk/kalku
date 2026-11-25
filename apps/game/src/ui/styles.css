@@ -442,6 +442,11 @@ a.btn {
   padding: 14px 16px;
 }
 
+.collection .panel-title {
+  /* La colección va sobre el fondo oscuro del juego: título en claro para que se lea. */
+  color: #fff;
+}
+
 .collection-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(88px, 1fr));
