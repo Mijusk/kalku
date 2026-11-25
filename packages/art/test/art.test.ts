@@ -7,6 +7,9 @@ import {
   drawBuilding,
   drawCreature,
   drawCreatureFrame,
+  drawStar,
+  OUTLINE,
+  STAR_SIZE,
   drawGrass,
   drawPath,
   drawWater,
@@ -166,5 +169,15 @@ describe('paso a textura', () => {
     expect([sheet.width, sheet.height, sheet.cell]).toEqual([CREATURE_PX * CREATURE_FRAMES, CREATURE_PX, CREATURE_PX]);
     expect(sheet.rgba).toHaveLength(sheet.width * sheet.height * 4);
     expect(gridToRgba(drawGrass(1))[3]).toBe(255);
+  });
+});
+
+describe('estrella de subida de nivel', () => {
+  it('se dibuja con contorno, dentro de su caja y de forma estable', () => {
+    const g = drawStar();
+    expect([g.width, g.height]).toEqual([STAR_SIZE, STAR_SIZE]);
+    expect(g.px.filter((c) => c !== EMPTY).length).toBeGreaterThan(40);
+    expect(g.px.includes(OUTLINE)).toBe(true);
+    expect(drawStar().px).toEqual(g.px);
   });
 });
