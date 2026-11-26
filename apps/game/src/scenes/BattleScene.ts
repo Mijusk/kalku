@@ -38,6 +38,7 @@ import { tr } from '../i18n';
 import { applyServerSkills, applySettings, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { exerciseView, sendAnswer } from '../sync';
 import { playMusic, sfx } from '../audio/sound';
+import { applyMissionEvent } from '../missions';
 import { ExercisePanel } from '../ui/ExercisePanel';
 import { banner, clearFx, confetti, floatText, reducedMotion } from '../ui/fx';
 import { burst, castSpell, drawBattleBackground, drawPlatform, ensureFxTextures } from './battleFx';
@@ -424,6 +425,9 @@ export class BattleScene extends Phaser.Scene {
     });
     this.streak = correct ? this.streak + 1 : 0;
     this.progress.coins += score.total;
+    // Misiones del día: acertar (fallar no cuenta ni resta).
+    const missionsDone = applyMissionEvent(this.progress, { type: 'answer', correct, operator: turn.exercise.operator === '-' ? '-' : '+', strong: turn.strong });
+    for (const m of missionsDone) banner(`${tr('missionDone', this.progress.locale)} +${m.reward} ${tr('coins', this.progress.locale)}`, 'win', 2200);
     // La XP solo sube (fallar da 0) y no mira el tiempo ni la racha; el nivel sale de ella.
     const levelBefore = levelForXp(this.progress.xp);
     this.progress.xp += xpForAnswer({ correct, difficulty: turn.exercise.difficulty, helped });
@@ -621,6 +625,12 @@ export class BattleScene extends Phaser.Scene {
     // Las criaturas del mapa se van al acabar; los combates de la historia (−1) no son del mapa.
     if (encounter && world && encounter.wandererId >= 0) {
       world.wildlife = endEncounter(PRADERA_UNO.wildlife, world.wildlife, encounter.wandererId);
+    }
+    if (this.won) {
+      for (const m of applyMissionEvent(this.progress, { type: 'battleWon', rescued: this.rescuedNow !== undefined })) {
+        banner(`${tr('missionDone', this.progress.locale)} +${m.reward} ${tr('coins', this.progress.locale)}`, 'win', 2200);
+      }
+      saveProgress(this.progress);
     }
     if (encounter) {
       const result: BattleResult = { won: this.won, rescued: this.rescuedNow !== undefined, story: encounter.story ?? { where: 'wild' } };

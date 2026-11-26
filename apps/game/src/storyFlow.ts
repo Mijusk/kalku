@@ -1,5 +1,18 @@
 import type Phaser from 'phaser';
-import { advanceStory, currentStep, sceneLines, type SceneId, type StoryEvent, type StoryOutcome } from '@kalku/content';
+import {
+  advanceQuest,
+  advanceStory,
+  currentStep,
+  isStoryDone,
+  nextQuest,
+  sceneLines,
+  type Quest,
+  type QuestEvent,
+  type SceneId,
+  type StoryEvent,
+  type StoryOutcome,
+} from '@kalku/content';
+import { createRng, randomSeed } from '@kalku/exercises';
 import { loadProgress, saveProgress, type PlayerProgress } from './progress';
 import { appBackend, NICKNAME_KEY, needsNickname } from './sync';
 import { playDialog } from './ui/DialogBox';
@@ -61,4 +74,42 @@ export async function goToStory(scene: Phaser.Scene): Promise<void> {
   if (step?.kind === 'training' && !progress.placementDone) return void scene.scene.start('placement');
   if (step?.kind === 'training') applyStoryEvent({ type: 'trained' }, progress);
   scene.scene.start('world');
+}
+
+/** Qué ha pasado con el encargo al aplicar un evento. */
+export interface QuestOutcome {
+  changed: boolean;
+  /** El encargo terminado ahora (con sus Cifras ya sumadas). */
+  done?: Quest;
+  /** El encargo en curso tras el evento (el siguiente, si se terminó). */
+  quest: Quest | null;
+}
+
+/**
+ * Encargos de los personajes (#97): solo cuando la historia de la región ha
+ * terminado. Si no hay ninguno, se crea. Al terminar uno se suman sus Cifras
+ * y se crea el siguiente, de otro personaje.
+ */
+export function applyQuestEvent(event: QuestEvent | undefined, progress: PlayerProgress = loadProgress()): QuestOutcome {
+  if (!isStoryDone(progress.story)) return { changed: false, quest: null };
+  let changed = false;
+  if (!progress.quest) {
+    progress.quest = nextQuest(createRng(randomSeed()));
+    changed = true;
+  }
+  let done: Quest | undefined;
+  if (event) {
+    const out = advanceQuest(progress.quest, event);
+    if (out.changed) {
+      changed = true;
+      progress.quest = out.quest;
+      if (out.done) {
+        done = out.quest;
+        progress.coins += out.quest.reward;
+        progress.quest = nextQuest(createRng(randomSeed()), out.quest);
+      }
+    }
+  }
+  if (changed) saveProgress(progress);
+  return { changed, quest: progress.quest, ...(done ? { done } : {}) };
 }

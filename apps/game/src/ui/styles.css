@@ -435,6 +435,10 @@ a.btn {
   z-index: 5;
 }
 
+.world-button-missions {
+  top: 64px;
+}
+
 .world-button-left {
   right: auto;
   left: 8px;
@@ -1072,4 +1076,30 @@ a.btn {
 }
 .btn-grade-wide {
   grid-column: 1 / -1;
+}
+
+/* Panel «Misiones». */
+.missions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mission {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mission-text {
+  font-weight: 700;
+}
+.mission[data-done='true'] .mission-text {
+  color: #2e6b3a;
+}
+.mission-count {
+  font-size: 0.9rem;
+  opacity: 0.8;
 }

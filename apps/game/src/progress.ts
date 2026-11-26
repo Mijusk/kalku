@@ -1,4 +1,4 @@
-import { DEFAULT_OUTFIT, GRADES, NEW_STORY, type Band, parseCollection, parseOutfit, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type Outfit, type StoryState } from '@kalku/content';
+import { DEFAULT_OUTFIT, GRADES, NEW_STORY, parseMissions, parseQuest, type Band, type MissionsState, type Quest, parseCollection, parseOutfit, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type Outfit, type StoryState } from '@kalku/content';
 import { setAudioPrefs } from './audio/sound';
 import { createProfile, sanitizeXp, SKILL_IDS, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
 
@@ -68,6 +68,10 @@ export interface PlayerProgress {
   grade: number | null;
   /** Tono de la historia: «Brote» (5–8) o «Aventura» (8–12). Solo cambia los textos, nunca las mates. */
   band: Band;
+  /** Encargo de un personaje en curso (después del final de la historia), o `null`. */
+  quest: Quest | null;
+  /** Misiones del día y de la semana: cuánto lleva y cuáles ya dieron su premio. */
+  missions: MissionsState | null;
 }
 
 const STORAGE_KEY = 'kalku:progress';
@@ -90,6 +94,8 @@ export function defaultProgress(): PlayerProgress {
     outfit: { ...DEFAULT_OUTFIT },
     grade: null,
     band: 'young',
+    quest: null,
+    missions: null,
   };
 }
 
@@ -110,7 +116,7 @@ export function parseProgress(raw: unknown): PlayerProgress {
   // Quien ya jugaba antes de la historia empieza en su primer combate guiado, sin prólogo a la fuerza.
   const storyFallback = placementDone ? { step: stepIndex('first-rescue'), count: 0, crystals: [] } : NEW_STORY;
   const story = parseStory(parsed.story, storyFallback);
-  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures), story, outfit: parseOutfit(parsed.outfit), grade: parseGrade(parsed.grade), band: parsed.band === 'older' ? 'older' : 'young' };
+  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures), story, outfit: parseOutfit(parsed.outfit), grade: parseGrade(parsed.grade), band: parsed.band === 'older' ? 'older' : 'young', quest: parseQuest(parsed.quest), missions: parseMissions(parsed.missions) };
 }
 
 function parseGrade(raw: unknown): number | null {
@@ -160,6 +166,8 @@ export interface ExtraData {
   outfit: Outfit;
   grade: number | null;
   band: Band;
+  quest: Quest | null;
+  missions: MissionsState | null;
 }
 
 export interface ProgressRow {

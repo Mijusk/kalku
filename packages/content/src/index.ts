@@ -11,3 +11,5 @@ export * from './classProgress.js';
 export * from './story/index.js';
 export * from './outfit.js';
 export * from './syllabus.js';
+export * from './quests.js';
+export * from './missions.js';

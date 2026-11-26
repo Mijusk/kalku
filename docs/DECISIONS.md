@@ -405,3 +405,9 @@ Un fichero por centro en `packages/content/temarios/` ([TEMARIO.md](TEMARIO.md))
 ## 2026-11-26 · Dos inicios por edad: se pregunta el curso, no la edad
 
 Luis pidió una historia para 5–8 años y otra para 8–12. Mismas mates y mismos pasos; solo cambian los diálogos («Brote» tierno y «Aventura» con humor y misterio, `SCENES_OLDER`). La primera pantalla de un niño nuevo pregunta «¿En qué curso estás?» (Infantil 5 años a 6.º): hasta 2.º, Brote; desde 3.º, Aventura. Se guarda el curso (`grade`) y el tramo (`band`) en la partida; nunca la edad ni la fecha de nacimiento (regla 5), y se añade a la lista de datos de la política. Se cambia en Ajustes («Historia»). Quien ya jugaba sigue con Brote.
+
+## 2026-11-26 · Encargos y misiones para seguir jugando tras la historia (hito 4)
+
+- **Encargos de los personajes** (`quests.ts`): al acabar la historia, Bruno, Lina, Pedrolo y Tecla piden cosas (ganar combates, rescatar, acertijos, chispas). Se acepta hablando con quien lo pide y se elige con semilla, sin repetir personaje seguido. El premio son Cifras (cosmética), nunca XP ni ventajas: la XP solo sale de acertar.
+- **Misiones del día y de la semana** (`missions.ts`): 3 del día y 1 de la semana, iguales para todos los niños según la fecha en Europe/Madrid (una clase entera ve las mismas). Solo cuentan aciertos, combates y rescates; fallar no resta nada. Cada misión da su premio una sola vez.
+- **Sin rachas ni castigos por no entrar**: no hay días seguidos que se pierdan. Así no hay presión ni ansiedad y encaja con lo que piden los centros.

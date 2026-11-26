@@ -1,5 +1,9 @@
 import Phaser from 'phaser';
 import {
+  characterName,
+  questTemplate,
+  questText,
+  type Quest,
   chaptersDone,
   regionStory,
   type Anchor,
@@ -29,6 +33,8 @@ export type MapNpc = 'tecla' | 'bruno' | 'lina' | 'pedrolo' | 'borroncito';
 /** Qué pasa al llegar a una casilla de la historia. */
 export type StoryAction =
   | { type: 'talk'; npc: MapNpc; target: boolean }
+  /** Hablar con quien da el encargo (lo acepta). */
+  | { type: 'quest'; npc: MapNpc }
   | { type: 'battle'; encounter: EncounterData }
   | { type: 'riddles' };
 
@@ -70,6 +76,8 @@ export class WorldStory {
   /** Último personaje con el que se ha hablado; no repite hasta alejarse. */
   private lastTalk: MapNpc | undefined;
   private story: StoryState;
+  /** Encargo en curso (solo después del final). */
+  private quest: Quest | null = null;
   private readonly data: RegionStory;
 
   constructor(
@@ -156,7 +164,11 @@ export class WorldStory {
   /** Repinta todo según el punto de la historia (al crear el mapa y tras cada avance). */
   refresh(): void {
     const before = this.story.step;
-    this.story = loadProgress().story;
+    const progress = loadProgress();
+    this.story = progress.story;
+    const questBefore = this.quest;
+    this.quest = progress.quest;
+    if (questBefore?.template !== this.quest?.template || questBefore?.accepted !== this.quest?.accepted) this.lastTalk = undefined;
     // Paso nuevo: el personaje de al lado puede tener algo nuevo que decir.
     if (before !== this.story.step) this.lastTalk = undefined;
     const step = currentStep(this.story);
@@ -200,7 +212,7 @@ export class WorldStory {
   /** Dónde está el objetivo de ahora (para la flecha y la marca «!»). `wild` = la criatura más cercana. */
   target(wanderers: readonly { tile: Point }[], from: Point): Point | undefined {
     const step = currentStep(this.story);
-    if (!step) return undefined;
+    if (!step) return this.questTarget(wanderers, from);
     switch (step.kind) {
       case 'firstRescue':
         return this.firstTile;
@@ -222,6 +234,24 @@ export class WorldStory {
     }
   }
 
+  /** Objetivo del encargo: quien lo da, Pedrolo para los acertijos o la criatura más cercana. */
+  private questTarget(wanderers: readonly { tile: Point }[], from: Point): Point | undefined {
+    const q = this.quest;
+    if (!q) return undefined;
+    if (!q.accepted) return this.npcTiles.get(q.npc as MapNpc);
+    if (q.kind === 'riddles') return this.npcTiles.get('pedrolo');
+    let best: Point | undefined;
+    for (const w of wanderers) if (!best || dist(w.tile, from) < dist(best, from)) best = w.tile;
+    return best;
+  }
+
+  /** Si el objetivo es una criatura del mapa (sin marca «!» encima). */
+  private targetIsWild(): boolean {
+    const step = currentStep(this.story);
+    if (step) return step.kind === 'collect';
+    return this.quest !== null && this.quest.accepted && this.quest.kind !== 'riddles';
+  }
+
   /** Mueve a Uni detrás del personaje, la marca «!» y la flecha. Se llama cada fotograma. */
   update(heroTile: Point, wanderers: readonly { tile: Point }[]): void {
     const tx = this.hero.x - (this.hero.flipX ? -10 : 10);
@@ -229,8 +259,7 @@ export class WorldStory {
     this.uni.x += (tx - this.uni.x) * 0.12;
     this.uni.y += (ty - this.uni.y) * 0.12;
     const target = this.target(wanderers, heroTile);
-    const step = currentStep(this.story);
-    const marker = target && step?.kind !== 'collect';
+    const marker = target && !this.targetIsWild();
     this.alert.setVisible(Boolean(marker));
     if (target && marker) this.alert.setPosition(this.cx(target), this.cy(target) - 16);
     // Flecha alrededor del personaje, apuntando al objetivo cuando está lejos.
@@ -266,15 +295,19 @@ export class WorldStory {
       const pick = pickSkill(profile, rng);
       return { type: 'battle', encounter: { wandererId: -1, data: { creature: 'problemus-cuentin', skill: pick.skill, slot: pick.slot }, story: { where: 'boss' } } };
     }
+    const q = isStoryDone(this.story) ? this.quest : null;
     // Personajes: el del objetivo habla al acercarse; los demás, si te pones encima.
     for (const [npc, t] of this.npcTiles) {
       if (this.data.npcs[npc]?.afterEnd && !isStoryDone(this.story)) continue;
-      const isTarget = (step?.kind === 'talk' && step.npc === npc) || (step?.kind === 'riddles' && npc === 'pedrolo');
+      const questGiver = q !== null && !q.accepted && q.npc === npc;
+      const questRiddles = q !== null && q.accepted && q.kind === 'riddles' && npc === 'pedrolo';
+      const isTarget = (step?.kind === 'talk' && step.npc === npc) || (step?.kind === 'riddles' && npc === 'pedrolo') || questGiver || questRiddles;
       const d = dist(t, tile);
       if ((isTarget && d <= 1) || d === 0) {
         if (this.lastTalk === npc) return undefined;
         this.lastTalk = npc;
-        if (isTarget && step?.kind === 'riddles') return { type: 'riddles' };
+        if (isTarget && (step?.kind === 'riddles' || questRiddles)) return { type: 'riddles' };
+        if (questGiver) return { type: 'quest', npc };
         return { type: 'talk', npc, target: isTarget };
       }
     }
@@ -299,9 +332,24 @@ export class WorldStory {
     const title = document.createElement('p');
     title.className = 'quest-title';
     if (!obj) {
-      chapter.textContent = tr('questDone', locale);
-      title.textContent = tr('questFree', locale);
+      const q = this.quest;
+      const template = q ? questTemplate(q.template) : undefined;
+      if (!q || !template) {
+        chapter.textContent = tr('questDone', locale);
+        title.textContent = tr('questFree', locale);
+        this.card.replaceChildren(chapter, title);
+        return;
+      }
+      const who = characterName(q.npc)[locale];
+      chapter.textContent = `${tr('questFrom', locale)} ${who}`;
+      title.textContent = q.accepted ? questText(template.objective, q.need, locale) : `${tr('talkTo', locale)} ${who}`;
       this.card.replaceChildren(chapter, title);
+      if (q.accepted) {
+        const counter = document.createElement('p');
+        counter.className = 'quest-counter';
+        counter.textContent = `${q.have}/${q.need}`;
+        this.card.append(counter);
+      }
       return;
     }
     const chapterTitle = this.data.chapters.find((c) => c.chapter === obj.chapter)?.title[locale] ?? '';
