@@ -122,7 +122,7 @@ describe('ida y vuelta con el servidor', () => {
 
   it('el extra no lleva el dominio ni datos personales', () => {
     const { extra } = toServerRows(defaultProgress());
-    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings', 'zonesOpened', 'treasures'].sort());
+    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings', 'zonesOpened', 'treasures', 'story'].sort());
   });
 
   it('el dominio nunca baja de 0 ni sube de 100, y los aciertos no superan los intentos', () => {

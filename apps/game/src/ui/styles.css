@@ -857,3 +857,108 @@ a.btn {
   font-weight: 800;
   padding: 18px 0;
 }
+
+/* ---------- Diálogos de la historia: retrato, nombre y texto en letra clara ---------- */
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgb(0 0 0 / 0.45), rgb(0 0 0 / 0) 55%);
+  cursor: pointer;
+}
+
+.dialog-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(760px, 100%);
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 4px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 6px 0 var(--ink);
+  animation: fx-dialog-in 0.25s ease-out;
+}
+
+.dialog-portrait-slot {
+  flex: 0 0 auto;
+  width: 88px;
+  height: 88px;
+  border-radius: 12px;
+  background: #d9ecd2;
+  border: 3px solid var(--ink);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.dialog[data-who='borron'] .dialog-portrait-slot,
+.dialog[data-who='borroncito'] .dialog-portrait-slot {
+  background: #e3dfec;
+}
+
+.dialog[data-who='narrator'] .dialog-box {
+  background: #1b2a1f;
+  color: #fff;
+}
+
+.dialog-portrait {
+  width: 80px;
+  height: 80px;
+  image-rendering: pixelated;
+}
+
+.dialog-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dialog-name {
+  margin: 0 0 4px;
+  font-weight: 800;
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.dialog-text {
+  margin: 0;
+  font-size: 1.3rem;
+  line-height: 1.35;
+  font-weight: 600;
+  min-height: 2.7em;
+}
+
+.dialog-next {
+  flex: 0 0 auto;
+  align-self: flex-end;
+  min-width: 96px;
+}
+
+.dialog-skip {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+@keyframes fx-dialog-in {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (max-width: 560px) {
+  .dialog-box { flex-wrap: wrap; }
+  .dialog-portrait-slot { width: 64px; height: 64px; }
+  .dialog-portrait { width: 56px; height: 56px; }
+  .dialog-text { font-size: 1.15rem; }
+  .dialog-next { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog-box { animation: none; }
+}

@@ -1,4 +1,4 @@
-import { parseCollection, parseEncounters, parseTreasures, parseZonesOpened, type Collection, type EncounterCounts } from '@kalku/content';
+import { NEW_STORY, parseCollection, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type StoryState } from '@kalku/content';
 import { setAudioPrefs } from './audio/sound';
 import { createProfile, sanitizeXp, SKILL_IDS, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
 
@@ -60,6 +60,8 @@ export interface PlayerProgress {
   zonesOpened: string[];
   /** Tesoros cosméticos recogidos en los cofres de las zonas (ids). No dan ventaja en el combate. */
   treasures: string[];
+  /** En qué punto de la historia va (docs/HISTORIA.md). Solo avanza. */
+  story: StoryState;
 }
 
 const STORAGE_KEY = 'kalku:progress';
@@ -78,6 +80,7 @@ export function defaultProgress(): PlayerProgress {
     collection: [],
     zonesOpened: [],
     treasures: [],
+    story: { ...NEW_STORY, crystals: [] },
   };
 }
 
@@ -95,7 +98,10 @@ export function parseProgress(raw: unknown): PlayerProgress {
   // Un guardado antiguo con intentos cuenta como hecho: no se molesta a quien ya juega.
   const placementDone = typeof parsed.placementDone === 'boolean' ? parsed.placementDone : hasAttempts(profile);
   const coins = typeof parsed.coins === 'number' && Number.isFinite(parsed.coins) ? Math.max(0, parsed.coins) : 0;
-  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures) };
+  // Quien ya jugaba antes de la historia empieza en su primer combate guiado, sin prólogo a la fuerza.
+  const storyFallback = placementDone ? { step: stepIndex('first-rescue'), count: 0, crystals: [] } : NEW_STORY;
+  const story = parseStory(parsed.story, storyFallback);
+  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures), story };
 }
 
 /** Dominio entre 0 y 100, intentos enteros ≥ 0 y aciertos ≤ intentos (lo mismo que exige la base de datos). */
@@ -137,6 +143,7 @@ export interface ExtraData {
   collection: Collection;
   zonesOpened: string[];
   treasures: string[];
+  story: StoryState;
 }
 
 export interface ProgressRow {
