@@ -1,4 +1,4 @@
-import { NEW_STORY, parseCollection, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type StoryState } from '@kalku/content';
+import { DEFAULT_OUTFIT, NEW_STORY, parseCollection, parseOutfit, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type Outfit, type StoryState } from '@kalku/content';
 import { setAudioPrefs } from './audio/sound';
 import { createProfile, sanitizeXp, SKILL_IDS, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
 
@@ -62,6 +62,8 @@ export interface PlayerProgress {
   treasures: string[];
   /** En qué punto de la historia va (docs/HISTORIA.md). Solo avanza. */
   story: StoryState;
+  /** Qué pieza lleva el personaje en cada capa (cuerpo, pelo, ropa, accesorio). Solo estética. */
+  outfit: Outfit;
 }
 
 const STORAGE_KEY = 'kalku:progress';
@@ -81,6 +83,7 @@ export function defaultProgress(): PlayerProgress {
     zonesOpened: [],
     treasures: [],
     story: { ...NEW_STORY, crystals: [] },
+    outfit: { ...DEFAULT_OUTFIT },
   };
 }
 
@@ -101,7 +104,7 @@ export function parseProgress(raw: unknown): PlayerProgress {
   // Quien ya jugaba antes de la historia empieza en su primer combate guiado, sin prólogo a la fuerza.
   const storyFallback = placementDone ? { step: stepIndex('first-rescue'), count: 0, crystals: [] } : NEW_STORY;
   const story = parseStory(parsed.story, storyFallback);
-  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures), story };
+  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures), story, outfit: parseOutfit(parsed.outfit) };
 }
 
 /** Dominio entre 0 y 100, intentos enteros ≥ 0 y aciertos ≤ intentos (lo mismo que exige la base de datos). */
@@ -144,6 +147,7 @@ export interface ExtraData {
   zonesOpened: string[];
   treasures: string[];
   story: StoryState;
+  outfit: Outfit;
 }
 
 export interface ProgressRow {

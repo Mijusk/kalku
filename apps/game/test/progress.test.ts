@@ -122,7 +122,7 @@ describe('ida y vuelta con el servidor', () => {
 
   it('el extra no lleva el dominio ni datos personales', () => {
     const { extra } = toServerRows(defaultProgress());
-    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings', 'zonesOpened', 'treasures', 'story'].sort());
+    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings', 'zonesOpened', 'treasures', 'story', 'outfit'].sort());
   });
 
   it('el dominio nunca baja de 0 ni sube de 100, y los aciertos no superan los intentos', () => {
@@ -152,5 +152,30 @@ describe('ida y vuelta con el servidor', () => {
   it('el dominio como texto (numeric) se entiende', () => {
     const back = fromServerRows({}, [{ skill: 'add-within-10', mastery: '40.5', attempts: 5, correct: 4 }]);
     expect(back.profile['add-within-10']).toEqual({ mastery: 40.5, attempts: 5, correct: 4 });
+  });
+});
+describe('outfit al cargar', () => {
+  it('sin guardado, el atuendo por defecto', () => {
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => undefined });
+    expect(loadProgress().outfit).toEqual(defaultProgress().outfit);
+  });
+
+  it('un guardado sin outfit carga el de por defecto', () => {
+    const { outfit: _omit, ...old } = defaultProgress();
+    stubStorage(old);
+    expect(loadProgress().outfit).toEqual(defaultProgress().outfit);
+  });
+
+  it('el atuendo guardado se carga', () => {
+    const outfit = { ...defaultProgress().outfit, body: 'piel-4', accessory: 'gafas' };
+    stubStorage({ ...defaultProgress(), outfit });
+    expect(loadProgress().outfit).toEqual(outfit);
+  });
+
+  it('piezas inventadas se sustituyen', () => {
+    stubStorage({ ...defaultProgress(), outfit: { body: 'x', hair: 'pelo-largo' } });
+    const o = loadProgress().outfit;
+    expect(o.hair).toBe('pelo-largo');
+    expect(o.body).toBe(defaultProgress().outfit.body);
   });
 });

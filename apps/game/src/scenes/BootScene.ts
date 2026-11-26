@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
-import { createPixelTexture, HERO, PALETTE } from '../art/pixelArt';
-import { createArtTextures } from '../art/textures';
+import { createArtTextures, createHeroTexture } from '../art/textures';
 import { activeClassId, classIdFromSearch, wipeAbandonedClassData } from '../classDevice';
 import { loadProgress } from '../progress';
 import { LOCAL_KEYS, appBackend, clearAnswerQueue, needsNickname, startSyncWithTimeout } from '../sync';
@@ -16,7 +15,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   private async start(): Promise<void> {
-    createPixelTexture(this, 'hero', HERO, PALETTE);
+    createHeroTexture(this, loadProgress().outfit);
     // El mundo (con el agua animada) y las criaturas salen de `@kalku/art`.
     createArtTextures(this);
 
