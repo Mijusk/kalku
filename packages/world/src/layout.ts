@@ -109,6 +109,26 @@ export function generateRegion(region: RegionSpec, seed: number): RegionMap {
     }
   }
 
+  // Lo que no se alcanza andando desde la entrada (contando las puertas como
+  // pasables) se vuelve bosque: así ninguna criatura aparece donde no se llega.
+  const reached = new Uint8Array(tiles.length);
+  const queue = [index(entrance)];
+  reached[index(entrance)] = 1;
+  for (let head = 0; head < queue.length; head++) {
+    for (const n of neighbors(queue[head] as number, width, height)) {
+      if (!reached[n] && (isWalkable(tiles[n]) || tiles[n] === 'gate')) {
+        reached[n] = 1;
+        queue.push(n);
+      }
+    }
+  }
+  for (let i = 0; i < tiles.length; i++) {
+    if (locked[i] || reached[i] || !isWalkable(tiles[i])) continue;
+    // Se funde con lo que lo encierra, para no dejar un árbol suelto en mitad del agua.
+    const around = neighbors(i, width, height).map((n) => tiles[n]);
+    tiles[i] = around.includes('tree') || !around.includes('water') ? 'tree' : 'water';
+  }
+
   return { width, height, tiles, entrance, places };
 }
 

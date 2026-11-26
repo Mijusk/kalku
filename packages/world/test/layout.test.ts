@@ -5,11 +5,13 @@ import {
   generateRegion,
   generateTerrain,
   isReachable,
+  isWalkable,
   neighbors,
   parsePiece,
   PIECE_LEGEND,
   PRADERA_UNO,
   PUEBLO_PRADERA,
+  REGIONS,
   type PieceSpec,
   type Point,
   type RegionMap,
@@ -220,5 +222,46 @@ describe('isReachable', () => {
     const wall = map(['.T.', '.T.', '.T.']);
     expect(isReachable(wall, { x: 0, y: 0 }, { x: 2, y: 0 })).toBe(false);
     expect(isReachable(wall, { x: 0, y: 0 }, { x: 5, y: 0 })).toBe(false);
+  });
+});
+
+describe('generateRegion: todas las regiones', () => {
+  it('cada casilla transitable se alcanza andando desde la entrada (las puertas cuentan como paso)', () => {
+    for (const region of REGIONS) {
+      for (const seed of [region.seed, ...SEEDS.slice(0, 100)]) {
+        const map = generateRegion(region, seed);
+        const passable = map.tiles.map((t) => (t === 'gate' ? 'grass' : t));
+        const open: WorldMap = { ...map, tiles: passable };
+        const start = map.entrance.y * map.width + map.entrance.x;
+        const seen = new Set([start]);
+        const queue = [start];
+        for (let h = 0; h < queue.length; h++) {
+          for (const n of neighbors(queue[h] as number, map.width, map.height)) {
+            if (!seen.has(n) && isWalkable(open.tiles[n])) {
+              seen.add(n);
+              queue.push(n);
+            }
+          }
+        }
+        const pieces = pieceCells(map);
+        map.tiles.forEach((t, i) => {
+          if (pieces.has(i) || !isWalkable(t)) return;
+          expect(seen.has(i), `${region.id} semilla ${seed}: casilla ${i % map.width},${Math.floor(i / map.width)} aislada`).toBe(true);
+        });
+      }
+    }
+  });
+
+  it('fuera de las piezas no quedan árboles ni agua sueltos', () => {
+    for (const region of REGIONS) {
+      for (const seed of [region.seed, ...SEEDS.slice(0, 100)]) {
+        const map = generateRegion(region, seed);
+        const pieces = pieceCells(map);
+        map.tiles.forEach((t, i) => {
+          if (pieces.has(i) || (t !== 'tree' && t !== 'water')) return;
+          expect(neighbors(i, map.width, map.height).some((n) => map.tiles[n] === t)).toBe(true);
+        });
+      }
+    }
   });
 });
