@@ -1058,3 +1058,18 @@ a.btn {
   from { transform: scale(0.8); }
   to { transform: scale(1); }
 }
+
+/* «¿En qué curso estás?»: botones grandes en rejilla. */
+.grade-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+.btn-grade {
+  min-height: 64px;
+  font-size: 1.4rem;
+}
+.btn-grade-wide {
+  grid-column: 1 / -1;
+}

@@ -401,3 +401,7 @@ La historia está en [HISTORIA.md](HISTORIA.md) y como datos en `packages/conten
 ## 2026-11-26 · Temario del centro como JSON
 
 Un fichero por centro en `packages/content/temarios/` ([TEMARIO.md](TEMARIO.md)), validado por los tests con errores en castellano. Se activa con `?temario=<id>`. Las preguntas propias no cuentan para el dominio porque no pertenecen a una habilidad. Se eligió JSON a mano antes que un editor en `/docentes` porque Luis puede rellenarlo ya con lo que le manden los centros; el editor vendrá después.
+
+## 2026-11-26 · Dos inicios por edad: se pregunta el curso, no la edad
+
+Luis pidió una historia para 5–8 años y otra para 8–12. Mismas mates y mismos pasos; solo cambian los diálogos («Brote» tierno y «Aventura» con humor y misterio, `SCENES_OLDER`). La primera pantalla de un niño nuevo pregunta «¿En qué curso estás?» (Infantil 5 años a 6.º): hasta 2.º, Brote; desde 3.º, Aventura. Se guarda el curso (`grade`) y el tramo (`band`) en la partida; nunca la edad ni la fecha de nacimiento (regla 5), y se añade a la lista de datos de la política. Se cambia en Ajustes («Historia»). Quien ya jugaba sigue con Brote.

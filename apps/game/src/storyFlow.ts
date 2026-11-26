@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import { advanceStory, currentStep, SCENES, type SceneId, type StoryEvent, type StoryOutcome } from '@kalku/content';
+import { advanceStory, currentStep, sceneLines, type SceneId, type StoryEvent, type StoryOutcome } from '@kalku/content';
 import { loadProgress, saveProgress, type PlayerProgress } from './progress';
 import { appBackend, NICKNAME_KEY, needsNickname } from './sync';
 import { playDialog } from './ui/DialogBox';
@@ -37,7 +37,7 @@ export function applyStoryEvent(event: StoryEvent, progress: PlayerProgress = lo
 export async function playScenes(ids: readonly SceneId[], options: { skippable?: boolean; onLine?: (index: number) => void } = {}): Promise<void> {
   for (const id of ids) {
     const progress = loadProgress();
-    await playDialog(SCENES[id], {
+    await playDialog(sceneLines(id, progress.band), {
       locale: progress.locale,
       nickname: nickname(),
       voice: progress.settings.autoVoice,
@@ -47,12 +47,14 @@ export async function playScenes(ids: readonly SceneId[], options: { skippable?:
 }
 
 /**
- * Va a la pantalla que toca según la historia: prólogo → apodo (si no hay
+ * Va a la pantalla que toca según la historia: curso → prólogo → apodo (si no hay
  * cuenta) → crear personaje → entrenamiento → mapa.
  */
 export async function goToStory(scene: Phaser.Scene): Promise<void> {
   const progress = loadProgress();
   const step = currentStep(progress.story);
+  // Al empezar, el curso elige el tono de la historia (antes del prólogo, que ya cambia).
+  if (step?.kind === 'prologue' && progress.grade === null) return void scene.scene.start('grade');
   if (step?.kind === 'prologue') return void scene.scene.start('prologue');
   if (await needsNickname(appBackend(), localStorage)) return void scene.scene.start('nickname');
   if (step?.kind === 'create') return void scene.scene.start('create');

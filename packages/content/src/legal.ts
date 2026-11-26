@@ -73,8 +73,8 @@ export const SERVER_DATA: readonly ServerDataItem[] = [
     table: 'children',
     columns: ['id', 'nickname', 'created_at', 'extra', 'last_active_at'],
     what: {
-      es: 'El identificador anónimo, un apodo (de 1 a 30 letras, no debe ser el nombre real), la fecha de creación, la fecha de la última vez que jugó y el resto de la partida: monedas del juego, experiencia y nivel, gemas, zonas abiertas y tesoros, criaturas rescatadas, ajustes e idioma.',
-      ca: 'L’identificador anònim, un malnom (d’1 a 30 lletres, no ha de ser el nom real), la data de creació, la data de l’última vegada que va jugar i la resta de la partida: monedes del joc, experiència i nivell, gemmes, zones obertes i tresors, criatures rescatades, ajustos i idioma.',
+      es: 'El identificador anónimo, un apodo (de 1 a 30 letras, no debe ser el nombre real), la fecha de creación, la fecha de la última vez que jugó y el resto de la partida: monedas del juego, experiencia y nivel, gemas, zonas abiertas y tesoros, criaturas rescatadas, punto de la historia, aspecto del personaje, curso escolar (solo para elegir el tono de la historia; nunca la edad ni la fecha de nacimiento), ajustes e idioma.',
+      ca: 'L’identificador anònim, un malnom (d’1 a 30 lletres, no ha de ser el nom real), la data de creació, la data de l’última vegada que va jugar i la resta de la partida: monedes del joc, experiència i nivell, gemmes, zones obertes i tresors, criatures rescatades, punt de la història, aspecte del personatge, curs escolar (només per triar el to de la història; mai l’edat ni la data de naixement), ajustos i idioma.',
     },
     purpose: {
       es: 'Mostrar el apodo en el juego, saber a quién pertenece cada progreso y que la partida siga igual al volver a entrar.',

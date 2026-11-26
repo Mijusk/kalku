@@ -43,7 +43,7 @@ export interface RegionStory {
 
 export const PRADERA_UNO_STORY: RegionStory = {
   id: 'pradera-uno',
-  name: { es: 'Pradera Uno', ca: 'Prada U' },
+  name: { es: 'Pradera Uno', ca: 'Pradera Un' },
   chapters: CHAPTERS,
   steps: STORY,
   npcs: {
