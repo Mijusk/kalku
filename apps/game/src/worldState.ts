@@ -20,10 +20,30 @@ export interface WorldState {
   rng: Rng;
 }
 
-/** Datos con los que el mapa lanza un combate. */
+/** De dónde sale un combate de la historia (docs/HISTORIA.md). */
+export interface StoryBattle {
+  /** first = primer rescate guiado (con las explicaciones de Uni). */
+  where: 'wild' | 'first' | 'crystal' | 'boss';
+  crystal?: number;
+}
+
+/** Datos con los que el mapa lanza un combate. `wandererId` −1 = no es una criatura del mapa. */
 export interface EncounterData {
   wandererId: number;
   data: WildData;
+  story?: StoryBattle;
 }
+
+/** Cómo acabó el último combate, para que el mapa lo cuente en la historia al volver. */
+export interface BattleResult {
+  won: boolean;
+  rescued: boolean;
+  story: StoryBattle;
+}
+
+export const BATTLE_RESULT_KEY = 'battleResult';
+
+/** Un resultado de la historia que el mapa tiene que enseñar al volver (por ejemplo, la puerta abriéndose tras los acertijos). */
+export const PENDING_OUTCOME_KEY = 'pendingOutcome';
 
 export const WORLD_STATE_KEY = 'worldState';

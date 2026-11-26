@@ -1009,3 +1009,52 @@ a.btn {
 .dialog-portrait-slot[hidden] {
   display: none;
 }
+
+/* ---------- Tarjeta de misión del mapa ---------- */
+
+.quest-card {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  max-width: min(320px, calc(100vw - 150px));
+  padding: 8px 12px;
+  background: var(--panel);
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 0 var(--ink);
+  z-index: 5;
+  animation: fx-dialog-in 0.3s ease-out;
+}
+
+.quest-chapter {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.quest-title {
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.quest-counter {
+  display: inline-block;
+  margin: 6px 0 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #f4c542;
+  border: 2px solid var(--ink);
+  font-weight: 900;
+}
+
+.quest-card.quest-bump {
+  animation: fx-pop-card 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes fx-pop-card {
+  from { transform: scale(0.8); }
+  to { transform: scale(1); }
+}

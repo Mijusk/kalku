@@ -123,8 +123,8 @@ export const SCENES: Readonly<Record<SceneId, readonly DialogLine[]>> = {
   ],
   'lina-cave': [
     l('lina', '¡Hola! Soy Lina. Quiero explorar la cueva, pero está oscurísima.', 'Hola! Soc la Lina. Vull explorar la cova, però està foscíssima.'),
-    l('lina', 'El Borrón apagó los tres cristales que la iluminan. Dentro, unos restus los vigilan.', "El Borrón va apagar els tres cristalls que la il·luminen. A dins, uns restus els vigilen."),
-    l('lina', 'Toca cada cristal y devuelve la chispa a su restus. ¡Se encenderán!', "Toca cada cristall i torna l'espurna al seu restus. S'encendran!"),
+    l('lina', 'El Borrón apagó los tres cristales que la iluminan. Unas criaturas grises los vigilan.', 'El Borrón va apagar els tres cristalls que la il·luminen. Unes criatures grises els vigilen.'),
+    l('lina', 'Toca cada cristal y devuelve la chispa a quien lo vigila. ¡Se encenderán!', "Toca cada cristall i torna l'espurna a qui el vigila. S'encendran!"),
   ],
   'lina-light': [
     l('lina', '¡Qué brillo! Ahora la cueva es preciosa.', 'Quina brillantor! Ara la cova és preciosa.'),

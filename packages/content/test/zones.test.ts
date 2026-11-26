@@ -76,6 +76,7 @@ describe('datos de las zonas', () => {
     const bad: ZoneDefinition = {
       id: 'x',
       name: { es: 'X', ca: '' },
+      locked: { es: 'L', ca: 'L' },
       requirement: { gems: ['no-existe' as SkillId] },
       treasure: { id: 't', name: { es: 'T', ca: 'T' } },
     };

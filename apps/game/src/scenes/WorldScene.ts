@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { creaturesForSkill, getCreature, getZone, isZoneOpen, missingForZone, type ZoneDefinition } from '@kalku/content';
-import { currentSkill, challengeSkill, createRng, getSkill, levelForXp, pickSkill, randomSeed, type Rng } from '@kalku/exercises';
+import { creaturesForSkill, getCreature, getZone, ITEMS, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
+import { currentSkill, challengeSkill, createRng, pickSkill, randomSeed, type Rng } from '@kalku/exercises';
 import {
   createWildlife,
   findCollision,
@@ -19,12 +19,16 @@ import {
 import { playMusic, sfx } from '../audio/sound';
 import { tr } from '../i18n';
 import { loadProgress, saveProgress } from '../progress';
-import { gemCanvas } from '../ui/gemCanvas';
-import { WORLD_STATE_KEY, type EncounterData, type WildData, type WorldState } from '../worldState';
+import { WORLD_STATE_KEY, BATTLE_RESULT_KEY, PENDING_OUTCOME_KEY, type BattleResult, type EncounterData, type WildData, type WorldState } from '../worldState';
+import { applyStoryEvent, playScenes } from '../storyFlow';
+import { dialogOpen } from '../ui/DialogBox';
+import { banner, confetti } from '../ui/fx';
+import { ensureFxTextures } from './battleFx';
+import { greyFor, WorldStory, type StoryAction } from './worldStory';
 import { findBuildings, tilemapData } from '@kalku/art';
 import { activeClassId } from '../classDevice';
 import { appClassLoginBackend, leaveSharedDevice } from '../classLogin';
-import { ANIMATION_MS, buildingTexture, CHEST_TEXTURES, GATE_TEXTURE, TILE_SIZE, TILESET_KEYS } from '../art/textures';
+import { ANIMATION_MS, buildingTexture, CHEST_TEXTURES, GATE_TEXTURE, mapSpriteKey, TILE_SIZE, TILESET_KEYS } from '../art/textures';
 
 /** Semilla fija de Pradera Uno: todos los niños ven el mismo mapa. */
 const PRADERA_UNO_SEED = 42;
@@ -59,6 +63,7 @@ interface ZoneState {
 }
 
 const tileKey = (p: Point): string => `${p.x},${p.y}`;
+const reducedMotionNow = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const near = (a: Point, b: Point): boolean => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= ZONE_NEAR;
 
 /**
@@ -84,6 +89,12 @@ export class WorldScene extends Phaser.Scene {
   private sign: HTMLElement | undefined;
   private signZone: string | undefined;
   private signTimer: Phaser.Time.TimerEvent | undefined;
+  private story!: WorldStory;
+  /** Filtro gris del mundo: se va quitando capítulo a capítulo. */
+  private grey: Phaser.FX.ColorMatrix | undefined;
+  private greyLevel = 0;
+  /** Mientras se cuenta algo de la historia, el personaje no se mueve. */
+  private storyBusy = false;
 
   constructor() {
     super('world');
@@ -94,6 +105,8 @@ export class WorldScene extends Phaser.Scene {
     this.createCollectionButton();
 
     playMusic('world');
+    ensureFxTextures(this);
+    this.storyBusy = false;
     this.region = generateRegion(PRADERA_UNO, PRADERA_UNO_SEED);
     this.createGround();
     this.createBuildings();
@@ -120,6 +133,9 @@ export class WorldScene extends Phaser.Scene {
     camera.setBounds(0, 0, this.region.width * TILE_SIZE, this.region.height * TILE_SIZE);
     camera.startFollow(this.hero, true);
     camera.setRoundPixels(true);
+    this.story = new WorldStory(this, this.region, this.hero);
+    this.grey = camera.postFX?.addColorMatrix();
+    this.setGrey(greyFor(loadProgress().story));
 
     this.setupKeyboard();
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
@@ -128,7 +144,151 @@ export class WorldScene extends Phaser.Scene {
     });
     this.syncWild();
     this.refreshZones();
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.removeSign());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.removeSign();
+      this.story.destroy();
+    });
+    this.afterBattle();
+  }
+
+  private setGrey(level: number): void {
+    this.greyLevel = level;
+    if (!this.grey) return;
+    this.grey.reset();
+    this.grey.grayscale(level);
+  }
+
+  /** Al volver de un combate de la historia, se cuenta lo que ha pasado. */
+  private afterBattle(): void {
+    const result = this.registry.get(BATTLE_RESULT_KEY) as BattleResult | undefined;
+    this.registry.remove(BATTLE_RESULT_KEY);
+    const pending = this.registry.get(PENDING_OUTCOME_KEY) as StoryOutcome | undefined;
+    this.registry.remove(PENDING_OUTCOME_KEY);
+    if (pending) {
+      void this.showOutcome(pending);
+      return;
+    }
+    if (!result) return;
+    if (!result.won) {
+      // Perder no quita nada: Uni lo dice y se sigue.
+      if (result.story.where !== 'wild') void this.tell(() => playScenes(['defeat']));
+      return;
+    }
+    const where = result.story.where === 'first' ? 'wild' : result.story.where;
+    const outcome = applyStoryEvent({ type: 'battleWon', where, ...(result.story.crystal !== undefined ? { crystal: result.story.crystal } : {}) });
+    if (outcome.changed) void this.showOutcome(outcome);
+  }
+
+  /** Bloquea el mapa mientras dura `run`. */
+  private async tell(run: () => Promise<void>): Promise<void> {
+    this.storyBusy = true;
+    this.route = [];
+    try {
+      await run();
+    } finally {
+      this.storyBusy = false;
+    }
+  }
+
+  /** Enseña lo que ha pasado en la historia: objeto, diálogos, capítulo, zona y final. */
+  private async showOutcome(outcome: StoryOutcome): Promise<void> {
+    await this.showOutcomeNow(outcome);
+    // Si el siguiente objetivo está justo aquí (Pedrolo tras presentarse), empieza sin tener que irse y volver.
+    if (this.scene.isActive()) this.handleStory();
+  }
+
+  private showOutcomeNow(outcome: StoryOutcome): Promise<void> {
+    return this.tell(async () => {
+      const locale = loadProgress().locale;
+      if (outcome.item) {
+        sfx('quest');
+        const label = `${ITEMS[outcome.item.id].found[locale]} ${outcome.item.have}/${outcome.item.need}`;
+        banner(label, 'win', 1800);
+        await this.wait(1200);
+      }
+      this.story.refresh();
+      if (outcome.zoneOpened) {
+        const zone = this.zones.find((z) => z.def.id === outcome.zoneOpened);
+        if (outcome.scenes.length > 0) await playScenes(outcome.scenes);
+        if (zone) await new Promise<void>((resolve) => this.story.focusOn(zone.gate, () => {
+          this.openZone(zone);
+          resolve();
+        }));
+        await this.wait(1200);
+      } else if (outcome.scenes.length > 0) {
+        await playScenes(outcome.scenes);
+      }
+      if (outcome.chapterDone !== undefined) await this.chapterDone();
+      if (outcome.finished) await this.ending();
+      this.story.refresh();
+    });
+  }
+
+  private wait(ms: number): Promise<void> {
+    return new Promise((resolve) => this.time.delayedCall(ms, resolve));
+  }
+
+  /** Capítulo terminado: el mundo recupera parte del color. */
+  private async chapterDone(): Promise<void> {
+    const locale = loadProgress().locale;
+    sfx('levelUp');
+    banner(tr('chapterDone', locale), 'win', 2600);
+    confetti(40);
+    const target = greyFor(loadProgress().story);
+    const from = this.greyLevel;
+    if (reducedMotionNow()) this.setGrey(target);
+    else this.tweens.addCounter({ from, to: target, duration: 1600, onUpdate: (t) => this.setGrey(t.getValue() ?? target) });
+    await this.wait(2000);
+  }
+
+  /** Final de la historia: fiesta en el pueblo. */
+  private async ending(): Promise<void> {
+    const locale = loadProgress().locale;
+    sfx('win');
+    confetti(120);
+    banner(tr('questDone', locale), 'win', 4000);
+    await this.wait(2500);
+    await playScenes(['after-ending']);
+  }
+
+  /** Algo de la historia en esta casilla: hablar, combatir o los acertijos. */
+  private handleStory(): boolean {
+    if (this.storyBusy || this.encounterStarted) return false;
+    const action = this.story.arrive(this.tile, this.state.rng);
+    if (!action) return false;
+    void this.runStory(action);
+    return true;
+  }
+
+  private async runStory(action: StoryAction): Promise<void> {
+    if (action.type === 'battle') {
+      if (action.encounter.story?.where === 'boss') await this.tell(() => playScenes(['borron-appears']));
+      this.startBattle(action.encounter);
+      return;
+    }
+    if (action.type === 'riddles') {
+      this.state.tile = { ...this.tile };
+      this.registry.set(WORLD_STATE_KEY, this.state);
+      this.encounterStarted = true;
+      this.scene.start('riddle');
+      return;
+    }
+    const npc = action.npc;
+    if (!action.target) {
+      await this.tell(() => playScenes([`idle-${npc}` as const]));
+      return;
+    }
+    const outcome = applyStoryEvent({ type: 'talked', npc });
+    if (outcome.changed) await this.showOutcome(outcome);
+    else await this.tell(() => playScenes([`idle-${npc}` as const]));
+  }
+
+  private startBattle(data: EncounterData): void {
+    this.encounterStarted = true;
+    this.route = [];
+    this.state.tile = { ...this.tile };
+    this.registry.set(WORLD_STATE_KEY, this.state);
+    this.scene.start('battle', data);
   }
 
   /** Botón «Colección» arriba a la derecha. Se abre desde el mapa, no desde el combate. */
@@ -224,8 +384,9 @@ export class WorldScene extends Phaser.Scene {
       this.allowTile,
     );
     this.syncWild();
+    this.story.update(this.tile, this.state.wildlife.wanderers);
     // El encuentro se comprueba al llegar, para no cortar la animación del paso.
-    if (this.moving) return;
+    if (this.moving || this.storyBusy || dialogOpen()) return;
     if (this.checkEncounter()) return;
     const pressed = this.pressedDirection() ?? this.queued;
     this.queued = undefined;
@@ -283,7 +444,7 @@ export class WorldScene extends Phaser.Scene {
         this.moving = false;
         this.hero.setFrame(0);
         this.refreshZones();
-        this.checkEncounter();
+        if (!this.handleStory()) this.checkEncounter();
       },
     });
   }
@@ -334,12 +495,8 @@ export class WorldScene extends Phaser.Scene {
     if (this.encounterStarted) return false;
     const hit = findCollision(this.state.wildlife, this.tile);
     if (!hit) return false;
-    this.encounterStarted = true;
-    this.route = [];
-    this.state.tile = { ...this.tile };
-    this.registry.set(WORLD_STATE_KEY, this.state);
-    const data: EncounterData = { wandererId: hit.id, data: hit.data };
-    this.scene.start('battle', data);
+    if (this.storyBusy) return false;
+    this.startBattle({ wandererId: hit.id, data: hit.data, story: { where: 'wild' } });
     return true;
   }
 
@@ -354,9 +511,12 @@ export class WorldScene extends Phaser.Scene {
       const interior = new Set(zoneInterior(this.region, place).map(tileKey));
       const opened = progress.zonesOpened.includes(def.id);
       const chestTexture = progress.treasures.includes(def.treasure.id) ? CHEST_TEXTURES.open : CHEST_TEXTURES.closed;
+      // El puente roto se queda dibujado (arreglado) al abrirse; las demás puertas desaparecen.
+      const bridge = def.id === 'puente-roto';
+      if (bridge && opened) this.add.image(place.gate.x * TILE_SIZE, place.gate.y * TILE_SIZE, mapSpriteKey('bridge-fixed')).setOrigin(0).setDepth(0.5);
       const gateSprite = opened
         ? undefined
-        : this.add.image(place.gate.x * TILE_SIZE, place.gate.y * TILE_SIZE, GATE_TEXTURE).setOrigin(0).setDepth(1);
+        : this.add.image(place.gate.x * TILE_SIZE, place.gate.y * TILE_SIZE, bridge ? mapSpriteKey('bridge-broken') : GATE_TEXTURE).setOrigin(0).setDepth(1);
       const chestSprite = this.add.image(place.chest.x * TILE_SIZE, place.chest.y * TILE_SIZE, chestTexture).setOrigin(0).setDepth(1);
       if (opened) this.region = openGate(this.region, place.gate);
       this.zones.push({ place, gate: place.gate, chest: place.chest, def, interior, opened, gateSprite, chestSprite });
@@ -364,22 +524,13 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /**
-   * Al llegar a cada casilla: abre la puerta cercana si ya se cumple su requisito
-   * (con animación, una sola vez), enseña el cartel de lo que falta y recoge el cofre.
+   * Al llegar a cada casilla: enseña el cartel de la zona cerrada (qué misión
+   * la abre) y recoge el cofre. Las zonas las abre la historia (`showOutcome`).
    */
   private refreshZones(): void {
     const progress = loadProgress();
-    const player = { gems: progress.gems, level: levelForXp(progress.xp) };
-    let shown: ZoneState | undefined;
-    for (const zone of this.zones) {
-      if (zone.opened || !near(this.tile, zone.gate)) continue;
-      if (isZoneOpen(zone.def.requirement, player)) {
-        this.openZone(zone);
-        continue;
-      }
-      if (!shown) shown = zone;
-    }
-    if (shown) this.showMissing(shown, progress.locale, player);
+    const shown = this.zones.find((zone) => !zone.opened && near(this.tile, zone.gate));
+    if (shown) this.showLocked(shown, progress.locale);
     else if (this.signZone !== undefined && !this.signTimer) this.removeSign();
 
     for (const zone of this.zones) {
@@ -389,6 +540,7 @@ export class WorldScene extends Phaser.Scene {
       saveProgress(progress);
       zone.chestSprite.setTexture(CHEST_TEXTURES.open);
       sfx('chest');
+      confetti(30);
       this.showMessage(`${tr('zoneTreasure', progress.locale)} ${zone.def.treasure.name[progress.locale]}`);
     }
   }
@@ -407,6 +559,16 @@ export class WorldScene extends Phaser.Scene {
     this.showMessage(`${zone.def.name[progress.locale]} · ${tr('zoneOpened', progress.locale)}`);
     sfx('door');
     if (!sprite) return;
+    if (zone.def.id === 'puente-roto') {
+      // Bruno pone los tablones: el puente arreglado aparece desde arriba.
+      const fixed = this.add.image(zone.gate.x * TILE_SIZE, zone.gate.y * TILE_SIZE, mapSpriteKey('bridge-fixed')).setOrigin(0).setDepth(0.5);
+      sprite.destroy();
+      if (!reducedMotionNow()) {
+        fixed.setScale(1, 0);
+        this.tweens.add({ targets: fixed, scaleY: 1, duration: GATE_OPEN_MS, ease: 'Back.easeOut' });
+      }
+      return;
+    }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       sprite.destroy();
       return;
@@ -421,10 +583,9 @@ export class WorldScene extends Phaser.Scene {
     });
   }
 
-  /** Cartel en letra clara: qué falta para abrir la zona, con la gema dibujada. */
-  private showMissing(zone: ZoneState, locale: 'es' | 'ca', player: { gems: readonly string[]; level: number }): void {
+  /** Cartel en letra clara: qué hace falta para abrir la zona en la historia. */
+  private showLocked(zone: ZoneState, locale: 'es' | 'ca'): void {
     if (this.signZone === zone.def.id && !this.signTimer) return;
-    const missing = missingForZone(zone.def.requirement, player);
     const sign = this.ensureSign();
     this.signTimer?.remove();
     this.signTimer = undefined;
@@ -432,20 +593,10 @@ export class WorldScene extends Phaser.Scene {
     const title = document.createElement('p');
     title.className = 'zone-sign-title';
     title.textContent = zone.def.name[locale];
-    sign.replaceChildren(title);
-    for (const id of missing.gems) {
-      const skill = getSkill(id);
-      const line = document.createElement('p');
-      line.className = 'zone-sign-line';
-      line.append(gemCanvas(skill, true, 'zone-sign-gem'), `${tr('zoneNeedGem', locale)} ${skill.name[locale]}`);
-      sign.append(line);
-    }
-    if (missing.level !== undefined) {
-      const line = document.createElement('p');
-      line.className = 'zone-sign-line';
-      line.textContent = `${tr('zoneNeedLevel', locale)} ${missing.level}`;
-      sign.append(line);
-    }
+    const line = document.createElement('p');
+    line.className = 'zone-sign-line';
+    line.textContent = zone.def.locked[locale];
+    sign.replaceChildren(title, line);
   }
 
   /** Mensaje corto en el mismo cartel; se quita solo a los pocos segundos. */

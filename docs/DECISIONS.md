@@ -387,3 +387,17 @@ Los ajustes (`settings`) viven en el progreso: tiempo sí/no, texto normal/grand
 - **`409 repeated` cuenta como hecha**: el servidor ya la tenía (`unique (child_id, seed)`), así reenviar una cola no duplica nada.
 - **Rechazo (400/422):** sale de la cola y el dominio local se sustituye por el del servidor, solo el dominio (monedas y ajustes siguen locales). No se avisa al niño. Otros errores (red, 5xx, 401/404) paran el envío y la cola se conserva.
 - **Aviso «Sin conexión · se guardará al volver»** (es/ca), sin contador, mientras no haya red o queden respuestas pendientes. No bloquea el juego.
+
+## 2026-11-26 · La historia de Pradera Uno (hito 3)
+
+La historia está en [HISTORIA.md](HISTORIA.md) y como datos en `packages/content/src/story/`: 13 pasos en 5 capítulos. Un paso solo avanza aprendiendo (combates ganados, acertijos acertados) o hablando con quien toca; ningún evento hace retroceder y perder un combate de la historia no quita nada (Uni te lleva a descansar).
+
+- **Las zonas las abre la historia**, no las gemas ni el nivel: el puente con los tablones de Bruno, la cueva con Lina y la Puerta de Piedra con los acertijos de Pedrolo. Así el niño siempre sabe qué hacer (tarjeta de misión, marca «!» y flecha). Las gemas siguen saliendo en la colección.
+- **El pueblo empieza gris** y recupera color con cada capítulo (`greyFor`).
+- **Jefe final, el Gran Borrón:** 3 fases de 32 de vida; entre fases encoge y una criatura rescatada ayuda con una chispa gratis. El niño tiene el doble de vida contra él. Al final se convierte en Borroncito y vive en el pueblo.
+- **Daño fijo** en los combates (Chispa 8, Rayo ×1,5): ya no depende de las monedas ganadas, para que el primer combate no se acabe de un golpe.
+- **Acertijos sin vida ni tiempo:** tras 3 fallos se enseña la respuesta y sale otro, sin perder nada.
+
+## 2026-11-26 · Temario del centro como JSON
+
+Un fichero por centro en `packages/content/temarios/` ([TEMARIO.md](TEMARIO.md)), validado por los tests con errores en castellano. Se activa con `?temario=<id>`. Las preguntas propias no cuentan para el dominio porque no pertenecen a una habilidad. Se eligió JSON a mano antes que un editor en `/docentes` porque Luis puede rellenarlo ya con lo que le manden los centros; el editor vendrá después.

@@ -77,7 +77,10 @@ kalku/
 │   │   │   ├── buildings.ts    findBuildings (agrupa casillas) y drawBuilding: casa y tienda de cualquier tamaño
 │   │   │   ├── creatures.ts    CreatureLook (piezas como datos) y drawCreature: 8 fotogramas de 32 px
 │   │   │   ├── gems.ts         drawGem: gema de 16 px por operación, encendida o apagada
-│   │   │   └── objects.ts      drawGate (puerta de piedra de una zona) y drawChest (cofre cerrado y abierto)
+│   │   │   ├── objects.ts      drawGate (puerta de piedra de una zona) y drawChest (cofre cerrado y abierto)
+│   │   │   ├── character.ts    El personaje del niño por capas (piel, pelo, ropa, accesorio)
+│   │   │   ├── portraits.ts    Retratos de 16 px de los personajes de la historia (diálogos)
+│   │   │   └── npcs.ts         Personajes y objetos de la historia en el mapa: Tecla, Bruno, Lina, Pedrolo, Uni, el Gran Borrón, cristales, tablones y puente
 │   │   └── test/             Tests con vitest
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
@@ -91,7 +94,13 @@ kalku/
 │       │   ├── weeklySummary.ts Resumen semanal: buildWeeklySummary, selectRecipients, correo es/ca de texto plano y cuerpo para Brevo (sin seguimiento)
 │       │   ├── summaryToken.ts Token firmado (HMAC) del enlace de baja del resumen
 │       │   ├── legal.ts        Textos legales como datos: política es/ca, versión para niños, datos del servidor, subencargados, LEGAL_DRAFT
-│       │   └── weakness.ts     Debilidad por operación inversa (damageMultiplier; los problemus no tienen) y contador de encuentros para el cartel
+│       │   ├── weakness.ts     Debilidad por operación inversa (damageMultiplier; los problemus no tienen) y contador de encuentros para el cartel
+│       │   ├── outfit.ts       Piezas del personaje por capa y lectura del guardado
+│       │   ├── syllabus.ts     Temario de un centro: parseSyllabus (errores claros en castellano), preguntas propias como ejercicio
+│       │   └── story/          La historia (docs/HISTORIA.md) como datos
+│       │       ├── story.ts    Pasos y capítulos, advanceStory (nunca retrocede), objetivo de la tarjeta, zonas que abre
+│       │       └── scenes.ts   Personajes y diálogos es/ca de cada escena, con {apodo}
+│       ├── temarios/         Un JSON por centro (docs/TEMARIO.md); entran solos en el juego
 │       └── test/             Tests con vitest
 │
 └── apps/
@@ -122,18 +131,23 @@ kalku/
             ├── privacidad.ts   Pinta la política de privacidad (idioma, versión, tablas) desde @kalku/content
             ├── privacyLocale.ts Elige el idioma de /privacidad: ?lang=, ajuste guardado o navegador
             ├── nickname.ts     Apodos propuestos (es/ca) y validación (1–30 caracteres; avisa si parece nombre y apellido)
-            ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
+            ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas) y resultado de la historia al volver
+            ├── storyFlow.ts    Avanzar la historia y guardarla, reproducir diálogos, ir a la escena que toca
+            ├── syllabus.ts     Temarios de packages/content/temarios, ?temario=<id> y el acertijo que toca
             ├── audio/
             │   └── sound.ts    Sonido por código (Web Audio): efectos y melodías como notas, ajustes de sonido y música
             ├── art/
-            │   ├── pixelArt.ts El personaje, dibujado como texto (provisional hasta que se haga por capas)
-            │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets (uno por fotograma del agua), criaturas y edificios
+            │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets, criaturas, edificios, personaje, retratos y personajes del mapa
             ├── scenes/         Escenas de Phaser
-            │   ├── BootScene.ts    Genera las texturas (mundo, criaturas) y elige escena: prueba de nivel la primera vez, si no el mapa, o combate con ?combate
+            │   ├── BootScene.ts    Genera las texturas y va a la escena de la historia que toca (o combate con ?combate)
+            │   ├── PrologueScene.ts Prólogo: cuatro viñetas dibujadas por código con el Gran Borrón
+            │   ├── CreateScene.ts  Crea tu personaje (también desde la Colección: «Cambiar mi personaje»)
+            │   ├── RiddleScene.ts  Acertijos de Pedrolo (capítulo 4): problemas sin vida ni tiempo; salen del temario del centro si lo hay
             │   ├── ClassLoginScene.ts Entrada a la clase del QR: apodo, animal o código de la tarjeta
             │   ├── NicknameScene.ts Pantalla de apodo (lista o escrito) antes de la prueba de nivel, solo si no hay cuenta
             │   ├── PlacementScene.ts Prueba de nivel de la primera vez («¡Vamos a ver qué sabes!»), con «Ahora no»
-            │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara
+            │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara; color según capítulos
+            │   ├── worldStory.ts   La historia en el mapa: personajes, Uni, marca «!», flecha, tarjeta de misión, cristales y jefe
             │   ├── BattleScene.ts  Combate por turnos: hechizos Chispa y Rayo, la criatura recupera el color al devolverle la chispa; botón «Rescatar» con poca vida
             │   ├── battleFx.ts     Escenario del combate, proyectiles con estela y ráfagas de partículas, dibujados por código
             │   └── CollectionScene.ts Colección: criaturas rescatadas y las que faltan en silueta (HTML), se abre desde el mapa
@@ -141,6 +155,7 @@ kalku/
                 ├── ExercisePanel.ts  Ejercicio, altavoz, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio
                 ├── fx.ts             Efectos en HTML sobre el canvas: números que saltan, carteles y confeti
+                ├── DialogBox.ts      Diálogos con retrato, texto que se escribe solo, voz y «Saltar»
                 ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz y «Para adultos»
                 ├── dom.ts            Ayudas de HTML (texto, botón, estado) y la cuenta de «Para adultos»
                 ├── FamilyPanel.ts    Familia: entrar con correo, lista de hijos, unir, entrar como, quitar

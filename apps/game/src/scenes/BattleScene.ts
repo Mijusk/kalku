@@ -44,7 +44,10 @@ import { burst, castSpell, drawBattleBackground, drawPlatform, ensureFxTextures 
 import { Hud } from '../ui/Hud';
 import { showLevelUp } from '../ui/LevelUp';
 import { SettingsPanel } from '../ui/SettingsPanel';
-import { WORLD_STATE_KEY, type EncounterData, type WorldState } from '../worldState';
+import { BATTLE_RESULT_KEY, WORLD_STATE_KEY, type BattleResult, type EncounterData, type StoryBattle, type WorldState } from '../worldState';
+import { characterName, CREATURES as ALL_CREATURES } from '@kalku/content';
+import { mapSpriteKey } from '../art/textures';
+import { playScenes } from '../storyFlow';
 
 export const GAME_WIDTH = 480;
 export const GAME_HEIGHT = 270;
@@ -73,6 +76,9 @@ interface Fighter {
   /** Dónde está quieto (las animaciones vuelven aquí). */
   home: { x: number; y: number };
 }
+
+/** El Gran Borrón: tres fases, cada una más pequeño. */
+const BOSS = { phaseHp: 32, scales: [4, 3.2, 2.5] } as const;
 
 /** Posiciones del personaje y la criatura en el combate. */
 const HERO_AT = { x: 120, y: 196 };
@@ -122,7 +128,13 @@ export class BattleScene extends Phaser.Scene {
 
   create(data?: EncounterData): void {
     this.encounter = data?.data ? data : undefined;
-    this.creature = this.encounter ? getCreature(this.encounter.data.creature) : undefined;
+    this.storyBattle = this.encounter?.story;
+    this.boss = this.storyBattle?.where === 'boss';
+    this.tutorial = this.storyBattle?.where === 'first' ? { tip: false, hit: false, rescue: false } : undefined;
+    this.bossPhase = 0;
+    this.won = false;
+    // El jefe no es una criatura: no se rescata ni sale en la colección.
+    this.creature = this.encounter && !this.boss ? getCreature(this.encounter.data.creature) : undefined;
     this.turn = undefined;
     this.streak = 0;
     this.rescuedNow = undefined;
@@ -133,7 +145,7 @@ export class BattleScene extends Phaser.Scene {
     applySettings(this.progress.settings);
 
     ensureFxTextures(this);
-    drawBattleBackground(this, GAME_WIDTH, GAME_HEIGHT);
+    drawBattleBackground(this, GAME_WIDTH, GAME_HEIGHT, this.boss ? 'dusk' : this.storyBattle?.where === 'crystal' ? 'cave' : 'day');
     drawPlatform(this, HERO_AT.x, HERO_AT.y + 30, 96);
     drawPlatform(this, ENEMY_AT.x, ENEMY_AT.y + 62, 140);
     this.player = this.createFighter('hero', HERO_AT.x, HERO_AT.y, 4, BATTLE.playerHp);
@@ -148,9 +160,14 @@ export class BattleScene extends Phaser.Scene {
     this.grey = this.enemy.sprite.preFX?.addColorMatrix();
     this.animateEnemy();
     this.animateHeroIdle();
-    playMusic('battle');
+    playMusic(this.boss ? 'boss' : 'battle');
     clearFx();
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => clearFx());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      clearFx();
+      // Las etiquetas HTML del combate no deben quedarse en el mapa ni en los acertijos.
+      this.nameLabel?.remove();
+      this.weaknessLabel?.remove();
+    });
 
     const ui = document.getElementById('ui');
     if (!ui) throw new Error('Falta el contenedor #ui');
@@ -183,7 +200,7 @@ export class BattleScene extends Phaser.Scene {
   private refreshCreatureLabels(): void {
     const locale = this.progress.locale;
     const creature = this.creature;
-    if (this.nameLabel) this.nameLabel.textContent = creature ? creature.name[locale] : '';
+    if (this.nameLabel) this.nameLabel.textContent = this.boss ? characterName('borron')[locale] : creature ? creature.name[locale] : '';
     if (!this.weaknessLabel) return;
     const weak = creature ? weakOperator(creature) : undefined;
     if (creature && weak && this.showWeakness) {
@@ -221,7 +238,7 @@ export class BattleScene extends Phaser.Scene {
 
   /** Entrada del combate: el personaje llega andando y la criatura cae dando un bote. */
   private playIntro(): void {
-    const name = this.creature?.name[this.progress.locale];
+    const name = this.boss ? characterName('borron')[this.progress.locale] : this.creature?.name[this.progress.locale];
     if (name) banner(`${name}!`, 'info', 1200);
     if (reducedMotion()) return;
     const hero = this.player.sprite;
@@ -247,6 +264,12 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
+  /** Las barras de vida siguen a cada luchador cuando salta o se encoge. */
+  override update(): void {
+    if (this.enemy) this.drawBar(this.enemy);
+    if (this.player) this.drawBar(this.player);
+  }
+
   private drawBar(f: Fighter): void {
     const width = 64;
     const x = f.sprite.x - width / 2;
@@ -262,14 +285,17 @@ export class BattleScene extends Phaser.Scene {
     if (!this.encounter) this.creature = this.rng.pick(CREATURES);
     this.tweens.killTweensOf(this.enemy.sprite);
     this.enemy.sprite
-      .setTexture(this.creature?.sprite ?? 'hero', 0)
+      .setTexture(this.boss ? mapSpriteKey('borron') : (this.creature?.sprite ?? 'hero'), 0)
       .setAlpha(1)
       .setAngle(0)
-      .setScale(4)
+      .setScale(this.boss ? BOSS.scales[0] ?? 4 : 4)
       .setPosition(this.enemy.home.x, this.enemy.home.y);
-    this.enemy.maxHp = this.creature?.hp ?? BATTLE.enemyHp;
+    this.enemy.maxHp = this.boss ? BOSS.phaseHp : (this.creature?.hp ?? BATTLE.enemyHp);
     this.countEncounter();
+    this.refreshCreatureLabels();
     this.enemy.hp = this.enemy.maxHp;
+    // Contra el jefe el combate es más largo: más energía para que dé tiempo.
+    this.player.maxHp = this.boss ? BATTLE.playerHp * 2 : BATTLE.playerHp;
     this.player.hp = this.player.maxHp;
     this.drawBar(this.enemy);
     this.drawBar(this.player);
@@ -281,11 +307,19 @@ export class BattleScene extends Phaser.Scene {
     this.refreshHud();
     this.playIntro();
     this.showActions();
+    if (this.tutorial && !this.tutorial.tip) {
+      this.tutorial.tip = true;
+      this.time.delayedCall(1300, () => void playScenes(['first-battle-tip']));
+    }
   }
 
   /** Muestra los ataques; «Rescatar» solo si a la criatura le queda poca vida y no es un jefe. */
   private showActions(): void {
     const rescuable = this.creature !== undefined && canRescue(this.creature, this.enemy.hp, this.enemy.maxHp);
+    if (rescuable && this.tutorial && !this.tutorial.rescue) {
+      this.tutorial.rescue = true;
+      void playScenes(['first-battle-rescue']);
+    }
     // El texto se monta aquí, con el idioma de ahora: si el niño cambia el idioma en los ajustes, también cambia.
     const reveal = this.revealed === undefined ? undefined : `${tr('reveal', this.progress.locale)} ${this.revealed}.`;
     this.panel.showActions(reveal, rescuable);
@@ -437,7 +471,12 @@ export class BattleScene extends Phaser.Scene {
 
     // Se espera a que llegue el hechizo antes de seguir.
     this.time.delayedCall(correct && !turn.rescue ? 1400 : 900, () => {
+      if (this.boss && this.enemy.hp <= 0 && this.bossPhase < BOSS.scales.length - 1) return void this.nextBossPhase();
       if (this.rescuedNow || this.enemy.hp <= 0) return this.endBattle(true);
+      if (this.tutorial && !this.tutorial.hit && correct) {
+        this.tutorial.hit = true;
+        void playScenes(['first-battle-hit']);
+      }
       // Fallar un rescate no cuesta nada: el enemigo no contraataca, así la criatura no huye
       // y se puede volver a intentar.
       if (turn.rescue && !correct) {
@@ -558,6 +597,8 @@ export class BattleScene extends Phaser.Scene {
 
   private endBattle(won: boolean): void {
     const locale = this.progress.locale;
+    this.won = won;
+    if (won && this.boss) return this.bossDefeated();
     if (won) this.celebrate(this.rescuedNow !== undefined);
     else {
       sfx('wrong');
@@ -577,10 +618,78 @@ export class BattleScene extends Phaser.Scene {
   private returnToWorld(): void {
     const encounter = this.encounter;
     const world = this.registry.get(WORLD_STATE_KEY) as WorldState | undefined;
-    if (encounter && world) {
+    // Las criaturas del mapa se van al acabar; los combates de la historia (−1) no son del mapa.
+    if (encounter && world && encounter.wandererId >= 0) {
       world.wildlife = endEncounter(PRADERA_UNO.wildlife, world.wildlife, encounter.wandererId);
     }
+    if (encounter) {
+      const result: BattleResult = { won: this.won, rescued: this.rescuedNow !== undefined, story: encounter.story ?? { where: 'wild' } };
+      this.registry.set(BATTLE_RESULT_KEY, result);
+    }
     this.scene.start('world');
+  }
+
+  /** Combate de la historia (primer rescate, cristal, jefe) o undefined. */
+  private storyBattle: StoryBattle | undefined;
+  private boss = false;
+  private bossPhase = 0;
+  private won = false;
+  /** Explicaciones de Uni en el primer combate (cada una sale una vez). */
+  private tutorial: { tip: boolean; hit: boolean; rescue: boolean } | undefined;
+
+  /** El Borrón se encoge y empieza otra fase; un amigo rescatado ayuda con una chispa. */
+  private async nextBossPhase(): Promise<void> {
+    this.bossPhase += 1;
+    const scale = BOSS.scales[this.bossPhase] ?? 2.5;
+    sfx('enemyHit');
+    burst(this, this.enemy.home.x, this.enemy.home.y, 'puff', 30);
+    if (!reducedMotion()) {
+      this.cameras.main.shake(300, 0.01);
+      this.tweens.add({ targets: this.enemy.sprite, scale, duration: 600, ease: 'Back.easeIn' });
+    } else this.enemy.sprite.setScale(scale);
+    if (this.bossPhase === 1) await playScenes(['borron-shrinks']);
+    this.enemy.hp = this.enemy.maxHp;
+    this.drawBar(this.enemy);
+    this.refreshGrey();
+    await this.friendHelps();
+    this.busy = false;
+    this.turn = undefined;
+    this.showActions();
+  }
+
+  /** Una criatura rescatada sale a ayudar: lanza una chispa sin ejercicio (se la ganó el niño al rescatarla). */
+  private friendHelps(): Promise<void> {
+    const ids = this.progress.collection.map((c) => c.id);
+    const friend = ALL_CREATURES.find((c) => c.id === ids[(this.bossPhase - 1) % Math.max(1, ids.length)]);
+    if (!friend) return Promise.resolve();
+    const locale = this.progress.locale;
+    banner(`${friend.name[locale]} ${tr('friendHelps', locale)}`, 'info', 1600);
+    const sprite = this.add.image(this.player.home.x - 60, this.player.home.y + 10, friend.sprite, 0).setScale(2);
+    return new Promise((resolve) => {
+      this.time.delayedCall(600, () => {
+        sfx('spark');
+        castSpell(this, { x: sprite.x, y: sprite.y - 10 }, this.enemy.home, false, () => {
+          this.hit(this.enemy, BATTLE.sparkDamage);
+          this.time.delayedCall(500, () => {
+            sprite.destroy();
+            resolve();
+          });
+        });
+      });
+    });
+  }
+
+  /** Fin del jefe: se encoge del todo y se convierte en Borroncito. */
+  private bossDefeated(): void {
+    const locale = this.progress.locale;
+    sfx('win');
+    confetti(120);
+    burst(this, this.enemy.home.x, this.enemy.home.y, 'star', 40);
+    banner(tr('bossDone', locale), 'win', 3000);
+    this.enemy.sprite.setTexture(mapSpriteKey('borroncito'));
+    this.grey?.reset();
+    if (!reducedMotion()) this.tweens.add({ targets: this.enemy.sprite, scale: 4, y: this.enemy.home.y + 20, duration: 600, ease: 'Back.easeOut' });
+    this.panel.showResult(tr('bossDone', locale), `${this.progress.coins} ${tr('coins', locale)}`, tr('backToMap', locale));
   }
 
   private settingsOpen = false;

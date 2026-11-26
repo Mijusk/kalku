@@ -59,6 +59,13 @@ export class CollectionScene extends Phaser.Scene {
     back.textContent = tr('back', locale);
     back.addEventListener('click', () => this.scene.start('world'));
 
+    // Cambiar el personaje cuando quiera, sin perder nada.
+    const outfit = document.createElement('button');
+    outfit.type = 'button';
+    outfit.className = 'btn btn-small';
+    outfit.textContent = tr('createChange', locale);
+    outfit.addEventListener('click', () => this.scene.start('create', { fromSettings: true }));
+
     const gems = gemStatus(progress.gems);
     const gemsTitle = document.createElement('p');
     gemsTitle.className = 'panel-title';
@@ -106,7 +113,7 @@ export class CollectionScene extends Phaser.Scene {
       treasureGrid.append(item);
     }
 
-    root.append(title, grid, gemsTitle, gemGrid, treasuresTitle, treasureGrid, back);
+    root.append(title, grid, gemsTitle, gemGrid, treasuresTitle, treasureGrid, outfit, back);
     ui.append(root);
   }
 

@@ -128,6 +128,20 @@ function zonePiece(id: string): PieceSpec {
   };
 }
 
-export const ZONA_PUENTE: PieceSpec = zonePiece('zona-puente');
+/**
+ * Zona del puente: una isla en el río. La puerta es el puente roto, que
+ * Bruno arregla en el capítulo 2 (docs/HISTORIA.md).
+ */
+export const ZONA_PUENTE: PieceSpec = {
+  id: 'zona-puente',
+  rows: [
+    'AAAAAAA',
+    'A"""""A',
+    'A".K."A',
+    'AAAGAAA',
+    '...#...',
+  ],
+  link: { x: 3, y: 4 },
+};
 export const ZONA_CUEVA: PieceSpec = zonePiece('zona-cueva');
 export const ZONA_PUERTA: PieceSpec = zonePiece('zona-puerta');

@@ -7,7 +7,7 @@ import { reducedMotion } from '../ui/fx';
  * izquierda, como el resto de dibujos (ver docs/maquetas/dibujos-por-codigo.html).
  */
 
-export const FX_TEXTURES = { spark: 'fx-spark', dot: 'fx-dot', puff: 'fx-puff', star: 'fx-star' } as const;
+export const FX_TEXTURES = { spark: 'fx-spark', dot: 'fx-dot', puff: 'fx-puff', star: 'fx-star', alert: 'fx-alert', arrow: 'fx-arrow' } as const;
 
 /** Crea (una vez) las texturas pequeñas de los efectos. */
 export function ensureFxTextures(scene: Phaser.Scene): void {
@@ -32,6 +32,17 @@ export function ensureFxTextures(scene: Phaser.Scene): void {
   g.fillStyle(0xffd84a).fillRect(4, 1, 1, 7).fillRect(1, 4, 7, 1).fillRect(3, 3, 3, 3);
   g.fillStyle(0xffffff).fillRect(4, 3, 1, 1);
   g.generateTexture(FX_TEXTURES.star, 9, 9);
+  g.clear();
+  // «!» de misión: bocadillo amarillo con borde oscuro.
+  g.fillStyle(0x1b2a1f).fillRect(0, 0, 9, 12);
+  g.fillStyle(0xffd84a).fillRect(1, 1, 7, 10);
+  g.fillStyle(0x1b2a1f).fillRect(4, 2, 1, 5).fillRect(4, 8, 1, 2);
+  g.generateTexture(FX_TEXTURES.alert, 9, 12);
+  g.clear();
+  // Flecha que apunta a la derecha (se gira hacia el objetivo).
+  g.fillStyle(0x1b2a1f).fillTriangle(0, 0, 10, 5, 0, 10);
+  g.fillStyle(0xffd84a).fillTriangle(1, 2, 7, 5, 1, 8);
+  g.generateTexture(FX_TEXTURES.arrow, 11, 11);
   g.destroy();
 }
 
