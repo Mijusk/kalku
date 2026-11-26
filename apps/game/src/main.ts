@@ -43,8 +43,9 @@ const game = new Phaser.Game({
   },
   scene: [BootScene, PrologueScene, CreateScene, ClassLoginScene, NicknameScene, PlacementScene, WorldScene, BattleScene, RiddleScene, CollectionScene],
 });
-// Solo en desarrollo: deja el juego a mano para probar la historia entera con Playwright.
-if (import.meta.env.DEV) Object.assign(window, { kalkuGame: game });
+// Para probar la historia entera con Playwright (en local y en la web con ?prueba). No da ventajas:
+// las respuestas que cuentan las vuelve a comprobar el servidor.
+if (import.meta.env.DEV || new URLSearchParams(window.location.search).has('prueba')) Object.assign(window, { kalkuGame: game });
 
 // Web instalable: el service worker guarda el juego para jugar sin conexión.
 registerSW({ immediate: true });
