@@ -5,7 +5,10 @@ import {
   currentStep,
   isStoryDone,
   nextQuest,
+  QUEST_TEMPLATES,
+  regionStory,
   sceneLines,
+  storyIn,
   type Quest,
   type QuestEvent,
   type SceneId,
@@ -36,6 +39,8 @@ export function nickname(): string | undefined {
  * abre una zona, se apunta también en `zonesOpened`. Devuelve qué ha pasado.
  */
 export function applyStoryEvent(event: StoryEvent, progress: PlayerProgress = loadProgress()): StoryOutcome {
+  // En una región ya terminada (de vuelta a la pradera) la historia no avanza.
+  if (regionStory(progress.at).id !== regionStory(progress.story.region).id) return { state: progress.story, changed: false, scenes: [] };
   const outcome = advanceStory(progress.story, event);
   if (!outcome.changed) return outcome;
   progress.story = outcome.state;
@@ -85,16 +90,27 @@ export interface QuestOutcome {
   quest: Quest | null;
 }
 
+/** Encargos de los personajes que viven en la región donde está el niño. */
+function regionQuests(progress: PlayerProgress): typeof QUEST_TEMPLATES {
+  const npcs = regionStory(progress.at).npcs;
+  return QUEST_TEMPLATES.filter((q) => npcs[q.npc] !== undefined);
+}
+
 /**
- * Encargos de los personajes (#97): solo cuando la historia de la región ha
- * terminado. Si no hay ninguno, se crea. Al terminar uno se suman sus Cifras
- * y se crea el siguiente, de otro personaje.
+ * Encargos de los personajes (#97): solo cuando la historia de la región
+ * donde está el niño ha terminado. Si no hay ninguno (o es de alguien de otra
+ * región y aún no se había aceptado), se crea uno de aquí. Uno ya aceptado se
+ * conserva aunque se cambie de región: no se pierde lo hecho. Al terminar uno
+ * se suman sus Cifras y se crea el siguiente, de otro personaje.
  */
 export function applyQuestEvent(event: QuestEvent | undefined, progress: PlayerProgress = loadProgress()): QuestOutcome {
-  if (!isStoryDone(progress.story)) return { changed: false, quest: null };
+  if (!isStoryDone(storyIn(progress.story, progress.at))) return { changed: false, quest: null };
+  const templates = regionQuests(progress);
+  if (templates.length === 0) return { changed: false, quest: progress.quest };
   let changed = false;
-  if (!progress.quest) {
-    progress.quest = nextQuest(createRng(randomSeed()));
+  const here = (npc: string): boolean => templates.some((q) => q.npc === npc);
+  if (!progress.quest || (!progress.quest.accepted && !here(progress.quest.npc))) {
+    progress.quest = nextQuest(createRng(randomSeed()), undefined, templates);
     changed = true;
   }
   let done: Quest | undefined;
@@ -106,7 +122,7 @@ export function applyQuestEvent(event: QuestEvent | undefined, progress: PlayerP
       if (out.done) {
         done = out.quest;
         progress.coins += out.quest.reward;
-        progress.quest = nextQuest(createRng(randomSeed()), out.quest);
+        progress.quest = nextQuest(createRng(randomSeed()), out.quest, templates);
       }
     }
   }

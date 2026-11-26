@@ -83,6 +83,19 @@ Se puede saltar con «Saltar» (y no vuelve a salir).
 
 Después del final se sigue jugando: criaturas que rescatar, gemas que ganar y cofres que abrir.
 
+## Segunda región: el Bosque de las Decenas (números hasta 100)
+
+Se abre al terminar Pradera Uno: aparece un cartel en la plaza del pueblo y, al pararse en él, se viaja al bosque. Desde el bosque se puede volver a la pradera por el cartel de la entrada. Los diálogos están en los dos tonos (Brote y Aventura); en Aventura sigue el misterio de la voz que «firma con un cero».
+
+| Cap. | Título | Qué pasa |
+|---|---|---|
+| 1 | Las bellotas | Olma, la guardabosques, pide 3 bellotas: se consiguen devolviendo la chispa a criaturas del bosque. Con ellas abre el claro. |
+| 2 | Los farolillos | Encender los 3 farolillos del claro con combates. Con luz se ve el camino al Árbol Hueco. |
+| 3 | El Árbol Hueco | Cuco, el búho, pone 3 acertijos y abre el Árbol Hueco. |
+| 4 | El Gran Enredo | Una maraña de lianas que lía las decenas con las unidades. Al vencerle se desenreda: era Ovillo, que se queda en el campamento. |
+
+Las habilidades nuevas (decenas y unidades, sumas y restas hasta 100 sin y con llevada, problemas hasta 100) van detrás de las de Pradera Uno en el currículo. Cada niño sigue con las cuentas de su nivel en cualquier región. Después del final, Olma, Cuco y Ovillo dan encargos.
+
 ## Lo que ve el niño en todo momento
 
 - **La misión actual** en una tarjeta arriba a la izquierda («Encuentra los 3 tablones · 1/3»).

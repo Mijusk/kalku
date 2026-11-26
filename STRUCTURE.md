@@ -61,7 +61,7 @@ kalku/
 │   │   │   ├── terrain.ts      generateTerrain: reparte casillas por proporción y agrupa agua y árboles
 │   │   │   ├── pieces.ts       Lugares hechos a mano como texto (leyenda, pueblo y arena provisionales)
 │   │   │   ├── layout.ts       generateRegion: coloca las piezas y traza el camino; isReachable
-│   │   │   ├── regions.ts      Regiones como datos: Pradera Uno (60×40, entrada, pueblo y jefe)
+│   │   │   ├── regions.ts      Regiones como datos (con su semilla): Pradera Uno y Bosque de las Decenas; regionSpec(id)
 │   │   │   ├── autotile.ts     Bordes de agua y camino: máscara de vecinas → variante, con tabla (16 o 47 variantes)
 │   │   │   ├── gates.ts        Zonas cerradas: isGateClosed, openGate (sin mutar) y zoneInterior (el claro de detrás de la puerta)
 │   │   │   ├── movement.ts     Andar casilla a casilla: canWalk, step y pathTo (ir hasta donde se toca)
@@ -100,9 +100,10 @@ kalku/
 │       │   ├── quests.ts       Encargos de los personajes tras el final: plantillas, nextQuest con semilla, advanceQuest
 │       │   ├── missions.ts     Misiones del día y de la semana: iguales para todos según la fecha (Europe/Madrid)
 │       │   └── story/          La historia (docs/HISTORIA.md) como datos, por regiones (docs/JUEGO-SIN-FIN.md)
-│       │       ├── story.ts    Motor: advanceStory (nunca retrocede), objetivo de la tarjeta, zonas que abre, validateStory
-│       │       ├── regions.ts  RegionStory: capítulos, pasos y dónde vive cada personaje y luz en el mapa; REGION_STORIES
+│       │       ├── story.ts    Motor: advanceStory (nunca retrocede), objetivo de la tarjeta, zonas que abre, viajar entre regiones (travel, storyIn), validateStory
+│       │       ├── regions.ts  RegionStory: capítulos, pasos, personajes, luces, jefe, guardián y caminos de cada región; REGION_STORIES
 │       │       ├── praderaUno.ts Capítulos y pasos de Pradera Uno
+│       │       ├── bosqueDecenas.ts Capítulos y pasos del Bosque de las Decenas
 │       │       ├── scenesOlder.ts Diálogos de «Aventura» (8–12 años); sceneLines elige según el tramo
 │       │       └── scenes.ts   Personajes y diálogos es/ca de cada escena, con {apodo}
 │       ├── temarios/         Un JSON por centro (docs/TEMARIO.md); entran solos en el juego

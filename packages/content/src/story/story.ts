@@ -1,5 +1,5 @@
 import type { Localized } from '@kalku/exercises';
-import { FIRST_REGION, REGION_STORIES, regionStory, type RegionStory } from './regions.js';
+import { FIRST_REGION, REGION_STORIES, regionIndex, regionStory, type RegionStory } from './regions.js';
 import type { CharacterId, SceneId } from './scenes.js';
 
 /**
@@ -41,7 +41,7 @@ export interface ChapterInfo {
   title: Localized;
 }
 
-export type ItemId = 'plank' | 'crystal' | 'rune';
+export type ItemId = 'plank' | 'crystal' | 'rune' | 'acorn' | 'lantern';
 
 export interface StoryStep {
   id: StepId;
@@ -68,6 +68,8 @@ export const ITEMS: Readonly<Record<ItemId, { one: Localized; found: Localized }
   plank: { one: { es: 'Tablón', ca: 'Tauló' }, found: { es: '¡Has recuperado un tablón!', ca: 'Has recuperat un tauló!' } },
   crystal: { one: { es: 'Cristal', ca: 'Cristall' }, found: { es: '¡Cristal encendido!', ca: 'Cristall encès!' } },
   rune: { one: { es: 'Acertijo', ca: 'Endevinalla' }, found: { es: '¡Acertijo resuelto!', ca: 'Endevinalla resolta!' } },
+  acorn: { one: { es: 'Bellota', ca: 'Gla' }, found: { es: '¡Has encontrado una bellota!', ca: 'Has trobat un gla!' } },
+  lantern: { one: { es: 'Farolillo', ca: 'Fanalet' }, found: { es: '¡Farolillo encendido!', ca: 'Fanalet encès!' } },
 };
 
 /** En qué va el niño. `step` = índice en los pasos de su región; igual a su longitud = historia terminada. */
@@ -77,7 +79,7 @@ export interface StoryState {
   step: number;
   /** Cuántas veces se ha cumplido el paso actual (tablones, cristales, acertijos). */
   count: number;
-  /** Cristales encendidos (índices 0–2). */
+  /** Luces encendidas en el paso `crystals` (índices 0–2). */
   crystals: number[];
 }
 
@@ -238,6 +240,44 @@ export function stepIndex(id: StepId, region: string = FIRST_REGION): number {
 }
 
 /**
+ * La historia vista desde la región `at` del mapa: la región de la historia,
+ * tal cual; una anterior, ya terminada (se puede volver a ella).
+ */
+export function storyIn(state: StoryState, at: string | undefined): StoryState {
+  const here = regionStory(at ?? state.region);
+  const current = regionStory(state.region);
+  if (regionIndex(here.id) < regionIndex(current.id)) return { region: here.id, step: here.steps.length, count: 0, crystals: [] };
+  return state;
+}
+
+/** Si se puede ir a una región: las ya empezadas y la siguiente cuando se termina la actual. Nunca con Cifras. */
+export function regionOpen(state: StoryState, id: string): boolean {
+  const target = regionIndex(id);
+  if (target < 0) return false;
+  const current = regionStory(state.region);
+  if (target <= regionIndex(current.id)) return true;
+  return current.next === id && isStoryDone(state);
+}
+
+/** En qué región está el niño: la guardada si ya la ha empezado; si no, la de su historia. */
+export function parseAt(raw: unknown, state: StoryState): string {
+  const story = regionStory(state.region).id;
+  if (typeof raw !== 'string') return story;
+  const index = regionIndex(raw);
+  return index >= 0 && index <= regionIndex(story) ? raw : story;
+}
+
+/**
+ * Ir por el camino de `from` a `to`. Si `to` es la región siguiente, empieza
+ * su historia (`first`). Devuelve `undefined` si no hay camino o no está abierta.
+ */
+export function travel(state: StoryState, from: string, to: string): { story: StoryState; at: string; first: boolean } | undefined {
+  if (!regionStory(from).paths.some((p) => p.to === to) || !regionOpen(state, to)) return undefined;
+  if (regionIndex(to) > regionIndex(regionStory(state.region).id)) return { story: { region: to, step: 0, count: 0, crystals: [] }, at: to, first: true };
+  return { story: state, at: to, first: false };
+}
+
+/**
  * Comprueba los datos de la historia de cada región: ids únicos, capítulos en
  * orden y con título, contadores, textos es/ca, personajes y luces.
  */
@@ -263,7 +303,15 @@ export function validateStory(regions: readonly RegionStory[] = REGION_STORIES):
       if (step.kind === 'talk' && !step.npc) errors.push(where(`${step.id}: ¿con quién se habla?`));
       if (step.kind === 'talk' && step.npc && !region.npcs[step.npc]) errors.push(where(`${step.id}: ${step.npc} no está en el mapa`));
       if (step.kind === 'crystals' && (step.count ?? 0) > region.lights.length) errors.push(where(`${step.id}: hay menos luces que el contador`));
+      if (step.kind === 'riddles' && (!region.riddler || !region.npcs[region.riddler.npc])) errors.push(where(`${step.id}: no hay guardián de acertijos en el mapa`));
+      if (step.kind === 'riddles' && step.npc && region.riddler && step.npc !== region.riddler.npc) errors.push(where(`${step.id}: los acertijos son de ${region.riddler.npc}`));
+      if (step.kind === 'firstRescue' && !region.firstCreature) errors.push(where(`${step.id}: falta la criatura del primer rescate`));
     }
+    for (const path of region.paths) {
+      if (!regions.some((r) => r.id === path.to)) errors.push(where(`el camino a «${path.to}» no lleva a ninguna región`));
+      if (path.to === region.id) errors.push(where('un camino no puede llevar a la misma región'));
+    }
+    if (region.next !== undefined && !region.paths.some((p) => p.to === region.next)) errors.push(where(`falta el camino a la región siguiente «${region.next}»`));
     for (const c of region.chapters) if (!c.title.es.trim() || !c.title.ca.trim()) errors.push(where(`capítulo ${c.chapter}: falta el título en es o ca`));
     if (region.next !== undefined && !regions.some((r) => r.id === region.next)) errors.push(where(`la región siguiente «${region.next}» no existe`));
   }

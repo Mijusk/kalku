@@ -5,7 +5,8 @@ export type Locale = 'es' | 'ca';
 export type Localized = Record<Locale, string>;
 
 /**
- * Habilidades de la fase 1 (Pradera Uno: sumas y restas hasta 20).
+ * Habilidades del currículo: Pradera Uno (sumas y restas hasta 20) y el
+ * Bosque de las Decenas (decenas y unidades, sumas y restas hasta 100).
  * El orden de `SKILLS` en skills.ts es el orden del currículo.
  */
 export type SkillId =
@@ -15,7 +16,13 @@ export type SkillId =
   | 'sub-within-20-no-borrow'
   | 'add-within-20-carry'
   | 'sub-within-20-borrow'
-  | 'word-problems-within-10';
+  | 'word-problems-within-10'
+  | 'tens-units'
+  | 'add-within-100-no-carry'
+  | 'sub-within-100-no-borrow'
+  | 'add-within-100-carry'
+  | 'sub-within-100-borrow'
+  | 'word-problems-within-100';
 
 export type Operator = '+' | '-';
 
@@ -50,7 +57,7 @@ export interface Exercise {
   hint?: Localized;
   /** Pregunta escrita por un docente: no pertenece a una habilidad del currículo y no cuenta para el dominio. */
   custom?: boolean;
-  /** Dificultad: posición de la habilidad en el currículo (1–7), +0,5 si es de completar el hueco. */
+  /** Dificultad: posición de la habilidad en el currículo (1–13), +0,5 si es de completar el hueco. */
   difficulty: number;
 }
 

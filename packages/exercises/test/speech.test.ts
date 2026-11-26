@@ -21,7 +21,8 @@ describe('speakExercise', () => {
         for (const locale of ['es', 'ca'] as Locale[]) {
           const text = speakExercise(ex, locale);
           expect(text.length).toBeGreaterThan(0);
-          expect(text).not.toMatch(/[0-9+−\-=▢_]/);
+          // El guion solo vale entre letras («trenta-un», «vint-i-dos»), nunca como signo.
+          expect(text).not.toMatch(/[0-9+−=▢_]|(^|[^a-zà-ü])-|-($|[^a-zà-ü])/i);
         }
         expect(speakExercise(ex, 'es')).not.toBe(speakExercise(ex, 'ca'));
       }
@@ -53,6 +54,32 @@ describe('speakExercise', () => {
 });
 
 describe('numberToWords', () => {
+  it('hasta 100, en castellano y catalán', () => {
+    const cases: [number, string, string][] = [
+      [21, 'veintiuno', 'vint-i-un'],
+      [22, 'veintidós', 'vint-i-dos'],
+      [30, 'treinta', 'trenta'],
+      [47, 'cuarenta y siete', 'quaranta-set'],
+      [81, 'ochenta y uno', 'vuitanta-un'],
+      [99, 'noventa y nueve', 'noranta-nou'],
+      [100, 'cien', 'cent'],
+    ];
+    for (const [n, es, ca] of cases) {
+      expect(numberToWords(n, 'es')).toBe(es);
+      expect(numberToWords(n, 'ca')).toBe(ca);
+    }
+    expect(numberToWords(101, 'es')).toBe('101');
+  });
+
+  it('en femenino: «veintiuna», «vint-i-dues»', () => {
+    expect(numberToWords(21, 'es', true)).toBe('veintiuna');
+    expect(numberToWords(31, 'es', true)).toBe('treinta y una');
+    expect(numberToWords(22, 'ca', true)).toBe('vint-i-dues');
+    expect(numberToWords(41, 'ca', true)).toBe('quaranta-una');
+    expect(numberToWords(2, 'ca', true)).toBe('dues');
+    expect(numberToWords(12, 'ca', true)).toBe('dotze');
+  });
+
   it('del 0 al 20 en castellano y catalán', () => {
     const es = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte'];
     const ca = ['zero', 'un', 'dos', 'tres', 'quatre', 'cinc', 'sis', 'set', 'vuit', 'nou', 'deu', 'onze', 'dotze', 'tretze', 'catorze', 'quinze', 'setze', 'disset', 'divuit', 'dinou', 'vint'];

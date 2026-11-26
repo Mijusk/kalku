@@ -26,8 +26,16 @@ describe('criaturas de Pradera Uno', () => {
     }
   });
 
-  it('solo Cuentín tiene el nombre pendiente de aprobar por Luis', () => {
-    expect(CREATURES.filter((c) => c.provisional).map((c) => c.id)).toEqual(['problemus-cuentin']);
+  it('los nombres aprobados por Luis son los de Pradera Uno (menos Cuentín); los del bosque están pendientes', () => {
+    expect(CREATURES.filter((c) => c.provisional).map((c) => c.id)).toEqual([
+      'problemus-cuentin',
+      'sumus-pina',
+      'sumus-helecho',
+      'restus-musgo',
+      'sumus-bellota',
+      'restus-seta',
+      'problemus-corteza',
+    ]);
   });
 });
 

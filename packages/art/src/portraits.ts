@@ -8,7 +8,7 @@ import { hex, newGrid, setPx, type Grid } from './grid.js';
  */
 export const PORTRAIT_SIZE = 16;
 
-export type PortraitId = 'uni' | 'tecla' | 'bruno' | 'lina' | 'pedrolo' | 'borron' | 'borroncito';
+export type PortraitId = 'uni' | 'tecla' | 'bruno' | 'lina' | 'pedrolo' | 'borron' | 'borroncito' | 'olma' | 'cuco' | 'enredo' | 'ovillo';
 
 interface PortraitSpec {
   rows: readonly string[];
@@ -171,6 +171,94 @@ export const PORTRAITS: Readonly<Record<PortraitId, PortraitSpec>> = {
       '................',
     ],
     palette: { k: OUTLINE, l: '#e3dfec', g: '#b4aec2', d: '#7d7790', w: '#ffffff', p: '#ff9fb4' },
+  },
+  // Olma: guardabosques del Bosque de las Decenas, con capucha verde.
+  olma: {
+    rows: [
+      '.....kkkkkk.....',
+      '...kkhhhgggkk...',
+      '..khhhgggggggk..',
+      '..khggggggggggk.',
+      '.kgggkkkkkkgggk.',
+      '.kggksssssskggk.',
+      '.kgksseesseskgk.',
+      '.kgksswksswkskk.',
+      '.kgkssssssssk...',
+      '.kkksssrrsssk...',
+      '...kkssssssk....',
+      '....kkssssk.....',
+      '...kccckkccck...',
+      '..kcccbbbbccck..',
+      '.kcccccbbcccccck',
+      '.kkkkkkkkkkkkkkk',
+    ],
+    palette: { k: OUTLINE, h: '#6fb55a', g: '#3f7d3a', s: '#b9825a', e: OUTLINE, w: '#ffffff', r: '#8a4a3a', c: '#7a5230', b: '#d9b24a' },
+  },
+  // Cuco: el búho de los acertijos del bosque.
+  cuco: {
+    rows: [
+      '................',
+      '...kk......kk...',
+      '...kbk....kbk...',
+      '...kbbkkkkbbk...',
+      '..kbbbbbbbbbbk..',
+      '..kbwwkbbkwwbk..',
+      '..kbwkwbbwkwbk..',
+      '..kbwwkoowwwbk..',
+      '..kbbbkookbbbk..',
+      '..kblllllllbbk..',
+      '..kbllkllklbbk..',
+      '..kblllllllbbk..',
+      '...kbllkllbbk...',
+      '....kbbbbbbk....',
+      '....kokkkkok....',
+      '...kokk..kkok...',
+    ],
+    palette: { k: OUTLINE, b: '#8a6a4a', w: '#fff6d8', o: '#f2a33a', l: '#d9c09a' },
+  },
+  // Gran Enredo: una maraña de lianas que lía las decenas con las unidades.
+  enredo: {
+    rows: [
+      '................',
+      '................',
+      '................',
+      '.....kkkkkkk....',
+      '....klllgdggk...',
+      '...kldkggkdggk..',
+      '..kdkkdggkkgdgk.',
+      '..klwwwgdwwwddk.',
+      '.kllwwkgdwwkgggk',
+      '.klgwwkggwwkggdk',
+      '.kgggggdggggdggk',
+      '..kdggggdggggdk.',
+      '..kgdrdrgrggggk.',
+      '...kgdrgrgrdgk..',
+      '....kgggdggdk...',
+      '.....kkkkkkk....',
+    ],
+    palette: { k: OUTLINE, g: '#5fa046', d: '#32642d', l: '#aadc78', w: '#ffffff', r: '#c0516a', f: '#8cd264' },
+  },
+  // Ovillo: el Gran Enredo, ya desenredado.
+  ovillo: {
+    rows: [
+      '................',
+      '................',
+      '........ff......',
+      '.....kkkkkkk....',
+      '....klllgdggk...',
+      '...kldlgggdggk..',
+      '..kdlldgggggdgk.',
+      '..kllwwwdwwwddk.',
+      '.kllgwkwdwkwgggk',
+      '.klggwkwgwkwggdk',
+      '.kgggggdggggdggk',
+      '..kdggrgdgrggdk.',
+      '..kgdgdrrrggggk.',
+      '...kgdgggggdgk..',
+      '....kgggdggdk...',
+      '.....kkkkkkk....',
+    ],
+    palette: { k: OUTLINE, g: '#96cd78', d: '#5fa055', l: '#cdf0aa', w: '#ffffff', r: '#ff9fb4', f: '#8cd264' },
   },
 };
 

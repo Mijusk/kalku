@@ -411,3 +411,12 @@ Luis pidió una historia para 5–8 años y otra para 8–12. Mismas mates y mis
 - **Encargos de los personajes** (`quests.ts`): al acabar la historia, Bruno, Lina, Pedrolo y Tecla piden cosas (ganar combates, rescatar, acertijos, chispas). Se acepta hablando con quien lo pide y se elige con semilla, sin repetir personaje seguido. El premio son Cifras (cosmética), nunca XP ni ventajas: la XP solo sale de acertar.
 - **Misiones del día y de la semana** (`missions.ts`): 3 del día y 1 de la semana, iguales para todos los niños según la fecha en Europe/Madrid (una clase entera ve las mismas). Solo cuentan aciertos, combates y rescates; fallar no resta nada. Cada misión da su premio una sola vez.
 - **Sin rachas ni castigos por no entrar**: no hay días seguidos que se pierdan. Así no hay presión ni ansiedad y encaja con lo que piden los centros.
+
+## 2026-11-26 · Bosque de las Decenas: la segunda región (#99)
+
+- **Habilidades hasta 100** detrás de las de Pradera Uno en `SKILLS` (decenas y unidades; sumas y restas sin y con llevada; problemas). Así la dificultad de las de antes no cambia. Migración que amplía la lista de habilidades de la base de datos; un test avisa si una habilidad nueva no está en ella.
+- **La prueba de nivel solo recorre Pradera Uno** (`PLACEMENT_SKILLS`): diez preguntas no dan para trece habilidades. Quien lo acierta todo empieza con lo de la pradera dominado y llega a los números hasta 100 jugando.
+- **Las regiones no limitan las cuentas**: en el bosque cada niño sigue con las de su nivel (regla 4). La región cambia el mapa, la historia y los personajes.
+- **Se viaja por carteles**: el del bosque aparece al terminar la historia de Pradera Uno (nunca con Cifras) y hay que pararse en él (pasar por encima no cuenta). Se puede volver a la pradera. `story` guarda la región más avanzada y `at` dónde está el niño; una región anterior se ve terminada (`storyIn`).
+- **Encargos por región**: los da quien vive en la región donde está el niño. Un encargo ya aceptado no se pierde al cambiar de región.
+- Nombres nuevos (Olma, Cuco, Gran Enredo/Gran Embolic, Ovillo/Cabdell y las seis criaturas) **pendientes de aprobar por Luis**.

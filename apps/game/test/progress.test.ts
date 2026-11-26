@@ -122,7 +122,7 @@ describe('ida y vuelta con el servidor', () => {
 
   it('el extra no lleva el dominio ni datos personales', () => {
     const { extra } = toServerRows(defaultProgress());
-    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings', 'zonesOpened', 'treasures', 'story', 'outfit', 'grade', 'band', 'quest', 'missions'].sort());
+    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings', 'zonesOpened', 'treasures', 'story', 'at', 'outfit', 'grade', 'band', 'quest', 'missions'].sort());
   });
 
   it('el dominio nunca baja de 0 ni sube de 100, y los aciertos no superan los intentos', () => {
@@ -177,5 +177,20 @@ describe('outfit al cargar', () => {
     const o = loadProgress().outfit;
     expect(o.hair).toBe('pelo-largo');
     expect(o.body).toBe(defaultProgress().outfit.body);
+  });
+});
+
+describe('región donde está el niño (`at`)', () => {
+  it('por defecto, Pradera Uno', () => {
+    expect(defaultProgress().at).toBe('pradera-uno');
+    expect(parseProgress({ version: 1 }).at).toBe('pradera-uno');
+  });
+
+  it('solo vale una región ya empezada: no se puede saltar al bosque editando el guardado', () => {
+    expect(parseProgress({ version: 1, at: 'bosque-decenas' }).at).toBe('pradera-uno');
+    const forest = { region: 'bosque-decenas', step: 2, count: 0, crystals: [] };
+    expect(parseProgress({ version: 1, story: forest, at: 'bosque-decenas' }).at).toBe('bosque-decenas');
+    expect(parseProgress({ version: 1, story: forest, at: 'pradera-uno' }).at).toBe('pradera-uno');
+    expect(parseProgress({ version: 1, story: forest }).at).toBe('bosque-decenas');
   });
 });

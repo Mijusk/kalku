@@ -123,6 +123,79 @@ const GENERATORS: Record<SkillId, OperationGenerator> = {
     const b = rng.int(2, a - 1);
     return { a, b, c: a - b, operator: '-', story: rng.pick(SUB_STORIES)(name, a, b, thing) };
   },
+
+  // 40 + 7 = 47: juntar decenas y unidades para formar el número.
+  'tens-units': (rng) => {
+    const a = 10 * rng.int(2, 9);
+    const b = rng.int(1, 9);
+    return { a, b, c: a + b };
+  },
+
+  // 34 + 25 = 59: ni las unidades ni las decenas pasan de 9; el resultado pasa de 20.
+  'add-within-100-no-carry': (rng) => {
+    for (;;) {
+      const aT = rng.int(1, 8);
+      const aU = rng.int(0, 9);
+      const bT = rng.int(0, 9 - aT);
+      const bU = rng.int(0, 9 - aU);
+      const a = 10 * aT + aU;
+      const b = 10 * bT + bU;
+      // Sin números redondos los dos: 30 + 40 enseña poco de unidades.
+      if (b < 2 || a + b <= 20 || (aU === 0 && bU === 0)) continue;
+      return rng.chance(0.3) && b >= 10 ? { a: b, b: a, c: a + b } : { a, b, c: a + b };
+    }
+  },
+
+  // 58 − 23 = 35: se quita a las decenas y a las unidades sin pedir prestado.
+  'sub-within-100-no-borrow': (rng) => {
+    for (;;) {
+      const aT = rng.int(2, 9);
+      const aU = rng.int(1, 9);
+      const bT = rng.int(0, aT - 1);
+      const bU = rng.int(0, aU);
+      const b = 10 * bT + bU;
+      if (b < 2 || bU === 0) continue;
+      const a = 10 * aT + aU;
+      return { a, b, c: a - b };
+    }
+  },
+
+  // 38 + 27 = 65: las unidades pasan de 9 y se lleva una decena (el resultado no pasa de 99).
+  'add-within-100-carry': (rng) => {
+    const aU = rng.int(2, 9);
+    const bU = rng.int(10 - aU, 9);
+    const aT = rng.int(1, 7);
+    const bT = rng.int(0, 8 - aT);
+    const a = 10 * aT + aU;
+    const b = 10 * bT + bU;
+    return rng.chance(0.3) && b >= 10 ? { a: b, b: a, c: a + b } : { a, b, c: a + b };
+  },
+
+  // 52 − 27 = 25: faltan unidades y hay que deshacer una decena.
+  'sub-within-100-borrow': (rng) => {
+    const aT = rng.int(2, 9);
+    const aU = rng.int(0, 8);
+    const bU = rng.int(aU + 1, 9);
+    const bT = rng.int(0, aT - 1);
+    const a = 10 * aT + aU;
+    const b = 10 * bT + bU;
+    return { a, b, c: a - b };
+  },
+
+  // Problemas con números hasta 100: con y sin llevar, el niño decide la operación.
+  'word-problems-within-100': (rng) => {
+    const name = rng.pick(NAMES);
+    const thing = rng.pick(THINGS);
+    if (rng.chance(0.5)) {
+      const c = rng.int(25, 99);
+      const a = rng.int(10, c - 10);
+      const b = c - a;
+      return { a, b, c, operator: '+', story: rng.pick(ADD_STORIES)(name, a, b, thing) };
+    }
+    const a = rng.int(25, 99);
+    const b = rng.int(10, a - 5);
+    return { a, b, c: a - b, operator: '-', story: rng.pick(SUB_STORIES)(name, a, b, thing) };
+  },
 };
 
 export function hasGenerator(skill: SkillId): boolean {

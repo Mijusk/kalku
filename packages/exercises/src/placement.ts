@@ -19,19 +19,26 @@ export const PLACEMENT_LEVEL_MASTERY = 40;
 export const PLACEMENT_BELOW_ATTEMPTS = MASTERY_MIN_ATTEMPTS;
 
 export interface PlacementStep {
-  /** Posición de la habilidad en `SKILLS`. */
+  /** Posición de la habilidad en `PLACEMENT_SKILLS`. */
   level: number;
   correct: boolean;
 }
 
 export interface PlacementState {
   asked: number;
-  /** Posición (en `SKILLS`) de la habilidad del próximo ejercicio. */
+  /** Posición (en `PLACEMENT_SKILLS`) de la habilidad del próximo ejercicio. */
   level: number;
   history: readonly PlacementStep[];
 }
 
-const LAST_LEVEL = SKILLS.length - 1;
+/**
+ * La prueba recorre el currículo de Pradera Uno (hasta «Problemas hasta 10»).
+ * Lo que va después (números hasta 100) llega jugando: quien lo acierta todo
+ * empieza con todo eso dominado y sube rápido.
+ */
+export const PLACEMENT_SKILLS = SKILLS.slice(0, SKILLS.findIndex((s) => s.id === 'word-problems-within-10') + 1);
+
+const LAST_LEVEL = PLACEMENT_SKILLS.length - 1;
 
 /** Empieza en «Sumas hasta 20 sin llevar», a mitad de las sumas y restas; los problemas, al final, no desplazan el inicio. */
 const START_LEVEL = 2;
@@ -70,7 +77,7 @@ export function isPlacementDone(state: PlacementState): boolean {
 /** Habilidad del siguiente ejercicio, o `undefined` si la prueba ha terminado. */
 export function nextPlacementSkill(state: PlacementState): SkillId | undefined {
   if (isPlacementDone(state)) return undefined;
-  return SKILLS[state.level]?.id;
+  return PLACEMENT_SKILLS[state.level]?.id;
 }
 
 /** Estado nuevo tras responder; no muta el anterior. */
@@ -104,7 +111,7 @@ export function placementResult(state: PlacementState): MasteryProfile {
   const known = knownLevel(state);
   if (known < 0) return result;
   const detected = Math.min(LAST_LEVEL, known + 1);
-  SKILLS.forEach((skill, index) => {
+  PLACEMENT_SKILLS.forEach((skill, index) => {
     if (index < detected) {
       result[skill.id] = {
         mastery: MASTERY_THRESHOLD,

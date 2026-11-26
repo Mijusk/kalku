@@ -28,7 +28,13 @@ export type CreatureId =
   | 'restus-gota'
   | 'restus-bruma'
   | 'restus-sombra'
-  | 'problemus-cuentin';
+  | 'problemus-cuentin'
+  | 'sumus-pina'
+  | 'sumus-helecho'
+  | 'restus-musgo'
+  | 'sumus-bellota'
+  | 'restus-seta'
+  | 'problemus-corteza';
 
 export interface CreatureDefinition {
   id: CreatureId;
@@ -50,7 +56,7 @@ export interface CreatureDefinition {
 }
 
 /**
- * Criaturas de Pradera Uno, una por habilidad y en orden de currículo.
+ * Criaturas, una por habilidad y en orden de currículo (Pradera Uno y Bosque de las Decenas).
  * Añadir una criatura es añadir una entrada aquí, con sus piezas en `look`; no toca lógica.
  */
 export const CREATURES: readonly CreatureDefinition[] = [
@@ -129,6 +135,73 @@ export const CREATURES: readonly CreatureDefinition[] = [
     hp: 25,
     sprite: 'creature-problemus-cuentin',
     look: { ramp: 'naranja', body: 'round', top: 'antenna', eyes: 'big', cheeks: true, sign: '±' },
+    provisional: true,
+  },
+  // Bosque de las Decenas (números hasta 100). Nombres pendientes de aprobar por Luis.
+  {
+    id: 'sumus-pina',
+    family: 'sumus',
+    skill: 'tens-units',
+    name: { es: 'Sumus Piña', ca: 'Sumus Pinya' },
+    description: { es: 'Guarda los piñones de diez en diez.', ca: 'Guarda els pinyons de deu en deu.' },
+    hp: 30,
+    sprite: 'creature-sumus-pina',
+    look: { ramp: 'marron', body: 'pear', top: 'sprout', eyes: 'big', spots: true, sign: '+' },
+    provisional: true,
+  },
+  {
+    id: 'sumus-helecho',
+    family: 'sumus',
+    skill: 'add-within-100-no-carry',
+    name: { es: 'Sumus Helecho', ca: 'Sumus Falguera' },
+    description: { es: 'Le crecen las hojas por decenas.', ca: 'Li creixen les fulles per desenes.' },
+    hp: 40,
+    sprite: 'creature-sumus-helecho',
+    look: { ramp: 'verde', body: 'round', top: 'ears', eyes: 'big', cheeks: true, sign: '+' },
+    provisional: true,
+  },
+  {
+    id: 'restus-musgo',
+    family: 'restus',
+    skill: 'sub-within-100-no-borrow',
+    name: { es: 'Restus Musgo', ca: 'Restus Molsa' },
+    description: { es: 'Blandito y callado: borra sin hacer ruido.', ca: 'Tou i callat: esborra sense fer soroll.' },
+    hp: 40,
+    sprite: 'creature-restus-musgo',
+    look: { ramp: 'verde', body: 'bean', top: 'puff', eyes: 'sleepy', sign: '-' },
+    provisional: true,
+  },
+  {
+    id: 'sumus-bellota',
+    family: 'sumus',
+    skill: 'add-within-100-carry',
+    name: { es: 'Sumus Bellota', ca: 'Sumus Gla' },
+    description: { es: 'Cuando junta diez bellotas, hace una decena.', ca: 'Quan ajunta deu glans, fa una desena.' },
+    hp: 50,
+    sprite: 'creature-sumus-bellota',
+    look: { ramp: 'naranja', body: 'bean', top: 'antenna', eyes: 'small', spots: true, sign: '+' },
+    provisional: true,
+  },
+  {
+    id: 'restus-seta',
+    family: 'restus',
+    skill: 'sub-within-100-borrow',
+    name: { es: 'Restus Seta', ca: 'Restus Bolet' },
+    description: { es: 'Rompe una decena para poder quitar.', ca: 'Trenca una desena per poder treure.' },
+    hp: 50,
+    sprite: 'creature-restus-seta',
+    look: { ramp: 'rosa', body: 'round', top: 'horns', eyes: 'small', spots: true, sign: '-' },
+    provisional: true,
+  },
+  {
+    id: 'problemus-corteza',
+    family: 'problemus',
+    skill: 'word-problems-within-100',
+    name: { es: 'Problemus Corteza', ca: 'Problemus Escorça' },
+    description: { es: 'Lleva historias escritas en la corteza.', ca: "Porta històries escrites a l'escorça." },
+    hp: 35,
+    sprite: 'creature-problemus-corteza',
+    look: { ramp: 'marron', body: 'drop', top: 'antenna', eyes: 'big', cheeks: true, sign: '±' },
     provisional: true,
   },
 ];

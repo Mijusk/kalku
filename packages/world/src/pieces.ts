@@ -145,3 +145,34 @@ export const ZONA_PUENTE: PieceSpec = {
 };
 export const ZONA_CUEVA: PieceSpec = zonePiece('zona-cueva');
 export const ZONA_PUERTA: PieceSpec = zonePiece('zona-puerta');
+
+/** Campamento de Olma en el Bosque de las Decenas: una cabaña y un claro. El camino entra por abajo. */
+export const CAMPAMENTO_BOSQUE: PieceSpec = {
+  id: 'campamento-bosque',
+  rows: [
+    '*.......*',
+    '.CCC.....',
+    '.CCC.....',
+    '....#....',
+    '*...#...*',
+  ],
+  link: { x: 4, y: 4 },
+};
+
+/** El corazón del bosque, donde espera el Gran Enredo. El camino entra por la izquierda. */
+export const ARENA_BOSQUE: PieceSpec = {
+  id: 'arena-bosque',
+  rows: [
+    'TTTTTTTTT',
+    'TTT...TTT',
+    'T.......T',
+    '###..J..T',
+    'T.......T',
+    'TTT...TTT',
+    'TTTTTTTTT',
+  ],
+  link: { x: 0, y: 3 },
+};
+
+export const ZONA_CLARO: PieceSpec = zonePiece('zona-claro');
+export const ZONA_ARBOL: PieceSpec = zonePiece('zona-arbol');

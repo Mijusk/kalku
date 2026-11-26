@@ -91,6 +91,37 @@ export const QUEST_TEMPLATES: readonly QuestTemplate[] = [
     objective: t('Devuelve la chispa a {n} criaturas', 'Torna l’espurna a {n} criatures'),
     thanks: t('Cada chispa cuenta. Gracias, Calculista.', 'Cada espurna compta. Gràcies, Calculista.'),
   },
+  // Bosque de las Decenas.
+  {
+    id: 'olma-acorns',
+    npc: 'olma',
+    kind: 'collect',
+    min: 2,
+    max: 4,
+    ask: t('Las ardillas del bosque han perdido sus bellotas. ¿Me traes {n}?', 'Els esquirols del bosc han perdut els glans. Me’n portes {n}?'),
+    objective: t('Trae {n} bellotas a Olma', "Porta {n} glans a l'Olma"),
+    thanks: t('¡Diez, veinte, treinta…! Ya las tengo contadas. Gracias.', 'Deu, vint, trenta…! Ja els tinc comptats. Gràcies.'),
+  },
+  {
+    id: 'cuco-riddles',
+    npc: 'cuco',
+    kind: 'riddles',
+    min: 2,
+    max: 3,
+    ask: t('Uh-uh… Esta noche he pensado {n} acertijos. ¿Los resolvemos juntos?', 'Uh-uh… Aquesta nit he pensat {n} endevinalles. Les resolem junts?'),
+    objective: t('Resuelve {n} acertijos de Cuco', "Resol {n} endevinalles d'en Cuco"),
+    thanks: t('Uh-uh. Pensar despacio da buenos frutos.', 'Uh-uh. Pensar a poc a poc dona bons fruits.'),
+  },
+  {
+    id: 'ovillo-rescue',
+    npc: 'ovillo',
+    kind: 'rescue',
+    min: 1,
+    max: 3,
+    ask: t('Aún hay criaturas enredadas por mi culpa. ¿Rescatas a {n}?', 'Encara hi ha criatures embolicades per culpa meva. En rescates {n}?'),
+    objective: t('Rescata {n} criaturas para Ovillo', 'Rescata {n} criatures per al Cabdell'),
+    thanks: t('¡Gracias! Ya no queda ningún nudo.', 'Gràcies! Ja no queda cap nus.'),
+  },
 ];
 
 /** Encargo siguiente: de otro personaje que el anterior, con semilla. */

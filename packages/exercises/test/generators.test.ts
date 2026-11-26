@@ -165,9 +165,9 @@ describe('problemas con enunciado', () => {
     expect(adds).toBeLessThan(0.55);
   });
 
-  it('es la única habilidad con enunciado', () => {
+  it('solo los problemas llevan enunciado', () => {
     for (const skill of SKILLS) {
-      if (skill.id === 'word-problems-within-10') continue;
+      if (skill.operator === 'mixed') continue;
       expect(sample(skill.id).every((e) => e.story === undefined)).toBe(true);
     }
   });
@@ -178,5 +178,62 @@ describe('problemas con enunciado', () => {
       return Array.from({ length: 50 }, () => generateExercise('word-problems-within-10', rng).story);
     };
     expect(texts(5)).toEqual(texts(5));
+  });
+});
+
+describe('números hasta 100 (Bosque de las Decenas)', () => {
+  const tens = (n: number): number => Math.floor(n / 10);
+
+  it('decenas y unidades: una decena redonda más unas unidades', () => {
+    for (const ex of sample('tens-units')) {
+      expect(ex.a % 10).toBe(0);
+      expect(ex.a).toBeGreaterThanOrEqual(20);
+      expect(ex.b).toBeLessThan(10);
+      expect(ex.c).toBe(ex.a + ex.b);
+    }
+  });
+
+  it('sumas hasta 100 sin llevar: ni unidades ni decenas pasan de 9', () => {
+    for (const ex of sample('add-within-100-no-carry')) {
+      expect(ex.c).toBeGreaterThan(20);
+      expect(ex.c).toBeLessThanOrEqual(99);
+      expect((ex.a % 10) + (ex.b % 10)).toBeLessThanOrEqual(9);
+      expect(tens(ex.a) + tens(ex.b)).toBeLessThanOrEqual(9);
+      expect(ex.a % 10 === 0 && ex.b % 10 === 0).toBe(false);
+    }
+  });
+
+  it('restas hasta 100 sin llevar: no hace falta deshacer decenas', () => {
+    for (const ex of sample('sub-within-100-no-borrow')) {
+      expect(ex.a).toBeGreaterThan(20);
+      expect(ex.b % 10).toBeLessThanOrEqual(ex.a % 10);
+      expect(ex.b % 10).toBeGreaterThan(0);
+      expect(ex.c).toBeGreaterThan(0);
+    }
+  });
+
+  it('sumas hasta 100 llevando: las unidades pasan de 9 y el total no de 99', () => {
+    for (const ex of sample('add-within-100-carry')) {
+      expect((ex.a % 10) + (ex.b % 10)).toBeGreaterThanOrEqual(10);
+      expect(ex.c).toBeLessThanOrEqual(99);
+      expect(Math.max(ex.a, ex.b)).toBeGreaterThanOrEqual(10);
+    }
+  });
+
+  it('restas hasta 100 llevando: faltan unidades', () => {
+    for (const ex of sample('sub-within-100-borrow')) {
+      expect(ex.a).toBeGreaterThanOrEqual(20);
+      expect(ex.b % 10).toBeGreaterThan(ex.a % 10);
+      expect(ex.c).toBeGreaterThan(0);
+    }
+  });
+
+  it('problemas hasta 100: con enunciado, números de dos cifras y resultado hasta 99', () => {
+    for (const ex of sample('word-problems-within-100')) {
+      expect(ex.story).toBeDefined();
+      expect(Math.min(ex.a, ex.b)).toBeGreaterThanOrEqual(10);
+      expect(Math.max(ex.a, ex.c)).toBeLessThanOrEqual(99);
+      expect(ex.c).toBeGreaterThan(0);
+    }
   });
 });
