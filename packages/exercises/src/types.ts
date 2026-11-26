@@ -46,6 +46,10 @@ export interface Exercise {
   answer: number;
   /** Enunciado ya redactado (problemas con texto). Si existe, sustituye a la operación al mostrarlo. */
   story?: Localized;
+  /** Pista propia (preguntas del temario de un centro); si existe, se enseña en vez de las pistas generadas. */
+  hint?: Localized;
+  /** Pregunta escrita por un docente: no pertenece a una habilidad del currículo y no cuenta para el dominio. */
+  custom?: boolean;
   /** Dificultad: posición de la habilidad en el currículo (1–7), +0,5 si es de completar el hueco. */
   difficulty: number;
 }

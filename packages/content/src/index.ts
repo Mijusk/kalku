@@ -8,3 +8,6 @@ export * from './zones.js';
 export * from './weeklySummary.js';
 export * from './summaryToken.js';
 export * from './classProgress.js';
+export * from './story/index.js';
+export * from './outfit.js';
+export * from './syllabus.js';

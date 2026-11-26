@@ -65,10 +65,10 @@ export class ExercisePanel {
     this.stopWatchingVoices?.();
     stopSpeaking();
     this.root.replaceChildren(
-      el('p', 'panel-title', tr('chooseAction', this.locale)),
+      el('p', 'panel-title panel-actions-title', tr('chooseAction', this.locale)),
       row(
-        button(tr('quickAttack', this.locale), 'btn btn-primary', () => this.callbacks.onAction('quick')),
-        button(tr('strongAttack', this.locale), 'btn btn-danger', () => this.callbacks.onAction('strong')),
+        spell('✨', tr('quickAttack', this.locale), tr('quickAttackHint', this.locale), 'btn btn-primary btn-spell', () => this.callbacks.onAction('quick')),
+        spell('⚡', tr('strongAttack', this.locale), tr('strongAttackHint', this.locale), 'btn btn-danger btn-spell', () => this.callbacks.onAction('strong')),
       ),
       ...(canRescue ? [button(tr('rescue', this.locale), 'btn btn-rescue', () => this.callbacks.onAction('rescue'))] : []),
       tag ? el('p', 'panel-feedback', tag) : el('span'),
@@ -116,6 +116,19 @@ export class ExercisePanel {
       ...(chrome ? [button(chrome.skipLabel, 'btn btn-quiet', () => chrome.onSkip())] : []),
     );
     this.renderAnswer();
+  }
+
+  /**
+   * Tras acertar: quita el teclado y deja solo el mensaje, para que el combate
+   * se vea grande mientras sale el hechizo.
+   */
+  showCasting(text: string): void {
+    this.root.dataset.state = 'casting';
+    this.stopWatchingVoices?.();
+    stopSpeaking();
+    const feedback = el('p', 'panel-feedback panel-feedback-big', text);
+    feedback.dataset.kind = 'good';
+    this.root.replaceChildren(feedback);
   }
 
   showFeedback(text: string, kind: 'good' | 'bad' | 'info'): void {
@@ -193,6 +206,17 @@ function headerOf(chrome: ExerciseChrome): HTMLElement[] {
 function row(...children: HTMLElement[]): HTMLElement {
   const node = el('div', 'row');
   node.append(...children);
+  return node;
+}
+
+/** Botón de hechizo: icono y nombre grandes, y debajo una línea pequeña (fácil / reto). */
+function spell(icon: string, label: string, detail: string, className: string, onClick: () => void): HTMLButtonElement {
+  const node = button('', className, onClick, `${label} (${detail})`);
+  const top = el('span', '', `${icon} ${label}`);
+  top.setAttribute('aria-hidden', 'true');
+  const small = el('small', '', detail);
+  small.setAttribute('aria-hidden', 'true');
+  node.append(top, small);
   return node;
 }
 

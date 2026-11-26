@@ -3,7 +3,7 @@ import { collectionStatus, gemStatus, ZONES, type CreatureDefinition } from '@ka
 import { drawChest, gridToRgba, OBJECT_PX } from '@kalku/art';
 import type { Locale } from '@kalku/exercises';
 import { tr } from '../i18n';
-import { applyTextSize, loadProgress } from '../progress';
+import { applySettings, loadProgress } from '../progress';
 import { gemCanvas } from '../ui/gemCanvas';
 
 /** Color de la silueta de las criaturas que faltan. */
@@ -22,7 +22,7 @@ export class CollectionScene extends Phaser.Scene {
   create(): void {
     const progress = loadProgress();
     const locale = progress.locale;
-    applyTextSize(progress.settings);
+    applySettings(progress.settings);
     this.cameras.main.setBackgroundColor('#2d4a35');
 
     const ui = document.getElementById('ui');
@@ -58,6 +58,13 @@ export class CollectionScene extends Phaser.Scene {
     back.className = 'btn btn-primary';
     back.textContent = tr('back', locale);
     back.addEventListener('click', () => this.scene.start('world'));
+
+    // Cambiar el personaje cuando quiera, sin perder nada.
+    const outfit = document.createElement('button');
+    outfit.type = 'button';
+    outfit.className = 'btn btn-small';
+    outfit.textContent = tr('createChange', locale);
+    outfit.addEventListener('click', () => this.scene.start('create', { fromSettings: true }));
 
     const gems = gemStatus(progress.gems);
     const gemsTitle = document.createElement('p');
@@ -106,7 +113,7 @@ export class CollectionScene extends Phaser.Scene {
       treasureGrid.append(item);
     }
 
-    root.append(title, grid, gemsTitle, gemGrid, treasuresTitle, treasureGrid, back);
+    root.append(title, grid, gemsTitle, gemGrid, treasuresTitle, treasureGrid, outfit, back);
     ui.append(root);
   }
 

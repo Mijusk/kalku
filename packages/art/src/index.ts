@@ -7,3 +7,6 @@ export * from './creatures.js';
 export * from './gems.js';
 export * from './effects.js';
 export * from './objects.js';
+export * from './portraits.js';
+export * from './character.js';
+export * from './npcs.js';

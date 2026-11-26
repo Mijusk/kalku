@@ -24,6 +24,8 @@ export interface ZoneTreasure {
 export interface ZoneDefinition {
   id: string;
   name: Localized;
+  /** Cartel de la zona cerrada en la historia: qué hay que hacer para abrirla. */
+  locked: Localized;
   requirement: ZoneRequirement;
   treasure: ZoneTreasure;
 }
@@ -32,18 +34,21 @@ export const ZONES: readonly ZoneDefinition[] = [
   {
     id: 'puente-roto',
     name: { es: 'Puente roto', ca: 'Pont trencat' },
+    locked: { es: 'Bruno puede arreglarlo con 3 tablones.', ca: 'En Bruno el pot arreglar amb 3 taulons.' },
     requirement: { gems: ['sub-within-20-borrow'] },
     treasure: { id: 'tesoro-puente', name: { es: 'Farol del puente', ca: 'Fanal del pont' } },
   },
   {
     id: 'cueva',
     name: { es: 'Cueva', ca: 'Cova' },
+    locked: { es: 'Está muy oscuro. Lina sabe cómo entrar.', ca: 'Està molt fosc. La Lina sap com entrar-hi.' },
     requirement: { minLevel: 3 },
     treasure: { id: 'tesoro-cueva', name: { es: 'Cristal de la cueva', ca: 'Cristall de la cova' } },
   },
   {
     id: 'puerta-de-piedra',
     name: { es: 'Puerta de piedra', ca: 'Porta de pedra' },
+    locked: { es: 'Pedrolo solo abre a quien resuelve sus acertijos.', ca: 'En Pedrolo només obre a qui resol les seves endevinalles.' },
     requirement: { gems: ['add-within-20-carry'], minLevel: 5 },
     treasure: { id: 'tesoro-puerta', name: { es: 'Corona de piedra', ca: 'Corona de pedra' } },
   },
@@ -94,7 +99,7 @@ export function validateZones(zones: readonly ZoneDefinition[] = ZONES): string[
     for (const g of gems) {
       if (!(SKILL_IDS as readonly string[]).includes(g)) errors.push(`${zone.id}: la gema ${g} no existe`);
     }
-    for (const text of [zone.name, zone.treasure.name]) {
+    for (const text of [zone.name, zone.treasure.name, zone.locked]) {
       if (text.es.trim() === '' || text.ca.trim() === '') errors.push(`${zone.id}: falta un texto en es o ca`);
     }
   }

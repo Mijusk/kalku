@@ -1,4 +1,10 @@
 import Phaser from 'phaser';
+import { currentStep } from '@kalku/content';
+import { playMusic } from '../audio/sound';
+import { mapSpriteKey } from '../art/textures';
+import { applyStoryEvent, playScenes } from '../storyFlow';
+import { drawBattleBackground } from './battleFx';
+import { GAME_HEIGHT, GAME_WIDTH } from './BattleScene';
 import {
   applyPlacement,
   checkAnswer,
@@ -17,7 +23,7 @@ import {
   type PlacementState,
 } from '@kalku/exercises';
 import { tr } from '../i18n';
-import { applyServerSkills, applyTextSize, loadProgress, saveProgress, type PlayerProgress } from '../progress';
+import { applyServerSkills, applySettings, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { exerciseView, sendAnswer } from '../sync';
 import { ExercisePanel } from '../ui/ExercisePanel';
 import { SettingsPanel } from '../ui/SettingsPanel';
@@ -59,9 +65,14 @@ export class PlacementScene extends Phaser.Scene {
     this.question = undefined;
     this.busy = false;
     this.finished = false;
-    applyTextSize(this.progress.settings);
+    applySettings(this.progress.settings);
 
-    this.add.image(240, 110, 'hero').setScale(6);
+    // Entrenamiento en el pueblo: el personaje y la abuela Tecla.
+    drawBattleBackground(this, GAME_WIDTH, GAME_HEIGHT);
+    this.add.image(170, 150, 'hero', 0).setScale(5);
+    this.add.image(310, 140, mapSpriteKey('tecla')).setScale(5).setFlipX(true);
+    playMusic('story');
+    const inStory = currentStep(this.progress.story)?.kind === 'training';
 
     const ui = document.getElementById('ui');
     if (!ui) throw new Error('Falta el contenedor #ui');
@@ -76,7 +87,8 @@ export class PlacementScene extends Phaser.Scene {
     this.panel.setLocale(this.progress.locale);
     this.panel.setAutoVoice(this.progress.settings.autoVoice);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.panel.destroy());
-    this.askNext();
+    if (inStory) void playScenes(['tecla-training']).then(() => this.askNext());
+    else this.askNext();
   }
 
   private askNext(): void {
@@ -93,7 +105,7 @@ export class PlacementScene extends Phaser.Scene {
     const locale = this.progress.locale;
     const total = PLACEMENT_LENGTH;
     this.panel.showExercise(exercise, undefined, {
-      title: tr('placementTitle', locale),
+      title: tr('trainingTitle', locale),
       progressLabel: `${tr('placementProgress', locale)} ${this.state.asked + 1} / ${total}`,
       progress: this.state.asked / total,
       skipLabel: tr('placementSkip', locale),
@@ -111,7 +123,7 @@ export class PlacementScene extends Phaser.Scene {
     this.settingsOpen = true;
     new SettingsPanel(ui, this.progress, {
       onChange: () => {
-        applyTextSize(this.progress.settings);
+        applySettings(this.progress.settings);
         saveProgress(this.progress);
         this.panel.setLocale(this.progress.locale);
         this.panel.setAutoVoice(this.progress.settings.autoVoice);
@@ -201,6 +213,9 @@ export class PlacementScene extends Phaser.Scene {
   }
 
   private leave(): void {
-    this.scene.start('world');
+    // En la historia: la abuela cuenta qué toca y empieza el primer rescate.
+    const outcome = applyStoryEvent({ type: 'trained' });
+    if (outcome.scenes.length > 0) void playScenes(outcome.scenes).then(() => this.scene.start('world'));
+    else this.scene.start('world');
   }
 }

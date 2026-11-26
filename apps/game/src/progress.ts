@@ -1,4 +1,5 @@
-import { parseCollection, parseEncounters, parseTreasures, parseZonesOpened, type Collection, type EncounterCounts } from '@kalku/content';
+import { DEFAULT_OUTFIT, NEW_STORY, parseCollection, parseOutfit, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type Outfit, type StoryState } from '@kalku/content';
+import { setAudioPrefs } from './audio/sound';
 import { createProfile, sanitizeXp, SKILL_IDS, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
 
 /**
@@ -13,9 +14,13 @@ export interface Settings {
   textSize: 'normal' | 'large';
   /** Lee el ejercicio en voz alta al aparecer (si el navegador tiene voz en el idioma). */
   autoVoice: boolean;
+  /** Efectos de sonido (generados por código). */
+  sound: boolean;
+  /** Música de fondo (generada por código). */
+  music: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { timed: true, textSize: 'normal', autoVoice: false };
+export const DEFAULT_SETTINGS: Settings = { timed: true, textSize: 'normal', autoVoice: false, sound: true, music: true };
 
 /** Completa con valores por defecto e ignora lo que no sea válido. */
 export function parseSettings(raw: unknown): Settings {
@@ -24,11 +29,15 @@ export function parseSettings(raw: unknown): Settings {
     timed: typeof r.timed === 'boolean' ? r.timed : DEFAULT_SETTINGS.timed,
     textSize: r.textSize === 'large' || r.textSize === 'normal' ? r.textSize : DEFAULT_SETTINGS.textSize,
     autoVoice: typeof r.autoVoice === 'boolean' ? r.autoVoice : DEFAULT_SETTINGS.autoVoice,
+    sound: typeof r.sound === 'boolean' ? r.sound : DEFAULT_SETTINGS.sound,
+    music: typeof r.music === 'boolean' ? r.music : DEFAULT_SETTINGS.music,
   };
 }
 
-export function applyTextSize(settings: Settings): void {
+/** Aplica los ajustes que no son del juego en sí: tamaño del texto y sonido. */
+export function applySettings(settings: Settings): void {
   document.documentElement.dataset.text = settings.textSize;
+  setAudioPrefs(settings);
 }
 
 export interface PlayerProgress {
@@ -51,6 +60,10 @@ export interface PlayerProgress {
   zonesOpened: string[];
   /** Tesoros cosméticos recogidos en los cofres de las zonas (ids). No dan ventaja en el combate. */
   treasures: string[];
+  /** En qué punto de la historia va (docs/HISTORIA.md). Solo avanza. */
+  story: StoryState;
+  /** Qué pieza lleva el personaje en cada capa (cuerpo, pelo, ropa, accesorio). Solo estética. */
+  outfit: Outfit;
 }
 
 const STORAGE_KEY = 'kalku:progress';
@@ -69,6 +82,8 @@ export function defaultProgress(): PlayerProgress {
     collection: [],
     zonesOpened: [],
     treasures: [],
+    story: { ...NEW_STORY, crystals: [] },
+    outfit: { ...DEFAULT_OUTFIT },
   };
 }
 
@@ -86,7 +101,10 @@ export function parseProgress(raw: unknown): PlayerProgress {
   // Un guardado antiguo con intentos cuenta como hecho: no se molesta a quien ya juega.
   const placementDone = typeof parsed.placementDone === 'boolean' ? parsed.placementDone : hasAttempts(profile);
   const coins = typeof parsed.coins === 'number' && Number.isFinite(parsed.coins) ? Math.max(0, parsed.coins) : 0;
-  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures) };
+  // Quien ya jugaba antes de la historia empieza en su primer combate guiado, sin prólogo a la fuerza.
+  const storyFallback = placementDone ? { step: stepIndex('first-rescue'), count: 0, crystals: [] } : NEW_STORY;
+  const story = parseStory(parsed.story, storyFallback);
+  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures), story, outfit: parseOutfit(parsed.outfit) };
 }
 
 /** Dominio entre 0 y 100, intentos enteros ≥ 0 y aciertos ≤ intentos (lo mismo que exige la base de datos). */
@@ -128,6 +146,8 @@ export interface ExtraData {
   collection: Collection;
   zonesOpened: string[];
   treasures: string[];
+  story: StoryState;
+  outfit: Outfit;
 }
 
 export interface ProgressRow {

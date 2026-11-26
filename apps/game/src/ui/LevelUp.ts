@@ -1,6 +1,7 @@
 import { drawStar, gridToRgba, STAR_SIZE } from '@kalku/art';
 import type { Locale } from '@kalku/exercises';
 import { tr } from '../i18n';
+import { sfx } from '../audio/sound';
 import { speak } from '../speech';
 
 /** Cuánto se queda el aviso en pantalla antes de quitarse solo. */
@@ -36,6 +37,7 @@ export function showLevelUp(container: HTMLElement, level: number, locale: Local
   number.textContent = `${tr('level', locale)} ${level}`;
   root.append(starCanvas(), text, number);
   container.append(root);
+  sfx('levelUp');
   if (autoVoice) speak(`${message} ${tr('level', locale)} ${level}`, locale);
   setTimeout(() => root.remove(), SHOW_MS);
 }

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { appClassLoginBackend, enterClass } from '../classLogin';
-import { applyTextSize, loadProgress } from '../progress';
+import { applySettings, loadProgress } from '../progress';
 import { appBackend } from '../sync';
 import { tr } from '../i18n';
 import { ClassLoginPanel } from '../ui/ClassLoginPanel';
@@ -19,7 +19,7 @@ export class ClassLoginScene extends Phaser.Scene {
 
   create(data: ClassLoginData = {}): void {
     const progress = loadProgress();
-    applyTextSize(progress.settings);
+    applySettings(progress.settings);
     const ui = document.getElementById('ui');
     if (!ui) throw new Error('Falta el contenedor #ui');
     ui.replaceChildren();

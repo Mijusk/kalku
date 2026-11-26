@@ -1,4 +1,5 @@
 import type { Locale, SkillDefinition } from '@kalku/exercises';
+import { sfx } from '../audio/sound';
 import { tr } from '../i18n';
 import { gemCanvas } from './gemCanvas';
 
@@ -22,5 +23,6 @@ export function showGemCelebration(skill: SkillDefinition, locale: Locale): void
   name.textContent = skill.name[locale];
   overlay.append(glow, gemCanvas(skill, true, 'gem-big'), title, name);
   ui.append(overlay);
+  sfx('levelUp');
   window.setTimeout(() => overlay.remove(), DURATION_MS);
 }

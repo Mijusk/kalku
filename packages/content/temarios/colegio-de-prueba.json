@@ -1,0 +1,44 @@
+{
+  "id": "colegio-de-prueba",
+  "name": { "es": "Colegio de prueba · 1.º de Primaria", "ca": "Escola de prova · 1r de Primària" },
+  "units": [
+    {
+      "id": "sumas-hasta-10",
+      "name": { "es": "Sumas hasta 10", "ca": "Sumes fins a 10" },
+      "skills": ["add-within-10"],
+      "questions": [
+        {
+          "text": {
+            "es": "En el huerto del cole hay 4 tomates rojos y 3 verdes. ¿Cuántos tomates hay?",
+            "ca": "A l'hort de l'escola hi ha 4 tomàquets vermells i 3 de verds. Quants tomàquets hi ha?"
+          },
+          "answer": 7,
+          "hint": { "es": "Cuenta los rojos y sigue contando los verdes.", "ca": "Compta els vermells i continua comptant els verds." }
+        },
+        {
+          "text": {
+            "es": "Marta tiene 6 cromos y su hermano le da 2 más. ¿Cuántos cromos tiene ahora?",
+            "ca": "La Marta té 6 cromos i el seu germà li'n dona 2 més. Quants cromos té ara?"
+          },
+          "answer": 8,
+          "hint": { "es": "Empieza en 6 y cuenta 2 más.", "ca": "Comença pel 6 i compta'n 2 més." }
+        }
+      ]
+    },
+    {
+      "id": "restas-hasta-10",
+      "name": { "es": "Restas hasta 10", "ca": "Restes fins a 10" },
+      "skills": ["sub-within-10"],
+      "questions": [
+        {
+          "text": {
+            "es": "En la clase había 9 lápices y se han roto 4. ¿Cuántos quedan enteros?",
+            "ca": "A la classe hi havia 9 llapis i se n'han trencat 4. Quants en queden de sencers?"
+          },
+          "answer": 5,
+          "hint": { "es": "Quita 4 a 9: cuenta hacia atrás.", "ca": "Treu-ne 4 de 9: compta enrere." }
+        }
+      ]
+    }
+  ]
+}
