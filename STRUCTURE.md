@@ -28,6 +28,7 @@ kalku/
 │
 ├── docs/
 │   ├── DESIGN.md             Resumen del documento de diseño del juego
+│   ├── HISTORIA.md           Guion de la historia de Pradera Uno: personajes, tono y capítulos
 │   ├── DECISIONS.md          Registro de decisiones (qué y por qué), la más reciente arriba
 │   ├── ROADMAP.md            Fases y tareas hasta septiembre de 2027
 │   ├── legal/                Plantillas del contrato de encargo de tratamiento para centros (es/ca, borrador)
@@ -122,6 +123,8 @@ kalku/
             ├── privacyLocale.ts Elige el idioma de /privacidad: ?lang=, ajuste guardado o navegador
             ├── nickname.ts     Apodos propuestos (es/ca) y validación (1–30 caracteres; avisa si parece nombre y apellido)
             ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas)
+            ├── audio/
+            │   └── sound.ts    Sonido por código (Web Audio): efectos y melodías como notas, ajustes de sonido y música
             ├── art/
             │   ├── pixelArt.ts El personaje, dibujado como texto (provisional hasta que se haga por capas)
             │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets (uno por fotograma del agua), criaturas y edificios
@@ -131,11 +134,13 @@ kalku/
             │   ├── NicknameScene.ts Pantalla de apodo (lista o escrito) antes de la prueba de nivel, solo si no hay cuenta
             │   ├── PlacementScene.ts Prueba de nivel de la primera vez («¡Vamos a ver qué sabes!»), con «Ahora no»
             │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara
-            │   ├── BattleScene.ts  Combate por turnos de prueba, con una criatura generada que respira y parpadea; botón «Rescatar» con poca vida
+            │   ├── BattleScene.ts  Combate por turnos: hechizos Chispa y Rayo, la criatura recupera el color al devolverle la chispa; botón «Rescatar» con poca vida
+            │   ├── battleFx.ts     Escenario del combate, proyectiles con estela y ráfagas de partículas, dibujados por código
             │   └── CollectionScene.ts Colección: criaturas rescatadas y las que faltan en silueta (HTML), se abre desde el mapa
             └── ui/             Interfaz HTML encima del canvas (incluye el aviso «sin conexión»)
                 ├── ExercisePanel.ts  Ejercicio, altavoz, teclado numérico, pistas
                 ├── Hud.ts            Cifras, gemas y dominio
+                ├── fx.ts             Efectos en HTML sobre el canvas: números que saltan, carteles y confeti
                 ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz y «Para adultos»
                 ├── dom.ts            Ayudas de HTML (texto, botón, estado) y la cuenta de «Para adultos»
                 ├── FamilyPanel.ts    Familia: entrar con correo, lista de hijos, unir, entrar como, quitar

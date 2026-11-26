@@ -2,6 +2,15 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-26 · Combate con gracia y sonido por código (#84, #85)
+
+- **Contexto:** Luis vio la versión de piloto y le pareció que no había juego: todo lo hecho era invisible. Se abre el hito 3 (historia de Pradera Uno, guion en [HISTORIA.md](HISTORIA.md)) centrado en lo que ve y siente el niño. Modo autónomo: decide Claude.
+- **Hechizos en vez de ataques:** «Ataque rápido» y «Ataque fuerte» pasan a llamarse **Chispa** y **Rayo**, con una línea debajo («fácil» / «reto · ×1,5»). A las criaturas no se las derrota: se les **devuelve la chispa**. Empiezan grises (filtro de color en WebGL) y recuperan el color con cada acierto.
+- **Daño fijo por chispa (8, ×1,5 el rayo, ×1,5 la debilidad):** antes el daño eran los puntos del ejercicio y casi todos los combates acababan de un golpe. Ahora un combate dura 3–5 aciertos y la rapidez no cambia cuánto dura (regla 3). Las Cifras siguen saliendo de `scoreAnswer`.
+- **Efectos:** escenario dibujado por código (cielo, nubes, colinas, tarimas), entrada animada, proyectil con estela, números que saltan (en HTML, letra clara), sacudida en el rayo, racha a partir de 3, burla amable al fallar y celebración con estrellas y confeti. Tras acertar se quita el teclado para que el combate se vea grande. Con «reducir movimiento» no hay sacudidas, partículas ni confeti.
+- **Sonido sin ficheros (`apps/game/src/audio/sound.ts`):** efectos y cuatro melodías como datos (notas), tocados con Web Audio. Sin dependencias. Arranca en el primer toque (política de los navegadores). Ajustes «Sonido» y «Música», guardados en el progreso. El fallo suena como un «uy» suave, nunca como un zumbido de error.
+- **`applyTextSize` pasa a `applySettings`:** ahora también aplica el sonido.
+
 ## 2026-11-27 · Dominio de la clase para el docente (#55)
 
 - **Decisiones (25 nov, Claude en modo autónomo por encargo de Luis):** (1) el docente nunca ve las respuestas: solo totales por día (intentos y aciertos) y dominio por habilidad, con las funciones `class_mastery` y `class_student_days` (`security definer`, solo para quien lee la clase: su docente y la dirección del centro; `answers` sigue sin política para docentes); (2) «varios días» = 3 días con actividad seguidos por debajo del 70 %, contando solo días con al menos 5 respuestas (`FLAG_DAYS`, `FLAG_MIN_ANSWERS`); un día sin jugar o con pocas respuestas ni cuenta ni rompe la racha; (3) cuatro tramos con icono y número (0–39 «empezando», 40–69 «avanzando», 70–89 «bien», 90–100 «dominada») y casilla vacía si no ha empezado.

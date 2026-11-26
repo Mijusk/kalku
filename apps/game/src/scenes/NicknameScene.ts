@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { tr } from '../i18n';
 import { NICKNAME_MAX, NICKNAMES, checkNickname } from '../nickname';
-import { applyTextSize, loadProgress, type PlayerProgress } from '../progress';
+import { applySettings, loadProgress, type PlayerProgress } from '../progress';
 import { appFamilyBackend } from '../family';
 import { createAccount, startSyncWithTimeout } from '../sync';
 import { button, showAdultGate } from '../ui/dom';
@@ -18,7 +18,7 @@ export class NicknameScene extends Phaser.Scene {
 
   create(): void {
     const progress = loadProgress();
-    applyTextSize(progress.settings);
+    applySettings(progress.settings);
     const ui = document.getElementById('ui');
     if (!ui) throw new Error('Falta el contenedor #ui');
     ui.replaceChildren();

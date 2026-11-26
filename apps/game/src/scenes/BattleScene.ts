@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { showGemCelebration } from '../ui/gemCelebration';
-import { CREATURE_FRAMES, flowerFrame, FLOWER_VARIANTS, grassFrame, GRASS_VARIANTS } from '@kalku/art';
+import { CREATURE_FRAMES } from '@kalku/art';
 import {
   applyAnswer,
   challengeSkill,
@@ -33,11 +33,14 @@ import {
   type CreatureDefinition,
 } from '@kalku/content';
 import { endEncounter, PRADERA_UNO } from '@kalku/world';
-import { ANIMATION_MS, TILESET_KEYS } from '../art/textures';
+import { ANIMATION_MS } from '../art/textures';
 import { tr } from '../i18n';
-import { applyServerSkills, applyTextSize, loadProgress, saveProgress, type PlayerProgress } from '../progress';
+import { applyServerSkills, applySettings, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { exerciseView, sendAnswer } from '../sync';
+import { playMusic, sfx } from '../audio/sound';
 import { ExercisePanel } from '../ui/ExercisePanel';
+import { banner, clearFx, confetti, floatText, reducedMotion } from '../ui/fx';
+import { burst, castSpell, drawBattleBackground, drawPlatform, ensureFxTextures } from './battleFx';
 import { Hud } from '../ui/Hud';
 import { showLevelUp } from '../ui/LevelUp';
 import { SettingsPanel } from '../ui/SettingsPanel';
@@ -51,6 +54,11 @@ const BATTLE = {
   playerHp: 30,
   enemyHp: 40,
   enemyDamage: 3,
+  /**
+   * Daño de una chispa. Es fijo (no sale de los puntos) para que un combate
+   * dure 3–5 aciertos y para que la rapidez no cambie cuánto dura (regla 3).
+   */
+  sparkDamage: 8,
   /** Multiplicador de daño del ataque fuerte (su ejercicio es de reto). */
   strongMultiplier: 1.5,
   /** Intentos antes de enseñar la respuesta y pasar turno. */
@@ -62,7 +70,13 @@ interface Fighter {
   hp: number;
   maxHp: number;
   bar: Phaser.GameObjects.Graphics;
+  /** Dónde está quieto (las animaciones vuelven aquí). */
+  home: { x: number; y: number };
 }
+
+/** Posiciones del personaje y la criatura en el combate. */
+const HERO_AT = { x: 120, y: 196 };
+const ENEMY_AT = { x: 360, y: 148 };
 
 interface Turn {
   exercise: Exercise;
@@ -116,18 +130,27 @@ export class BattleScene extends Phaser.Scene {
     this.settingsOpen = false;
     this.progress = loadProgress();
     this.rng = createRng(randomSeed());
-    applyTextSize(this.progress.settings);
+    applySettings(this.progress.settings);
 
-    this.drawBackground();
-    this.player = this.createFighter('hero', 120, 190, 4, BATTLE.playerHp);
+    ensureFxTextures(this);
+    drawBattleBackground(this, GAME_WIDTH, GAME_HEIGHT);
+    drawPlatform(this, HERO_AT.x, HERO_AT.y + 30, 96);
+    drawPlatform(this, ENEMY_AT.x, ENEMY_AT.y + 62, 140);
+    this.player = this.createFighter('hero', HERO_AT.x, HERO_AT.y, 4, BATTLE.playerHp);
     this.enemy = this.createFighter(
       this.creature?.sprite ?? CREATURES[0]?.sprite ?? 'hero',
-      360,
-      150,
+      ENEMY_AT.x,
+      ENEMY_AT.y,
       4,
       this.creature?.hp ?? BATTLE.enemyHp,
     );
+    // El borrón: la criatura empieza gris y recupera el color a medida que se le devuelve la chispa.
+    this.grey = this.enemy.sprite.preFX?.addColorMatrix();
     this.animateEnemy();
+    this.animateHeroIdle();
+    playMusic('battle');
+    clearFx();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => clearFx());
 
     const ui = document.getElementById('ui');
     if (!ui) throw new Error('Falta el contenedor #ui');
@@ -171,24 +194,43 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  private drawBackground(): void {
-    // Fondo provisional: en la fase 1 lo sustituye el generador de mapas.
-    const bg = createRng(2026);
-    for (let y = 0; y < GAME_HEIGHT; y += 16) {
-      for (let x = 0; x < GAME_WIDTH; x += 16) {
-        // Hierba generada; de vez en cuando, flores.
-        const frame = bg.chance(0.12) ? flowerFrame(bg.int(0, FLOWER_VARIANTS - 1)) : grassFrame(bg.int(0, GRASS_VARIANTS - 1));
-        this.add.image(x, y, TILESET_KEYS[0] ?? '', frame).setOrigin(0);
-      }
-    }
-  }
-
   private createFighter(texture: string, x: number, y: number, scale: number, hp: number): Fighter {
     const sprite = this.add.image(x, y, texture).setScale(scale);
-    const bar = this.add.graphics();
-    const fighter = { sprite, hp, maxHp: hp, bar };
+    const bar = this.add.graphics().setDepth(5);
+    const fighter = { sprite, hp, maxHp: hp, bar, home: { x, y } };
     this.drawBar(fighter);
     return fighter;
+  }
+
+  /** Filtro gris de la criatura (WebGL). Sin WebGL no hay filtro y la criatura se ve en color. */
+  private grey: Phaser.FX.ColorMatrix | undefined;
+
+  /** Cuanto menos borrón le queda (menos vida), más color recupera. */
+  private refreshGrey(): void {
+    if (!this.grey) return;
+    const ratio = this.enemy.maxHp > 0 ? this.enemy.hp / this.enemy.maxHp : 0;
+    this.grey.reset();
+    this.grey.grayscale(0.85 * ratio);
+  }
+
+  /** El personaje respira: sube y baja un poco. */
+  private animateHeroIdle(): void {
+    if (reducedMotion()) return;
+    this.tweens.add({ targets: this.player.sprite, scaleY: 4.15, scaleX: 3.9, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+
+  /** Entrada del combate: el personaje llega andando y la criatura cae dando un bote. */
+  private playIntro(): void {
+    const name = this.creature?.name[this.progress.locale];
+    if (name) banner(`${name}!`, 'info', 1200);
+    if (reducedMotion()) return;
+    const hero = this.player.sprite;
+    const enemy = this.enemy.sprite;
+    hero.x = this.player.home.x - 160;
+    this.tweens.add({ targets: hero, x: this.player.home.x, duration: 450, ease: 'Quad.easeOut' });
+    enemy.y = this.enemy.home.y - 220;
+    this.tweens.add({ targets: enemy, y: this.enemy.home.y, duration: 650, ease: 'Bounce.easeOut', delay: 150 });
+    this.cameras.main.fadeIn(250, 255, 255, 255);
   }
 
   /** La criatura respira y parpadea (fotogramas del generador); con «reducir movimiento» se queda quieta. */
@@ -218,18 +260,26 @@ export class BattleScene extends Phaser.Scene {
   private startBattle(): void {
     // Combate de prueba (?combate): una criatura cualquiera. Desde el mapa, la del encuentro.
     if (!this.encounter) this.creature = this.rng.pick(CREATURES);
-    this.enemy.sprite.setTexture(this.creature?.sprite ?? 'hero', 0).setAlpha(1);
+    this.tweens.killTweensOf(this.enemy.sprite);
+    this.enemy.sprite
+      .setTexture(this.creature?.sprite ?? 'hero', 0)
+      .setAlpha(1)
+      .setAngle(0)
+      .setScale(4)
+      .setPosition(this.enemy.home.x, this.enemy.home.y);
     this.enemy.maxHp = this.creature?.hp ?? BATTLE.enemyHp;
     this.countEncounter();
     this.enemy.hp = this.enemy.maxHp;
     this.player.hp = this.player.maxHp;
     this.drawBar(this.enemy);
     this.drawBar(this.player);
+    this.refreshGrey();
     this.turn = undefined;
     this.rescuedNow = undefined;
     this.revealed = undefined;
     this.busy = false;
     this.refreshHud();
+    this.playIntro();
     this.showActions();
   }
 
@@ -299,6 +349,7 @@ export class BattleScene extends Phaser.Scene {
 
     turn.tries += 1;
     this.panel.clearAnswer();
+    this.taunt();
     if (turn.tries >= BATTLE.maxTries) {
       const reveal = `${tr('reveal', locale)} ${turn.exercise.answer}.`;
       this.panel.showFeedback(reveal, 'info');
@@ -346,25 +397,29 @@ export class BattleScene extends Phaser.Scene {
 
     const locale = this.progress.locale;
     if (correct) {
-      this.panel.showFeedback(`${tr('correct', locale)} +${score.total} ${tr('coins', locale)}`, 'good');
       const operator = turn.exercise.operator;
       const weak = this.creature ? damageMultiplier(this.creature, operator) : 1;
-      const damage = Math.round(score.total * (turn.strong ? BATTLE.strongMultiplier : 1) * weak);
-      if (weak > 1 && this.showWeakness) {
-        this.panel.showFeedback(
-          `${tr('correct', locale)} +${score.total} ${tr('coins', locale)} · ${tr(operator === '+' ? 'weakHitAdd' : 'weakHitSub', locale)}`,
-          'good',
-        );
-      }
+      const damage = Math.round(BATTLE.sparkDamage * (turn.strong ? BATTLE.strongMultiplier : 1) * weak);
+      const weakNote = weak > 1 && this.showWeakness ? ` · ${tr(operator === '+' ? 'weakHitAdd' : 'weakHitSub', locale)}` : '';
+      // Sin teclado, para que el hechizo se vea grande.
+      this.panel.showCasting(`${tr('correct', locale)} +${score.total} ${tr('coins', locale)}${weakNote}`);
       if (turn.rescue && this.creature) {
         // Rescatar no hace daño ni da ventaja: solo guarda la criatura (sin duplicar) y termina el combate.
         const had = this.progress.collection.some((e) => e.id === this.creature?.id);
         this.progress.collection = addToCollection(this.progress.collection, this.creature.id, new Date().toISOString().slice(0, 10));
         this.rescuedNow = had ? 'again' : 'new';
-        this.panel.showFeedback(`${tr('correct', locale)} +${score.total} ${tr('coins', locale)}`, 'good');
       } else {
-        this.hit(this.enemy, damage);
+        // Un momento para que el combate crezca al quitar el teclado, y sale el hechizo.
+        this.time.delayedCall(200, () => {
+          sfx(turn.strong ? 'bolt' : 'spark');
+          this.heroCast();
+          castSpell(this, { x: this.player.home.x + 30, y: this.player.home.y - 20 }, this.enemy.home, turn.strong, () =>
+            this.hit(this.enemy, damage, turn.strong),
+          );
+        });
       }
+      sfx('correct');
+      if (this.streak >= 3) banner(`${tr('streak', locale)} ×${this.streak}!`, 'streak', 1100);
     }
     // La gema se gana al cruzar el umbral jugando: lo que da la prueba de nivel no cuenta.
     if (!wasMastered && isMastered(this.progress.profile[skill]) && !this.progress.gems.includes(skill)) {
@@ -380,7 +435,8 @@ export class BattleScene extends Phaser.Scene {
     }
     this.reportAnswer(turn, helped);
 
-    this.time.delayedCall(900, () => {
+    // Se espera a que llegue el hechizo antes de seguir.
+    this.time.delayedCall(correct && !turn.rescue ? 1400 : 900, () => {
       if (this.rescuedNow || this.enemy.hp <= 0) return this.endBattle(true);
       // Fallar un rescate no cuesta nada: el enemigo no contraataca, así la criatura no huye
       // y se puede volver a intentar.
@@ -390,8 +446,8 @@ export class BattleScene extends Phaser.Scene {
         this.showActions();
         return;
       }
-      this.hit(this.player, BATTLE.enemyDamage);
-      this.time.delayedCall(600, () => {
+      this.enemyAttack();
+      this.time.delayedCall(900, () => {
         if (this.player.hp <= 0) return this.endBattle(false);
         this.busy = false;
         this.turn = undefined;
@@ -423,16 +479,90 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
-  private hit(target: Fighter, damage: number): void {
+  private hit(target: Fighter, damage: number, strong = false): void {
     target.hp = Math.max(0, target.hp - damage);
     this.drawBar(target);
-    this.tweens.add({ targets: target.sprite, x: '+=6', duration: 50, yoyo: true, repeat: 3 });
-    this.tweens.add({ targets: target.sprite, alpha: 0.4, duration: 80, yoyo: true, repeat: 1 });
+    const isEnemy = target === this.enemy;
+    floatText(target.home.x, target.home.y - (isEnemy ? 50 : 30), `-${damage}`, strong ? 'big' : 'damage', GAME_WIDTH);
+    if (isEnemy) {
+      sfx('hit');
+      this.refreshGrey();
+      burst(this, target.home.x, target.home.y, 'spark', strong ? 22 : 12);
+      // Se le cae un poco de borrón.
+      burst(this, target.home.x, target.home.y - 20, 'puff', 6);
+      if (strong && !reducedMotion()) this.cameras.main.shake(180, 0.012);
+    } else {
+      sfx('enemyHit');
+    }
+    if (reducedMotion()) return;
+    const sprite = target.sprite;
+    sprite.setTintFill(0xffffff);
+    this.time.delayedCall(90, () => sprite.clearTint());
+    this.tweens.add({ targets: sprite, x: target.home.x + (isEnemy ? 8 : -6), duration: 50, yoyo: true, repeat: 2, onComplete: () => sprite.setX(target.home.x) });
+  }
+
+  /** El personaje da un saltito al lanzar el hechizo. */
+  private heroCast(): void {
+    if (reducedMotion()) return;
+    const hero = this.player.sprite;
+    this.tweens.add({ targets: hero, y: this.player.home.y - 14, duration: 140, yoyo: true, ease: 'Quad.easeOut', onComplete: () => hero.setY(this.player.home.y) });
+  }
+
+  /** Al fallar, la criatura se ríe dando botes: una burla amable, nunca un castigo. */
+  private taunt(): void {
+    sfx('wrong');
+    if (reducedMotion()) return;
+    const enemy = this.enemy.sprite;
+    this.tweens.add({ targets: enemy, y: this.enemy.home.y - 10, duration: 120, yoyo: true, repeat: 1, onComplete: () => enemy.setY(this.enemy.home.y) });
+  }
+
+  /** La criatura lanza una bolita de borrón al personaje. */
+  private enemyAttack(): void {
+    const enemy = this.enemy.sprite;
+    if (reducedMotion()) {
+      this.hit(this.player, BATTLE.enemyDamage);
+      return;
+    }
+    this.tweens.add({
+      targets: enemy,
+      x: this.enemy.home.x - 40,
+      duration: 160,
+      yoyo: true,
+      ease: 'Quad.easeIn',
+      onYoyo: () => {
+        burst(this, this.player.home.x, this.player.home.y, 'puff', 10);
+        this.hit(this.player, BATTLE.enemyDamage);
+      },
+      onComplete: () => enemy.setX(this.enemy.home.x),
+    });
+  }
+
+  /** Victoria: la criatura recupera todo el color, salta de alegría, estrellas y confeti. */
+  private celebrate(rescued: boolean): void {
+    const locale = this.progress.locale;
+    const name = this.creature?.name[locale];
+    sfx(rescued ? 'rescue' : 'win');
+    this.grey?.reset();
+    banner(name ? `${name} ${tr('shine', locale)}` : tr('victory', locale), 'win', 2400);
+    confetti();
+    const enemy = this.enemy.sprite;
+    burst(this, this.enemy.home.x, this.enemy.home.y, 'star', 24);
+    if (reducedMotion()) return;
+    this.tweens.add({ targets: enemy, y: this.enemy.home.y - 26, duration: 220, yoyo: true, repeat: 2, ease: 'Quad.easeOut' });
+    this.time.delayedCall(1400, () => {
+      // Se va contenta dando saltos (o se queda a tu lado si la has rescatado).
+      if (rescued) this.tweens.add({ targets: enemy, x: this.player.home.x + 70, y: this.player.home.y + 10, scale: 2, duration: 700, ease: 'Sine.easeInOut' });
+      else this.tweens.add({ targets: enemy, x: GAME_WIDTH + 80, y: this.enemy.home.y - 30, duration: 900, ease: 'Sine.easeIn' });
+    });
   }
 
   private endBattle(won: boolean): void {
     const locale = this.progress.locale;
-    if (won) this.tweens.add({ targets: this.enemy.sprite, alpha: 0, duration: 400 });
+    if (won) this.celebrate(this.rescuedNow !== undefined);
+    else {
+      sfx('wrong');
+      if (!reducedMotion()) this.tweens.add({ targets: this.player.sprite, angle: -90, alpha: 0.6, duration: 400 });
+    }
     // Perder no quita nada: ni monedas ni dominio.
     const rescued = this.rescuedNow;
     const coins = `${this.progress.coins} ${tr('coins', locale)}`;
@@ -466,7 +596,7 @@ export class BattleScene extends Phaser.Scene {
     new SettingsPanel(ui, this.progress, {
       onChange: () => {
         // Cada cambio se aplica y se guarda al instante.
-        applyTextSize(this.progress.settings);
+        applySettings(this.progress.settings);
         saveProgress(this.progress);
         this.panel.setLocale(this.progress.locale);
         this.panel.setAutoVoice(this.progress.settings.autoVoice);

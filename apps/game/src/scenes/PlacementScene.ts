@@ -17,7 +17,7 @@ import {
   type PlacementState,
 } from '@kalku/exercises';
 import { tr } from '../i18n';
-import { applyServerSkills, applyTextSize, loadProgress, saveProgress, type PlayerProgress } from '../progress';
+import { applyServerSkills, applySettings, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { exerciseView, sendAnswer } from '../sync';
 import { ExercisePanel } from '../ui/ExercisePanel';
 import { SettingsPanel } from '../ui/SettingsPanel';
@@ -59,7 +59,7 @@ export class PlacementScene extends Phaser.Scene {
     this.question = undefined;
     this.busy = false;
     this.finished = false;
-    applyTextSize(this.progress.settings);
+    applySettings(this.progress.settings);
 
     this.add.image(240, 110, 'hero').setScale(6);
 
@@ -111,7 +111,7 @@ export class PlacementScene extends Phaser.Scene {
     this.settingsOpen = true;
     new SettingsPanel(ui, this.progress, {
       onChange: () => {
-        applyTextSize(this.progress.settings);
+        applySettings(this.progress.settings);
         saveProgress(this.progress);
         this.panel.setLocale(this.progress.locale);
         this.panel.setAutoVoice(this.progress.settings.autoVoice);

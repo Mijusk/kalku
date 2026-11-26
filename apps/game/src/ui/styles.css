@@ -719,3 +719,141 @@ a.btn {
 .offline-notice[hidden] {
   display: none;
 }
+
+/* ---------- Efectos del combate (números, carteles y confeti), en letra clara ---------- */
+
+.fx-float {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  font-weight: 900;
+  font-size: 2rem;
+  color: #fff;
+  -webkit-text-stroke: 2px #1b2a1f;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 #1b2a1f;
+  animation: fx-float 1.2s ease-out forwards;
+  z-index: 5;
+  white-space: nowrap;
+}
+
+.fx-big {
+  font-size: 2.75rem;
+  color: #ffd84a;
+}
+
+.fx-heal {
+  color: #7dff8a;
+}
+
+.fx-coins {
+  font-size: 1.5rem;
+  color: #f4c542;
+}
+
+.fx-info {
+  font-size: 1.25rem;
+}
+
+@keyframes fx-float {
+  0% { opacity: 0; transform: translate(-50%, -20%) scale(0.4); }
+  15% { opacity: 1; transform: translate(-50%, -80%) scale(1.25); }
+  30% { transform: translate(-50%, -90%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -260%) scale(1); }
+}
+
+.fx-banner {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: #1b2a1f;
+  border: 3px solid #fff;
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.6rem;
+  pointer-events: none;
+  z-index: 6;
+  white-space: nowrap;
+  animation: fx-pop 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.fx-banner-streak {
+  background: #b8432f;
+}
+
+.fx-banner-win {
+  background: #2f8a3e;
+  font-size: 1.9rem;
+  top: 22%;
+}
+
+@keyframes fx-pop {
+  from { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.fx-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 4;
+}
+
+.fx-confetti > span {
+  position: absolute;
+  top: -12px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  animation-name: fx-confetti;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fx-confetti {
+  to { transform: translate(var(--drift), 110vh) rotate(var(--spin)); }
+}
+
+/* Botones de hechizo: icono grande y una línea pequeña debajo. */
+.btn-spell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 150px;
+  line-height: 1.1;
+}
+
+.btn-spell small {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.panel-actions-title {
+  animation: fx-wiggle 0.5s ease;
+}
+
+@keyframes fx-wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-2deg); }
+  75% { transform: rotate(2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-float,
+  .fx-banner,
+  .panel-actions-title {
+    animation: none;
+  }
+}
+
+.panel-feedback-big {
+  font-size: 1.5rem;
+  font-weight: 800;
+  padding: 18px 0;
+}

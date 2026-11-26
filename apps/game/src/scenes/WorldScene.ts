@@ -16,6 +16,7 @@ import {
   type Point,
   type RegionMap,
 } from '@kalku/world';
+import { playMusic, sfx } from '../audio/sound';
 import { tr } from '../i18n';
 import { loadProgress, saveProgress } from '../progress';
 import { gemCanvas } from '../ui/gemCanvas';
@@ -90,6 +91,7 @@ export class WorldScene extends Phaser.Scene {
     // El mapa solo usa la interfaz HTML para el botón de la colección.
     this.createCollectionButton();
 
+    playMusic('world');
     this.region = generateRegion(PRADERA_UNO, PRADERA_UNO_SEED);
     this.createGround();
     this.createBuildings();
@@ -378,6 +380,7 @@ export class WorldScene extends Phaser.Scene {
       progress.treasures = [...progress.treasures, zone.def.treasure.id];
       saveProgress(progress);
       zone.chestSprite.setTexture(CHEST_TEXTURES.open);
+      sfx('chest');
       this.showMessage(`${tr('zoneTreasure', progress.locale)} ${zone.def.treasure.name[progress.locale]}`);
     }
   }
@@ -394,6 +397,7 @@ export class WorldScene extends Phaser.Scene {
     const sprite = zone.gateSprite;
     zone.gateSprite = undefined;
     this.showMessage(`${zone.def.name[progress.locale]} · ${tr('zoneOpened', progress.locale)}`);
+    sfx('door');
     if (!sprite) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       sprite.destroy();

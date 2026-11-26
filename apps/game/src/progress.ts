@@ -1,4 +1,5 @@
 import { parseCollection, parseEncounters, parseTreasures, parseZonesOpened, type Collection, type EncounterCounts } from '@kalku/content';
+import { setAudioPrefs } from './audio/sound';
 import { createProfile, sanitizeXp, SKILL_IDS, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
 
 /**
@@ -13,9 +14,13 @@ export interface Settings {
   textSize: 'normal' | 'large';
   /** Lee el ejercicio en voz alta al aparecer (si el navegador tiene voz en el idioma). */
   autoVoice: boolean;
+  /** Efectos de sonido (generados por código). */
+  sound: boolean;
+  /** Música de fondo (generada por código). */
+  music: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { timed: true, textSize: 'normal', autoVoice: false };
+export const DEFAULT_SETTINGS: Settings = { timed: true, textSize: 'normal', autoVoice: false, sound: true, music: true };
 
 /** Completa con valores por defecto e ignora lo que no sea válido. */
 export function parseSettings(raw: unknown): Settings {
@@ -24,11 +29,15 @@ export function parseSettings(raw: unknown): Settings {
     timed: typeof r.timed === 'boolean' ? r.timed : DEFAULT_SETTINGS.timed,
     textSize: r.textSize === 'large' || r.textSize === 'normal' ? r.textSize : DEFAULT_SETTINGS.textSize,
     autoVoice: typeof r.autoVoice === 'boolean' ? r.autoVoice : DEFAULT_SETTINGS.autoVoice,
+    sound: typeof r.sound === 'boolean' ? r.sound : DEFAULT_SETTINGS.sound,
+    music: typeof r.music === 'boolean' ? r.music : DEFAULT_SETTINGS.music,
   };
 }
 
-export function applyTextSize(settings: Settings): void {
+/** Aplica los ajustes que no son del juego en sí: tamaño del texto y sonido. */
+export function applySettings(settings: Settings): void {
   document.documentElement.dataset.text = settings.textSize;
+  setAudioPrefs(settings);
 }
 
 export interface PlayerProgress {

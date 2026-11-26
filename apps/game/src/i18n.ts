@@ -5,9 +5,16 @@ import type { Locale } from '@kalku/exercises';
  * idiomas. Las pistas y los nombres de habilidades viven en @kalku/exercises.
  */
 const STRINGS = {
-  quickAttack: { es: 'Ataque rápido', ca: 'Atac ràpid' },
-  strongAttack: { es: 'Ataque fuerte', ca: 'Atac fort' },
-  chooseAction: { es: '¿Qué ataque usas?', ca: 'Quin atac fas servir?' },
+  quickAttack: { es: 'Chispa', ca: 'Espurna' },
+  strongAttack: { es: 'Rayo', ca: 'Llamp' },
+  quickAttackHint: { es: 'fácil', ca: 'fàcil' },
+  strongAttackHint: { es: 'reto · ×1,5', ca: 'repte · ×1,5' },
+  chooseAction: { es: '¿Qué hechizo lanzas?', ca: 'Quin encanteri llances?' },
+  streak: { es: '¡Racha', ca: 'Ratxa' },
+  shine: { es: '¡vuelve a brillar!', ca: 'torna a brillar!' },
+  missTaunt: { es: '¡Casi! Lo tienes cerca.', ca: 'Gairebé! Ho tens a prop.' },
+  sound: { es: 'Sonido', ca: 'So' },
+  music: { es: 'Música', ca: 'Música' },
   check: { es: 'Comprobar', ca: 'Comprovar' },
   hint: { es: 'Pista', ca: 'Pista' },
   erase: { es: 'Borrar', ca: 'Esborrar' },
@@ -15,7 +22,7 @@ const STRINGS = {
   wrong: { es: 'Casi. Prueba otra vez.', ca: 'Gairebé. Torna-ho a provar.' },
   invalid: { es: 'Escribe un número.', ca: 'Escriu un número.' },
   reveal: { es: 'La respuesta era', ca: 'La resposta era' },
-  victory: { es: '¡Has ganado!', ca: 'Has guanyat!' },
+  victory: { es: '¡Le has devuelto la chispa!', ca: "Li has tornat l'espurna!" },
   defeat: { es: '¡Uf! Descansa y vuelve a intentarlo.', ca: 'Uf! Descansa i torna-ho a provar.' },
   nextBattle: { es: 'Siguiente combate', ca: 'Següent combat' },
   backToMap: { es: 'Seguir explorando', ca: 'Seguir explorant' },

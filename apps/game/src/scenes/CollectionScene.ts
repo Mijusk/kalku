@@ -3,7 +3,7 @@ import { collectionStatus, gemStatus, ZONES, type CreatureDefinition } from '@ka
 import { drawChest, gridToRgba, OBJECT_PX } from '@kalku/art';
 import type { Locale } from '@kalku/exercises';
 import { tr } from '../i18n';
-import { applyTextSize, loadProgress } from '../progress';
+import { applySettings, loadProgress } from '../progress';
 import { gemCanvas } from '../ui/gemCanvas';
 
 /** Color de la silueta de las criaturas que faltan. */
@@ -22,7 +22,7 @@ export class CollectionScene extends Phaser.Scene {
   create(): void {
     const progress = loadProgress();
     const locale = progress.locale;
-    applyTextSize(progress.settings);
+    applySettings(progress.settings);
     this.cameras.main.setBackgroundColor('#2d4a35');
 
     const ui = document.getElementById('ui');

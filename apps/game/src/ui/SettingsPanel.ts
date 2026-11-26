@@ -84,6 +84,14 @@ export class SettingsPanel {
         choice(tr('on', locale), s.autoVoice, change(() => (s.autoVoice = true))),
         choice(tr('off', locale), !s.autoVoice, change(() => (s.autoVoice = false))),
       ]),
+      item(tr('sound', locale), [
+        choice(tr('on', locale), s.sound, change(() => (s.sound = true))),
+        choice(tr('off', locale), !s.sound, change(() => (s.sound = false))),
+      ]),
+      item(tr('music', locale), [
+        choice(tr('on', locale), s.music, change(() => (s.music = true))),
+        choice(tr('off', locale), !s.music, change(() => (s.music = false))),
+      ]),
       privacyLink(tr('privacy', locale)),
       adultsButton,
       close,

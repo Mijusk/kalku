@@ -8,6 +8,8 @@ import { NicknameScene } from './scenes/NicknameScene';
 import { PlacementScene } from './scenes/PlacementScene';
 import { WorldScene } from './scenes/WorldScene';
 import { mountOfflineNotice } from './ui/OfflineNotice';
+import { installAudioUnlock, setAudioPrefs, sfx } from './audio/sound';
+import { loadProgress } from './progress';
 import { getAdultSupabase } from './supabase';
 import './ui/styles.css';
 
@@ -15,6 +17,13 @@ import './ui/styles.css';
 getAdultSupabase();
 
 mountOfflineNotice();
+
+// Sonido generado por código: arranca con el primer toque; cada botón hace «clic».
+setAudioPrefs(loadProgress().settings);
+installAudioUnlock();
+document.addEventListener('click', (e) => {
+  if (e.target instanceof Element && e.target.closest('button')) sfx('tap');
+});
 
 new Phaser.Game({
   type: Phaser.AUTO,
