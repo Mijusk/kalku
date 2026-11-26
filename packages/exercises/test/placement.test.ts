@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  PLACEMENT_SKILLS,
   applyPlacement,
   createProfile,
   createRng,
@@ -36,10 +37,21 @@ describe('prueba de nivel', () => {
     expect(recordPlacement(s0, false).level).toBe(s0.level - 1);
     let up = s0;
     for (let i = 0; i < 20; i++) up = recordPlacement(up, true);
-    expect(up.level).toBe(SKILLS.length - 1);
+    expect(up.level).toBe(PLACEMENT_SKILLS.length - 1);
     let down = s0;
     for (let i = 0; i < 20; i++) down = recordPlacement(down, false);
     expect(down.level).toBe(0);
+  });
+
+  it('solo pregunta lo de Pradera Uno: los números hasta 100 llegan jugando', () => {
+    expect(PLACEMENT_SKILLS.map((s) => s.id)).not.toContain('tens-units');
+    expect(PLACEMENT_SKILLS.at(-1)?.id).toBe('word-problems-within-10');
+    let up = startPlacement();
+    for (let i = 0; i < 20; i++) {
+      const skill = nextPlacementSkill(up);
+      if (skill) expect(PLACEMENT_SKILLS.some((s) => s.id === skill)).toBe(true);
+      up = recordPlacement(up, true);
+    }
   });
 
   it('no muta el estado anterior', () => {

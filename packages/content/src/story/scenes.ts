@@ -7,7 +7,7 @@ import type { Localized } from '@kalku/exercises';
  * catalán. `{apodo}` se cambia por el apodo del niño (nunca su nombre real).
  * Frases cortas: se leen en voz alta.
  */
-export type CharacterId = 'narrator' | 'uni' | 'tecla' | 'bruno' | 'lina' | 'pedrolo' | 'borron' | 'borroncito';
+export type CharacterId = 'narrator' | 'uni' | 'tecla' | 'bruno' | 'lina' | 'pedrolo' | 'borron' | 'borroncito' | 'olma' | 'cuco' | 'enredo' | 'ovillo';
 
 export interface CharacterDefinition {
   id: CharacterId;
@@ -23,6 +23,10 @@ export const CHARACTERS: readonly CharacterDefinition[] = [
   { id: 'pedrolo', name: { es: 'Pedrolo', ca: 'Pedrolo' } },
   { id: 'borron', name: { es: 'Gran Borrón', ca: 'Gran Borrón' } },
   { id: 'borroncito', name: { es: 'Borroncito', ca: 'Borronet' } },
+  { id: 'olma', name: { es: 'Olma', ca: 'Olma' } },
+  { id: 'cuco', name: { es: 'Cuco', ca: 'Cuco' } },
+  { id: 'enredo', name: { es: 'Gran Enredo', ca: 'Gran Embolic' } },
+  { id: 'ovillo', name: { es: 'Ovillo', ca: 'Cabdell' } },
 ];
 
 export interface DialogLine {
@@ -55,7 +59,21 @@ export type SceneId =
   | 'idle-lina'
   | 'idle-pedrolo'
   | 'idle-borroncito'
-  | 'after-ending';
+  | 'after-ending'
+  // Bosque de las Decenas
+  | 'forest-arrive'
+  | 'olma-hello'
+  | 'olma-path'
+  | 'olma-lanterns'
+  | 'cuco-riddles'
+  | 'cuco-opens'
+  | 'enredo-appears'
+  | 'enredo-shrinks'
+  | 'forest-finale'
+  | 'forest-after-ending'
+  | 'idle-olma'
+  | 'idle-cuco'
+  | 'idle-ovillo';
 
 const l = (who: CharacterId, es: string, ca: string): DialogLine => ({ who, text: { es, ca } });
 
@@ -163,7 +181,51 @@ export const SCENES: Readonly<Record<SceneId, readonly DialogLine[]>> = {
   'idle-borroncito': [l('borroncito', '¡Ñam, tachones! ¿Tienes algún cuaderno viejo?', 'Ñam, ratllades! Tens algun quadern vell?')],
   'after-ending': [
     l('uni', '¡Hemos salvado Pradera Uno! Aún quedan criaturas por rescatar y gemas por ganar.', 'Hem salvat Pradera Un! Encara queden criatures per rescatar i gemmes per guanyar.'),
+    l('uni', 'Y mira el cartel del camino: ¡ya se puede ir al Bosque de las Decenas!', 'I mira el cartell del camí: ja es pot anar al Bosc de les Desenes!'),
   ],
+
+  // Bosque de las Decenas (docs/HISTORIA.md): números hasta 100.
+  'forest-arrive': [
+    l('uni', '¡Qué árboles tan altos! Aquí todo va de diez en diez: diez hojas, diez ramas, diez bellotas…', 'Quins arbres tan alts! Aquí tot va de deu en deu: deu fulles, deu branques, deu glans…'),
+    l('uni', 'Pero algo lo ha enredado todo. Mira, ¡las lianas lo tapan todo de gris!', 'Però alguna cosa ho ha embolicat tot. Mira, les lianes ho tapen tot de gris!'),
+  ],
+  'olma-hello': [
+    l('olma', '¡Hola! Soy Olma, la guardabosques. ¡Qué bien que hayas venido, {apodo}!', 'Hola! Soc l’Olma, la guardaboscos. Quina sort que hagis vingut, {apodo}!'),
+    l('olma', 'El Gran Enredo ha mezclado las decenas con las unidades. Las criaturas ya no saben contar sus bellotas.', 'El Gran Embolic ha barrejat les desenes amb les unitats. Les criatures ja no saben comptar els glans.'),
+    l('olma', '¿Les devuelves la chispa? Cada una te dará una bellota. Necesito tres.', 'Els tornes l’espurna? Cadascuna et donarà un gla. En necessito tres.'),
+  ],
+  'olma-path': [
+    l('olma', '¡Tres bellotas! Con ellas abro el camino del claro de los farolillos.', 'Tres glans! Amb ells obro el camí de la clariana dels fanalets.'),
+    l('olma', 'Pero los farolillos se han apagado. Cada uno se enciende con una buena cuenta.', 'Però els fanalets s’han apagat. Cadascun s’encén amb un bon compte.'),
+  ],
+  'olma-lanterns': [
+    l('olma', '¡Mira qué luz! Ya se ve el camino al Árbol Hueco.', 'Mira quina llum! Ja es veu el camí de l’Arbre Buit.'),
+    l('olma', 'Allí vive Cuco, el búho. Solo deja pasar a quien resuelve sus acertijos.', 'Allà hi viu en Cuco, el mussol. Només deixa passar qui resol les seves endevinalles.'),
+  ],
+  'cuco-riddles': [
+    l('cuco', '¡Uh-uh! ¿Quién viene? ¿Alguien que sabe calcular?', 'Uh-uh! Qui ve? Algú que sap calcular?'),
+    l('cuco', 'Si resuelves tres acertijos, te abro el Árbol Hueco. Piensa despacio, que no hay prisa.', 'Si resols tres endevinalles, t’obro l’Arbre Buit. Pensa a poc a poc, que no hi ha pressa.'),
+  ],
+  'cuco-opens': [
+    l('cuco', '¡Uh-uh! ¡Tres de tres! Pasa, pasa.', 'Uh-uh! Tres de tres! Passa, passa.'),
+    l('cuco', 'El Gran Enredo está en el corazón del bosque. No es malo… solo está muy liado.', 'El Gran Embolic és al cor del bosc. No és dolent… només està molt embolicat.'),
+  ],
+  'enredo-appears': [
+    l('enredo', '¡Grrr! ¡Cuarenta y siete, setenta y cuatro, todo es lo mismo!', 'Grrr! Quaranta-set, setanta-quatre, tot és el mateix!'),
+    l('uni', '¡No es lo mismo! Las decenas van delante y las unidades detrás. ¡Te lo enseñamos!', 'No és el mateix! Les desenes van davant i les unitats darrere. T’ho ensenyem!'),
+  ],
+  'enredo-shrinks': [l('enredo', '¡Eh! Cada cuenta bien hecha me deshace un nudo…', 'Eh! Cada compte ben fet em desfà un nus…')],
+  'forest-finale': [
+    l('ovillo', '¡Qué ligero me siento! Era un ovillo de lana y me enredé con todos los números.', 'Que lleuger que em sento! Era un cabdell de llana i em vaig embolicar amb tots els números.'),
+    l('olma', 'Pues aquí te quedas, Ovillo. Nos ayudarás a contar bellotas de diez en diez.', 'Doncs aquí et quedes, Cabdell. Ens ajudaràs a comptar glans de deu en deu.'),
+    l('uni', '¡El bosque vuelve a tener color, {apodo}! ¿Qué habrá más allá de los árboles?', 'El bosc torna a tenir color, {apodo}! Què hi haurà més enllà dels arbres?'),
+  ],
+  'forest-after-ending': [
+    l('uni', '¡Hemos salvado el Bosque de las Decenas! Pronto se abrirán más caminos. Mientras, Olma, Cuco y Ovillo tienen encargos para ti.', 'Hem salvat el Bosc de les Desenes! Aviat s’obriran més camins. Mentrestant, l’Olma, en Cuco i en Cabdell tenen encàrrecs per a tu.'),
+  ],
+  'idle-olma': [l('olma', 'Diez bellotas hacen una decena. ¡Así se cuenta en el bosque!', 'Deu glans fan una desena. Així es compta al bosc!')],
+  'idle-cuco': [l('cuco', 'Uh-uh… Pensar despacio también es pensar bien.', 'Uh-uh… Pensar a poc a poc també és pensar bé.')],
+  'idle-ovillo': [l('ovillo', '¡Ya no me enredo! Mira: cuatro decenas y siete unidades, cuarenta y siete.', 'Ja no m’embolico! Mira: quatre desenes i set unitats, quaranta-set.')],
 };
 
 export function characterName(id: CharacterId): Localized {
@@ -187,6 +249,10 @@ export const PORTRAITS_BY_CHARACTER: Readonly<Record<CharacterId, PortraitId | u
   pedrolo: 'pedrolo',
   borron: 'borron',
   borroncito: 'borroncito',
+  olma: 'olma',
+  cuco: 'cuco',
+  enredo: 'enredo',
+  ovillo: 'ovillo',
 };
 
 /**

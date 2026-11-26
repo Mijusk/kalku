@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { currentStep, type StoryOutcome } from '@kalku/content';
+import { currentStep, regionStory, storyIn, type StoryOutcome } from '@kalku/content';
+import type { MapSpriteId } from '@kalku/art';
 import {
   applyAnswer,
   checkAnswer,
@@ -55,26 +56,30 @@ export class RiddleScene extends Phaser.Scene {
   create(): void {
     this.progress = loadProgress();
     applySettings(this.progress.settings);
-    const step = currentStep(this.progress.story);
+    const region = regionStory(this.progress.at);
+    const story = storyIn(this.progress.story, this.progress.at);
+    const step = currentStep(story);
     // Acertijos de la historia o, después del final, un encargo de Pedrolo.
     const quest = this.progress.quest;
     this.forQuest = step?.kind !== 'riddles' && quest !== null && quest.accepted && quest.kind === 'riddles';
     this.need = step?.kind === 'riddles' ? (step.count ?? 3) : this.forQuest && quest ? quest.need : 3;
-    this.solved = step?.kind === 'riddles' ? this.progress.story.count : this.forQuest && quest ? quest.have : 0;
+    this.solved = step?.kind === 'riddles' ? story.count : this.forQuest && quest ? quest.have : 0;
     this.busy = false;
     ensureFxTextures(this);
     playMusic('story');
     clearFx();
     drawBattleBackground(this, GAME_WIDTH, GAME_HEIGHT);
-    // La Puerta de Piedra con sus runas.
+    // La puerta del guardián con sus runas: de piedra (Pedrolo) o de corteza (Cuco, en el Árbol Hueco).
+    const riddler = region.riddler?.npc ?? 'pedrolo';
+    const wood = riddler === 'cuco';
     const g = this.add.graphics();
     g.fillStyle(0x1b2a1f).fillRoundedRect(250, 40, 150, 170, 10);
-    g.fillStyle(0x8c867d).fillRoundedRect(254, 44, 142, 162, 8);
-    g.fillStyle(0xa9a39a).fillRect(262, 52, 60, 150).fillRect(328, 52, 60, 150);
-    g.fillStyle(0x6c675f).fillRect(323, 52, 4, 150);
+    g.fillStyle(wood ? 0x6e4527 : 0x8c867d).fillRoundedRect(254, 44, 142, 162, 8);
+    g.fillStyle(wood ? 0x9a6a3c : 0xa9a39a).fillRect(262, 52, 60, 150).fillRect(328, 52, 60, 150);
+    g.fillStyle(wood ? 0x35200f : 0x6c675f).fillRect(323, 52, 4, 150);
     this.runes = Array.from({ length: Math.min(this.need, 4) }, (_, i) => i).map((i) => this.add.circle(325 - ((Math.min(this.need, 4) - 1) * 45) / 2 + i * 45, 90, 11, 0x4b4658).setStrokeStyle(3, 0x1b2a1f));
     this.runes.forEach((r, i) => i < this.solved && this.lightRune(r, false));
-    this.add.image(190, 175, mapSpriteKey('pedrolo')).setScale(4);
+    this.add.image(190, 175, mapSpriteKey(riddler as MapSpriteId)).setScale(4);
     this.add.image(440, 190, 'hero', 0).setScale(3).setFlipX(true);
 
     const ui = document.getElementById('ui');
@@ -90,7 +95,8 @@ export class RiddleScene extends Phaser.Scene {
     this.panel.setLocale(this.progress.locale);
     this.panel.setAutoVoice(this.progress.settings.autoVoice);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.panel.destroy());
-    if (this.solved === 0 && !this.forQuest) void playScenes(['pedrolo-riddles']).then(() => this.ask());
+    const intro = region.riddler?.intro ?? 'pedrolo-riddles';
+    if (this.solved === 0 && !this.forQuest) void playScenes([intro]).then(() => this.ask());
     else this.ask();
   }
 

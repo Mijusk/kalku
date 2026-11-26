@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { creaturesForSkill, getCreature, getZone, ITEMS, questTemplate, questText, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
+import { creaturesForSkill, getCreature, getZone, ITEMS, questTemplate, questText, regionStory, SCENES, storyIn, travel, type CharacterId, type SceneId, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
 import { currentSkill, challengeSkill, createRng, pickSkill, randomSeed, type Rng } from '@kalku/exercises';
 import {
   createWildlife,
@@ -7,7 +7,7 @@ import {
   generateRegion,
   openGate,
   pathTo,
-  PRADERA_UNO,
+  regionSpec,
   step,
   tickWildlife,
   zoneInterior,
@@ -15,11 +15,12 @@ import {
   type PlacedPiece,
   type Point,
   type RegionMap,
+  type RegionSpec,
 } from '@kalku/world';
 import { playMusic, sfx } from '../audio/sound';
 import { tr } from '../i18n';
 import { loadProgress, saveProgress } from '../progress';
-import { WORLD_STATE_KEY, BATTLE_RESULT_KEY, PENDING_OUTCOME_KEY, PENDING_QUEST_KEY, type BattleResult, type EncounterData, type WildData, type WorldState } from '../worldState';
+import { ARRIVAL_KEY, WORLD_STATE_KEY, BATTLE_RESULT_KEY, PENDING_OUTCOME_KEY, PENDING_QUEST_KEY, type BattleResult, type EncounterData, type WildData, type WorldState } from '../worldState';
 import { applyQuestEvent, applyStoryEvent, nickname, playScenes, type QuestOutcome } from '../storyFlow';
 import { dialogOpen, playDialog } from '../ui/DialogBox';
 import { openMissionsPanel } from '../ui/MissionsPanel';
@@ -30,9 +31,6 @@ import { findBuildings, tilemapData } from '@kalku/art';
 import { activeClassId } from '../classDevice';
 import { appClassLoginBackend, leaveSharedDevice } from '../classLogin';
 import { ANIMATION_MS, buildingTexture, CHEST_TEXTURES, GATE_TEXTURE, mapSpriteKey, TILE_SIZE, TILESET_KEYS } from '../art/textures';
-
-/** Semilla fija de Pradera Uno: todos los niños ven el mismo mapa. */
-const PRADERA_UNO_SEED = 42;
 
 /**
  * Tamaño de las criaturas en el mapa: se dibujan a 32 px para el combate y
@@ -64,15 +62,23 @@ interface ZoneState {
 }
 
 const tileKey = (p: Point): string => `${p.x},${p.y}`;
+
+/** Lo que dice un personaje cuando no toca nada con él (si no tiene frase propia, habla Uni). */
+function idleScene(npc: CharacterId): SceneId {
+  const id = `idle-${npc}`;
+  return id in SCENES ? (id as SceneId) : 'idle-uni';
+}
 const reducedMotionNow = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const near = (a: Point, b: Point): boolean => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= ZONE_NEAR;
 
 /**
- * Mapa de la región: dibuja Pradera Uno con un tilemap creado por código y
+ * Mapa de la región: dibuja la región donde está el niño con un tilemap creado por código y
  * mueve al personaje casilla a casilla, con teclado (flechas o WASD) o
  * tocando la pantalla (va andando hasta donde se toca).
  */
 export class WorldScene extends Phaser.Scene {
+  /** La región del mapa: la de `progress.at` (la semilla fija hace que todos vean el mismo). */
+  private spec!: RegionSpec;
   private region!: RegionMap;
   private hero!: Phaser.GameObjects.Image;
   /** Último paso del personaje (1 o 3), para alternar. */
@@ -108,7 +114,8 @@ export class WorldScene extends Phaser.Scene {
     playMusic('world');
     ensureFxTextures(this);
     this.storyBusy = false;
-    this.region = generateRegion(PRADERA_UNO, PRADERA_UNO_SEED);
+    this.spec = regionSpec(loadProgress().at);
+    this.region = generateRegion(this.spec, this.spec.seed);
     this.createGround();
     this.createBuildings();
     this.createZones();
@@ -116,15 +123,16 @@ export class WorldScene extends Phaser.Scene {
     this.encounterStarted = false;
     this.wild = new Map();
     const saved = this.registry.get(WORLD_STATE_KEY) as WorldState | undefined;
-    if (saved) {
+    if (saved && saved.region === this.spec.id) {
       this.state = saved;
     } else {
       const rng = createRng(randomSeed());
       const entrance = { ...this.region.entrance };
       this.state = {
+        region: this.spec.id,
         tile: entrance,
         rng,
-        wildlife: createWildlife(this.region, PRADERA_UNO.wildlife, entrance, rng, (r, tile) => this.assignCreature(r, tile), this.allowTile),
+        wildlife: createWildlife(this.region, this.spec.wildlife, entrance, rng, (r, tile) => this.assignCreature(r, tile), this.allowTile),
       };
     }
     this.tile = { ...this.state.tile };
@@ -136,7 +144,7 @@ export class WorldScene extends Phaser.Scene {
     camera.setRoundPixels(true);
     this.story = new WorldStory(this, this.region, this.hero);
     this.grey = camera.postFX?.addColorMatrix();
-    this.setGrey(greyFor(loadProgress().story));
+    this.setGrey(this.greyTarget());
 
     this.setupKeyboard();
     this.input.on(Phaser.Input.Events.POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
@@ -152,7 +160,52 @@ export class WorldScene extends Phaser.Scene {
     // Después del final siempre hay un encargo en marcha.
     applyQuestEvent(undefined);
     this.story.refresh();
+    if (this.registry.get(ARRIVAL_KEY) === this.spec.id) {
+      this.registry.remove(ARRIVAL_KEY);
+      void this.arrive();
+      return;
+    }
     this.afterBattle();
+  }
+
+  /** Gris de la región del mapa según sus capítulos terminados. */
+  private greyTarget(): number {
+    const progress = loadProgress();
+    return greyFor(storyIn(progress.story, progress.at));
+  }
+
+  /** Primera vez en una región: su nombre y lo que cuenta Uni al llegar. */
+  private async arrive(): Promise<void> {
+    const data = regionStory(this.spec.id);
+    const locale = loadProgress().locale;
+    sfx('quest');
+    banner(data.name[locale], 'info', 2600);
+    await this.wait(1200);
+    if (data.arrival) {
+      const arrival = data.arrival;
+      await this.tell(() => playScenes([arrival]));
+    }
+    this.story.refresh();
+  }
+
+  /** Por el cartel del camino a otra región: se guarda dónde está y el mapa se rehace. */
+  private async goTo(to: string): Promise<void> {
+    const progress = loadProgress();
+    const trip = travel(progress.story, this.spec.id, to);
+    if (!trip) return;
+    const locale = progress.locale;
+    await this.tell(async () => {
+      sfx('door');
+      banner(`${tr('travelTo', locale)} ${regionStory(to).name[locale]}`, 'info', 1600);
+      await this.wait(900);
+    });
+    progress.story = trip.story;
+    progress.at = trip.at;
+    saveProgress(progress);
+    this.registry.remove(WORLD_STATE_KEY);
+    if (trip.first) this.registry.set(ARRIVAL_KEY, trip.at);
+    this.encounterStarted = true;
+    this.scene.restart();
   }
 
   private setGrey(level: number): void {
@@ -289,7 +342,7 @@ export class WorldScene extends Phaser.Scene {
     sfx('levelUp');
     banner(tr('chapterDone', locale), 'win', 2600);
     confetti(40);
-    const target = greyFor(loadProgress().story);
+    const target = this.greyTarget();
     const from = this.greyLevel;
     if (reducedMotionNow()) this.setGrey(target);
     else this.tweens.addCounter({ from, to: target, duration: 1600, onUpdate: (t) => this.setGrey(t.getValue() ?? target) });
@@ -303,7 +356,7 @@ export class WorldScene extends Phaser.Scene {
     confetti(120);
     banner(tr('questDone', locale), 'win', 4000);
     await this.wait(2500);
-    await playScenes(['after-ending']);
+    await playScenes([regionStory(this.spec.id).afterEnding]);
   }
 
   /** Algo de la historia en esta casilla: hablar, combatir o los acertijos. */
@@ -311,13 +364,16 @@ export class WorldScene extends Phaser.Scene {
     if (this.storyBusy || this.encounterStarted) return false;
     const action = this.story.arrive(this.tile, this.state.rng);
     if (!action) return false;
+    // Pasar por encima del cartel de camino a otra región no cuenta: hay que pararse en él.
+    if (action.type === 'travel' && this.route.length > 0) return false;
     void this.runStory(action);
     return true;
   }
 
   private async runStory(action: StoryAction): Promise<void> {
     if (action.type === 'battle') {
-      if (action.encounter.story?.where === 'boss') await this.tell(() => playScenes(['borron-appears']));
+      const appears = regionStory(this.spec.id).boss.appears;
+      if (action.encounter.story?.where === 'boss') await this.tell(() => playScenes([appears]));
       this.startBattle(action.encounter);
       return;
     }
@@ -332,14 +388,18 @@ export class WorldScene extends Phaser.Scene {
       await this.acceptQuest(action.npc);
       return;
     }
+    if (action.type === 'travel') {
+      await this.goTo(action.to);
+      return;
+    }
     const npc = action.npc;
     if (!action.target) {
-      await this.tell(() => playScenes([`idle-${npc}` as const]));
+      await this.tell(() => playScenes([idleScene(npc)]));
       return;
     }
     const outcome = applyStoryEvent({ type: 'talked', npc });
     if (outcome.changed) await this.showOutcome(outcome);
-    else await this.tell(() => playScenes([`idle-${npc}` as const]));
+    else await this.tell(() => playScenes([idleScene(npc)]));
   }
 
   private startBattle(data: EncounterData): void {
@@ -406,7 +466,7 @@ export class WorldScene extends Phaser.Scene {
    * ninguna casilla. Con «reducir movimiento» el agua se queda quieta.
    */
   private createGround(): void {
-    const data = tilemapData(this.region, PRADERA_UNO_SEED);
+    const data = tilemapData(this.region, this.spec.seed);
     const layers = TILESET_KEYS.map((key, i) => {
       const tilemap = this.make.tilemap({ data, tileWidth: TILE_SIZE, tileHeight: TILE_SIZE });
       const tileset = tilemap.addTilesetImage(key, key, TILE_SIZE, TILE_SIZE, 0, 0);
@@ -443,7 +503,7 @@ export class WorldScene extends Phaser.Scene {
     // Las criaturas andan despacio mientras el niño anda o espera.
     this.state.wildlife = tickWildlife(
       this.region,
-      PRADERA_UNO.wildlife,
+      this.spec.wildlife,
       this.state.wildlife,
       delta,
       this.tile,

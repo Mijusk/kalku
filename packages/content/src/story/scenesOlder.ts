@@ -110,5 +110,49 @@ export const SCENES_OLDER: Readonly<Record<SceneId, readonly DialogLine[]>> = {
   'idle-borroncito': [l('borroncito', '¿Tienes algún cuaderno viejo? Prometo comerme solo los tachones.', 'Tens algun quadern vell? Prometo menjar-me només les ratllades.')],
   'after-ending': [
     l('uni', 'Caso de Pradera Uno resuelto. Aún quedan criaturas por rescatar y gemas por ganar… y un cero por encontrar.', 'Cas de Pradera Un resolt. Encara queden criatures per rescatar i gemmes per guanyar… i un zero per trobar.'),
+    l('uni', 'Nueva pista: el cartel del camino ya señala al Bosque de las Decenas.', 'Nova pista: el cartell del camí ja assenyala el Bosc de les Desenes.'),
   ],
+
+  'forest-arrive': [
+    l('uni', 'Bosque de las Decenas. Aquí todo se cuenta de diez en diez… o se contaba.', 'Bosc de les Desenes. Aquí tot es compta de deu en deu… o es comptava.'),
+    l('uni', 'Lianas grises por todas partes y números del revés. Alguien ha pasado por aquí, agente.', 'Lianes grises per tot arreu i números del revés. Algú ha passat per aquí, agent.'),
+  ],
+  'olma-hello': [
+    l('olma', 'Así que vienes de la Liga. Soy Olma, guardabosques. Llevo tres noches sin dormir.', 'Així que véns de la Lliga. Soc l’Olma, guardaboscos. Fa tres nits que no dormo.'),
+    l('olma', 'Algo ha liado las decenas con las unidades: donde ponía 47 ahora pone 74. Las criaturas están hechas un lío.', 'Alguna cosa ha embolicat les desenes amb les unitats: on hi deia 47 ara hi diu 74. Les criatures estan fetes un embolic.'),
+    l('olma', 'Devuélveles la chispa. Cada una guarda una bellota: tráeme tres y te abro paso.', 'Torna’ls l’espurna. Cadascuna guarda un gla: porta-me’n tres i t’obro pas.'),
+  ],
+  'olma-path': [
+    l('olma', 'Tres bellotas. Trato hecho. El claro de los farolillos es tuyo.', 'Tres glans. Tracte fet. La clariana dels fanalets és teva.'),
+    l('olma', 'Ojo: alguien los apagó a propósito. Enciéndelos con buenas cuentas y verás qué esconden.', 'Compte: algú els va apagar expressament. Encén-los amb bons comptes i veuràs què amaguen.'),
+  ],
+  'olma-lanterns': [
+    l('olma', 'Con luz se ven las huellas: van al Árbol Hueco. Huellas… redondas. Como ceros.', 'Amb llum es veuen les petjades: van a l’Arbre Buit. Petjades… rodones. Com zeros.'),
+    l('olma', 'Allí vive Cuco. Sabe más de lo que cuenta, pero solo habla con quien resuelve sus acertijos.', 'Allà hi viu en Cuco. Sap més del que explica, però només parla amb qui resol les seves endevinalles.'),
+  ],
+  'cuco-riddles': [
+    l('cuco', 'Uh-uh. Alguien de la Liga. Hacía años que no venía nadie.', 'Uh-uh. Algú de la Lliga. Feia anys que no en venia ningú.'),
+    l('cuco', 'Tres acertijos. Sin prisa: el bosque lleva siglos esperando, puede esperar un poco más.', 'Tres endevinalles. Sense pressa: el bosc fa segles que espera, pot esperar una mica més.'),
+  ],
+  'cuco-opens': [
+    l('cuco', 'Tres de tres. Bien. Te diré lo que vi: una sombra redonda le susurró algo al Gran Enredo.', 'Tres de tres. Bé. Et diré el que vaig veure: una ombra rodona va xiuxiuejar alguna cosa al Gran Embolic.'),
+    l('cuco', 'Desde entonces está furioso y lo lía todo. Está en el corazón del bosque.', 'Des d’aleshores està furiós i ho embolica tot. És al cor del bosc.'),
+  ],
+  'enredo-appears': [
+    l('enredo', '¡Cuarenta y siete! ¡Setenta y cuatro! ¿Qué más da? ¡Me dijeron que el orden no importa!', 'Quaranta-set! Setanta-quatre! Què hi fa? Em van dir que l’ordre no importa!'),
+    l('uni', 'Te mintieron. Las decenas delante, las unidades detrás. Vamos a demostrarlo.', 'Et van mentir. Les desenes davant, les unitats darrere. Anem a demostrar-ho.'),
+  ],
+  'enredo-shrinks': [l('enredo', 'Eh… cada cuenta bien hecha me deshace un nudo. Esto no me lo contaron.', 'Eh… cada compte ben fet em desfà un nus. Això no m’ho van explicar.')],
+  'forest-finale': [
+    l('ovillo', 'Uf… Era un ovillo de lana. Una voz me dijo que si lo liaba todo, nadie se fijaría en mí… nunca más.', 'Uf… Era un cabdell de llana. Una veu em va dir que si ho embolicava tot, ningú no es fixaria en mi… mai més.'),
+    l('ovillo', 'Firmaba con un cero. Otra vez.', 'Signava amb un zero. Una altra vegada.'),
+    l('olma', 'Aquí nadie te va a olvidar, Ovillo. Te quedas a contar bellotas conmigo.', 'Aquí ningú no t’oblidarà, Cabdell. Et quedes a comptar glans amb mi.'),
+    l('uni', 'Bosque resuelto, agente {apodo}. Pero ese cero va siempre un paso por delante… El caso continúa.', 'Bosc resolt, agent {apodo}. Però aquest zero sempre va un pas per davant… El cas continua.'),
+  ],
+  'forest-after-ending': [
+    l('uni', 'Mientras buscamos nuevas pistas, Olma, Cuco y Ovillo tienen encargos para ti.', 'Mentre busquem noves pistes, l’Olma, en Cuco i en Cabdell tenen encàrrecs per a tu.'),
+  ],
+  'idle-olma': [l('olma', 'Diez bellotas, una decena. Si alguien te dice lo contrario, desconfía.', 'Deu glans, una desena. Si algú et diu el contrari, desconfia’n.')],
+  'idle-cuco': [l('cuco', 'Uh-uh… Los ceros no ocupan sitio, pero cambian mucho las cosas.', 'Uh-uh… Els zeros no ocupen lloc, però canvien molt les coses.')],
+  'idle-ovillo': [l('ovillo', 'Cuatro decenas y siete unidades: cuarenta y siete. ¡Ya no me lío!', 'Quatre desenes i set unitats: quaranta-set. Ja no m’embolico!')],
 };

@@ -52,6 +52,21 @@ export const ZONES: readonly ZoneDefinition[] = [
     requirement: { gems: ['add-within-20-carry'], minLevel: 5 },
     treasure: { id: 'tesoro-puerta', name: { es: 'Corona de piedra', ca: 'Corona de pedra' } },
   },
+  // Bosque de las Decenas.
+  {
+    id: 'claro-farolillos',
+    name: { es: 'Claro de los farolillos', ca: 'Clariana dels fanalets' },
+    locked: { es: 'Olma abre el camino a quien le trae 3 bellotas.', ca: "L'Olma obre el camí a qui li porta 3 glans." },
+    requirement: { gems: ['tens-units'] },
+    treasure: { id: 'tesoro-farolillos', name: { es: 'Farolillo de bolsillo', ca: 'Fanalet de butxaca' } },
+  },
+  {
+    id: 'arbol-hueco',
+    name: { es: 'Árbol Hueco', ca: 'Arbre Buit' },
+    locked: { es: 'Cuco solo deja pasar a quien resuelve sus acertijos.', ca: 'En Cuco només deixa passar qui resol les seves endevinalles.' },
+    requirement: { gems: ['add-within-100-carry'], minLevel: 8 },
+    treasure: { id: 'tesoro-arbol', name: { es: 'Pluma de búho', ca: 'Ploma de mussol' } },
+  },
 ];
 
 export function getZone(id: string): ZoneDefinition | undefined {

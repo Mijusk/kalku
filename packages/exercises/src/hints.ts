@@ -38,6 +38,9 @@ function storyHint(ex: Exercise, level: Hint['level'], locale: Locale): string {
 
 function resultHint(ex: Exercise, level: Hint['level'], locale: Locale): string {
   const { a, b } = ex;
+  if (ex.skill === 'tens-units') return tensUnitsHint(ex, level, locale);
+  // Números hasta 100: por decenas y unidades, no contando de uno en uno.
+  if (Math.max(a, b, ex.c) > 20) return bigHint(ex, level, locale);
 
   if (ex.operator === '+') {
     const big = Math.max(a, b);
@@ -83,8 +86,67 @@ function resultHint(ex: Exercise, level: Hint['level'], locale: Locale): string 
     : t(locale, `${countSteps(a, b - 1, -1)}… ¿y el siguiente?`, `${countSteps(a, b - 1, -1)}… i el següent?`);
 }
 
+/** 40 + 7: el número se forma con sus decenas delante y sus unidades detrás. */
+function tensUnitsHint(ex: Exercise, level: Hint['level'], locale: Locale): string {
+  const tens = Math.floor(ex.a / 10);
+  if (level === 1) return t(locale, `${ex.a} son ${tens} decenas. Añade ${ex.b} unidades.`, `${ex.a} són ${tens} desenes. Afegeix-hi ${ex.b} unitats.`);
+  if (level === 2) return t(locale, `${tens} decenas y ${ex.b} unidades.`, `${tens} desenes i ${ex.b} unitats.`);
+  return t(locale, `Las decenas van delante: primero el ${tens} y luego el ${ex.b}.`, `Les desenes van davant: primer el ${tens} i després el ${ex.b}.`);
+}
+
+/** _ + 7 = 47 o 40 + _ = 47: separar el número en decenas y unidades. */
+function tensUnitsMissingHint(ex: Exercise, level: Hint['level'], locale: Locale): string {
+  const tens = Math.floor(ex.c / 10);
+  const units = ex.c % 10;
+  if (level === 1) return t(locale, `Separa ${ex.c} en decenas y unidades.`, `Separa ${ex.c} en desenes i unitats.`);
+  if (ex.hidden === 'a') {
+    if (level === 2) return t(locale, `${ex.c} son ${tens} decenas y ${units} unidades.`, `${ex.c} són ${tens} desenes i ${units} unitats.`);
+    return t(locale, `Es el ${tens} con un 0 detrás.`, `És el ${tens} amb un 0 darrere.`);
+  }
+  if (level === 2) return `${ex.c} = ${ex.c - units} + ?`;
+  return t(locale, `Mira la última cifra de ${ex.c}.`, `Mira l'última xifra de ${ex.c}.`);
+}
+
+/**
+ * Sumas y restas hasta 100: primero las decenas, luego las unidades.
+ * 34 + 25 = 34 + 20 + 5; 52 − 27 = 52 − 20 − 7.
+ */
+function bigHint(ex: Exercise, level: Hint['level'], locale: Locale): string {
+  const { a, b } = ex;
+  const bTens = b - (b % 10);
+  const bUnits = b % 10;
+  const plus = ex.operator === '+';
+  const sign = plus ? '+' : '−';
+  if (level === 1) {
+    if (plus) {
+      return (a % 10) + bUnits > 9
+        ? t(locale, 'Suma las decenas y luego las unidades. Si las unidades pasan de 9, llevas una decena.', 'Suma les desenes i després les unitats. Si les unitats passen de 9, portes una desena.')
+        : t(locale, 'Suma primero las decenas y luego las unidades.', 'Suma primer les desenes i després les unitats.');
+    }
+    return bUnits > a % 10
+      ? t(locale, 'Quita primero las decenas. Luego quita las unidades bajando hasta la decena de antes.', 'Treu primer les desenes. Després treu les unitats baixant fins a la desena anterior.')
+      : t(locale, 'Resta primero las decenas y luego las unidades.', 'Resta primer les desenes i després les unitats.');
+  }
+  // Un número de una cifra (o redondo): no hay nada que partir.
+  if (bTens === 0 || bUnits === 0) {
+    const toTen = plus ? 10 - (a % 10) : a % 10;
+    if (level === 2) return t(locale, `Piensa en decenas: ${a} ${sign} ${b}. ¿Hasta qué decena llegas?`, `Pensa en desenes: ${a} ${sign} ${b}. Fins a quina desena arribes?`);
+    if (bUnits === 0) return t(locale, `${a} ${sign} ${bTens}: cambia solo la cifra de las decenas.`, `${a} ${sign} ${bTens}: canvia només la xifra de les desenes.`);
+    if (!plus && a % 10 === 0) return t(locale, `Piensa en 10 − ${b} y súmalo a ${a - 10}.`, `Pensa en 10 − ${b} i suma-ho a ${a - 10}.`);
+    const ten = plus ? a + toTen : a - toTen;
+    return toTen > 0 && toTen < b
+      ? t(locale, `${a} ${sign} ${toTen} = ${ten}. Ahora, ${ten} ${sign} ${b - toTen} = ?`, `${a} ${sign} ${toTen} = ${ten}. Ara, ${ten} ${sign} ${b - toTen} = ?`)
+      : t(locale, `Cambia solo las unidades: ${a % 10} ${sign} ${b}.`, `Canvia només les unitats: ${a % 10} ${sign} ${b}.`);
+  }
+  if (level === 2) return `${a} ${sign} ${b} = ${a} ${sign} ${bTens} ${sign} ${bUnits}`;
+  const step = plus ? a + bTens : a - bTens;
+  return t(locale, `${a} ${sign} ${bTens} = ${step}. Ahora, ${step} ${sign} ${bUnits} = ?`, `${a} ${sign} ${bTens} = ${step}. Ara, ${step} ${sign} ${bUnits} = ?`);
+}
+
 function missingHint(ex: Exercise, level: Hint['level'], locale: Locale): string {
   const { a, b, c } = ex;
+  const big = Math.max(a, b, c) > 20;
+  if (ex.skill === 'tens-units') return tensUnitsMissingHint(ex, level, locale);
 
   if (ex.operator === '+') {
     const known = ex.hidden === 'a' ? b : a;
@@ -92,7 +154,9 @@ function missingHint(ex: Exercise, level: Hint['level'], locale: Locale): string
       return t(locale, `¿Cuánto le falta a ${known} para llegar a ${c}?`, `Quant li falta a ${known} per arribar a ${c}?`);
     }
     if (level === 2) {
-      return t(locale, `Cuenta desde ${known} hasta ${c}.`, `Compta des de ${known} fins a ${c}.`);
+      return big
+        ? t(locale, `Ve de 10 en 10 desde ${known} sin pasarte de ${c}, y luego de 1 en 1.`, `Ves de 10 en 10 des de ${known} sense passar-te de ${c}, i després d'1 en 1.`)
+        : t(locale, `Cuenta desde ${known} hasta ${c}.`, `Compta des de ${known} fins a ${c}.`);
     }
     return t(locale, `Es lo mismo que ${c} − ${known}.`, `És el mateix que ${c} − ${known}.`);
   }
@@ -100,7 +164,11 @@ function missingHint(ex: Exercise, level: Hint['level'], locale: Locale): string
   // Resta con hueco
   if (ex.hidden === 'b') {
     if (level === 1) return t(locale, `¿Cuánto hay que quitar a ${a} para que quede ${c}?`, `Quant cal treure a ${a} perquè quedi ${c}?`);
-    if (level === 2) return t(locale, `Cuenta desde ${c} hasta ${a}.`, `Compta des de ${c} fins a ${a}.`);
+    if (level === 2) {
+      return big
+        ? t(locale, `Ve de 10 en 10 desde ${c} sin pasarte de ${a}, y luego de 1 en 1.`, `Ves de 10 en 10 des de ${c} sense passar-te de ${a}, i després d'1 en 1.`)
+        : t(locale, `Cuenta desde ${c} hasta ${a}.`, `Compta des de ${c} fins a ${a}.`);
+    }
     return t(locale, `Es lo mismo que ${a} − ${c}.`, `És el mateix que ${a} − ${c}.`);
   }
   // hidden === 'a': _ − b = c

@@ -32,7 +32,7 @@ import {
   weakOperator,
   type CreatureDefinition,
 } from '@kalku/content';
-import { endEncounter, PRADERA_UNO } from '@kalku/world';
+import { endEncounter, regionSpec } from '@kalku/world';
 import { ANIMATION_MS } from '../art/textures';
 import { tr } from '../i18n';
 import { applyServerSkills, applySettings, loadProgress, saveProgress, type PlayerProgress } from '../progress';
@@ -46,7 +46,7 @@ import { Hud } from '../ui/Hud';
 import { showLevelUp } from '../ui/LevelUp';
 import { SettingsPanel } from '../ui/SettingsPanel';
 import { BATTLE_RESULT_KEY, WORLD_STATE_KEY, type BattleResult, type EncounterData, type StoryBattle, type WorldState } from '../worldState';
-import { characterName, CREATURES as ALL_CREATURES } from '@kalku/content';
+import { characterName, CREATURES as ALL_CREATURES, regionStory, type BossInfo } from '@kalku/content';
 import { mapSpriteKey } from '../art/textures';
 import { playScenes } from '../storyFlow';
 
@@ -201,7 +201,7 @@ export class BattleScene extends Phaser.Scene {
   private refreshCreatureLabels(): void {
     const locale = this.progress.locale;
     const creature = this.creature;
-    if (this.nameLabel) this.nameLabel.textContent = this.boss ? characterName('borron')[locale] : creature ? creature.name[locale] : '';
+    if (this.nameLabel) this.nameLabel.textContent = this.boss ? characterName(this.bossInfo.character)[locale] : creature ? creature.name[locale] : '';
     if (!this.weaknessLabel) return;
     const weak = creature ? weakOperator(creature) : undefined;
     if (creature && weak && this.showWeakness) {
@@ -239,7 +239,7 @@ export class BattleScene extends Phaser.Scene {
 
   /** Entrada del combate: el personaje llega andando y la criatura cae dando un bote. */
   private playIntro(): void {
-    const name = this.boss ? characterName('borron')[this.progress.locale] : this.creature?.name[this.progress.locale];
+    const name = this.boss ? characterName(this.bossInfo.character)[this.progress.locale] : this.creature?.name[this.progress.locale];
     if (name) banner(`${name}!`, 'info', 1200);
     if (reducedMotion()) return;
     const hero = this.player.sprite;
@@ -286,7 +286,7 @@ export class BattleScene extends Phaser.Scene {
     if (!this.encounter) this.creature = this.rng.pick(CREATURES);
     this.tweens.killTweensOf(this.enemy.sprite);
     this.enemy.sprite
-      .setTexture(this.boss ? mapSpriteKey('borron') : (this.creature?.sprite ?? 'hero'), 0)
+      .setTexture(this.boss ? mapSpriteKey(this.bossInfo.sprite) : (this.creature?.sprite ?? 'hero'), 0)
       .setAlpha(1)
       .setAngle(0)
       .setScale(this.boss ? BOSS.scales[0] ?? 4 : 4)
@@ -624,7 +624,7 @@ export class BattleScene extends Phaser.Scene {
     const world = this.registry.get(WORLD_STATE_KEY) as WorldState | undefined;
     // Las criaturas del mapa se van al acabar; los combates de la historia (−1) no son del mapa.
     if (encounter && world && encounter.wandererId >= 0) {
-      world.wildlife = endEncounter(PRADERA_UNO.wildlife, world.wildlife, encounter.wandererId);
+      world.wildlife = endEncounter(regionSpec(this.progress.at).wildlife, world.wildlife, encounter.wandererId);
     }
     if (this.won) {
       for (const m of applyMissionEvent(this.progress, { type: 'battleWon', rescued: this.rescuedNow !== undefined })) {
@@ -657,7 +657,7 @@ export class BattleScene extends Phaser.Scene {
       this.cameras.main.shake(300, 0.01);
       this.tweens.add({ targets: this.enemy.sprite, scale, duration: 600, ease: 'Back.easeIn' });
     } else this.enemy.sprite.setScale(scale);
-    if (this.bossPhase === 1) await playScenes(['borron-shrinks']);
+    if (this.bossPhase === 1) await playScenes([this.bossInfo.shrinks]);
     this.enemy.hp = this.enemy.maxHp;
     this.drawBar(this.enemy);
     this.refreshGrey();
@@ -689,14 +689,19 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
-  /** Fin del jefe: se encoge del todo y se convierte en Borroncito. */
+  /** El jefe de la región donde está el niño (Gran Borrón, Gran Enredo…). */
+  private get bossInfo(): BossInfo {
+    return regionStory(this.progress.at).boss;
+  }
+
+  /** Fin del jefe: se encoge del todo y se convierte en lo que era (Borroncito, Ovillo). */
   private bossDefeated(): void {
     const locale = this.progress.locale;
     sfx('win');
     confetti(120);
     burst(this, this.enemy.home.x, this.enemy.home.y, 'star', 40);
     banner(tr('bossDone', locale), 'win', 3000);
-    this.enemy.sprite.setTexture(mapSpriteKey('borroncito'));
+    this.enemy.sprite.setTexture(mapSpriteKey(this.bossInfo.becomes));
     this.grey?.reset();
     if (!reducedMotion()) this.tweens.add({ targets: this.enemy.sprite, scale: 4, y: this.enemy.home.y + 20, duration: 600, ease: 'Back.easeOut' });
     this.panel.showResult(tr('bossDone', locale), `${this.progress.coins} ${tr('coins', locale)}`, tr('backToMap', locale));

@@ -21,13 +21,17 @@ Kalku crece metiendo datos (docs/JUEGO-SIN-FIN.md). Esta guía explica qué fich
 
 ## Una región nueva
 
-1. **Mapa** (`packages/world/src/regions.ts`): tamaño, semilla, lugares especiales y zonas, como `PRADERA_UNO`.
+1. **Mapa** (`packages/world/src/regions.ts`): tamaño, semilla, lugares especiales y zonas, como `PRADERA_UNO` o `BOSQUE_DECENAS`. Añádela a `REGIONS`. Cada zona necesita su entrada en `ZONES` (`packages/content/src/zones.ts`).
 2. **Habilidades** que practica (`packages/exercises`): si son nuevas, su id, definición, generador, pistas y tests (ver CLAUDE.md, «Una habilidad nueva»).
 3. **Criaturas** (`packages/content/src/creatures.ts`): por piezas, nunca dibujos sueltos.
 4. **Historia** (`packages/content/src/story/`): un fichero como `praderaUno.ts` y un `RegionStory` en `regions.ts` con:
-   - `npcs`: dónde vive cada personaje (`place` = esquina de un lugar, `zone` = esquina de una zona, `gate` = puerta de una zona, más `dx`/`dy` en casillas);
-   - `lights`: las luces de los pasos `crystals`;
-   - `firstCreature`, `boss` y, si la hay, `next` (la región siguiente).
+   - `npcs`: dónde vive cada personaje (`place` = esquina de un lugar, `zone` = esquina de una zona, `gate` = puerta de una zona, `entrance` = entrada del mapa, más `dx`/`dy` en casillas);
+   - `lights` y `lightSprites`: las luces de los pasos `crystals` y su dibujo (cristales, farolillos);
+   - `riddler`: quién pone los acertijos y su diálogo de presentación;
+   - `boss`: quién es el jefe, su dibujo, en qué se convierte y sus diálogos;
+   - `paths`: los carteles de camino a otras regiones; `next`: la región que se abre al terminar (tiene que tener cartel);
+   - `arrival` y `afterEnding`: lo que dice Uni al llegar y al terminar.
+   Un personaje nuevo necesita su retrato y su dibujo del mapa en `@kalku/art` (`portraits.ts`, `npcs.ts`), su nombre en `CHARACTERS` y, si quieres, encargos en `quests.ts`.
 5. Añádela a `REGION_STORIES`. Los tests comprueban que todo lo que pones en el mapa existe.
 
 ## Lo que nunca se puede romper

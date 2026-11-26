@@ -1,5 +1,5 @@
 import { applyPlacement, createProfile, levelForXp, MAX_LEVEL, SKILL_IDS, type SkillId } from '@kalku/exercises';
-import { PRADERA_UNO } from '@kalku/world';
+import { REGIONS } from '@kalku/world';
 import { describe, expect, it } from 'vitest';
 import {
   getZone,
@@ -84,8 +84,8 @@ describe('datos de las zonas', () => {
     expect(validateZones([{ ...bad, name: { es: 'X', ca: 'X' }, requirement: {} }])).toEqual(['x: no pide nada']);
   });
 
-  it('cada zona de Pradera Uno tiene datos, y cada zona con datos tiene su lugar en el mapa', () => {
-    const placed = PRADERA_UNO.places.flatMap((p) => (p.zone === undefined ? [] : [p.zone]));
+  it('cada zona de los mapas tiene datos, y cada zona con datos tiene su lugar en un mapa', () => {
+    const placed = REGIONS.flatMap((r) => r.places.flatMap((p) => (p.zone === undefined ? [] : [p.zone])));
     expect([...placed].sort()).toEqual(ZONES.map((z) => z.id).sort());
   });
 

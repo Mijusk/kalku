@@ -74,6 +74,8 @@ export interface PlaceSpec {
  * el orden de `places`. En Pradera Uno: entrada → pueblo → jefe.
  */
 export interface RegionSpec extends TerrainSpec {
+  /** Semilla fija del mapa: todos los niños ven el mismo. */
+  readonly seed: number;
   readonly entrance: Point;
   readonly places: readonly PlaceSpec[];
   readonly wildlife: WildlifeSpec;

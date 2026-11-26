@@ -15,6 +15,8 @@ export interface WildData {
  * de Phaser (solo en memoria, no se persiste).
  */
 export interface WorldState {
+  /** Región del mapa: si se cambia de región, el estado guardado ya no vale. */
+  region: string;
   tile: Point;
   wildlife: WildlifeState<WildData>;
   rng: Rng;
@@ -50,3 +52,6 @@ export const WORLD_STATE_KEY = 'worldState';
 
 /** Un encargo que avanzó fuera del mapa (los acertijos de Pedrolo) y que el mapa tiene que enseñar al volver. */
 export const PENDING_QUEST_KEY = 'pendingQuest';
+
+/** Región a la que se acaba de llegar por primera vez: el mapa nuevo cuenta su llegada. */
+export const ARRIVAL_KEY = 'arrival';

@@ -28,6 +28,7 @@ const STRINGS = {
   missionsWeek: { es: 'Misión de la semana', ca: 'Missió de la setmana' },
   missionsNote: { es: 'Mañana habrá otras. Si un día no juegas, no pierdes nada.', ca: 'Demà n’hi haurà d’altres. Si un dia no jugues, no perds res.' },
   questFrom: { es: 'Encargo de', ca: 'Encàrrec de' },
+  travelTo: { es: 'Camino a', ca: 'Camí cap a' },
   talkTo: { es: 'Habla con', ca: 'Parla amb' },
   questComplete: { es: '¡Encargo cumplido!', ca: 'Encàrrec complert!' },
   gradeTitle: { es: '¿En qué curso estás?', ca: 'A quin curs ets?' },
