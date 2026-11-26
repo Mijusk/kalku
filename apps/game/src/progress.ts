@@ -1,4 +1,4 @@
-import { DEFAULT_OUTFIT, NEW_STORY, parseCollection, parseOutfit, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type Outfit, type StoryState } from '@kalku/content';
+import { DEFAULT_OUTFIT, GRADES, NEW_STORY, type Band, parseCollection, parseOutfit, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type Outfit, type StoryState } from '@kalku/content';
 import { setAudioPrefs } from './audio/sound';
 import { createProfile, sanitizeXp, SKILL_IDS, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
 
@@ -64,6 +64,10 @@ export interface PlayerProgress {
   story: StoryState;
   /** Qué pieza lleva el personaje en cada capa (cuerpo, pelo, ropa, accesorio). Solo estética. */
   outfit: Outfit;
+  /** Curso escolar (0 = Infantil 5 años, 1–6 = Primaria) o `null` si aún no lo ha dicho. Nunca la edad. */
+  grade: number | null;
+  /** Tono de la historia: «Brote» (5–8) o «Aventura» (8–12). Solo cambia los textos, nunca las mates. */
+  band: Band;
 }
 
 const STORAGE_KEY = 'kalku:progress';
@@ -84,6 +88,8 @@ export function defaultProgress(): PlayerProgress {
     treasures: [],
     story: { ...NEW_STORY, crystals: [] },
     outfit: { ...DEFAULT_OUTFIT },
+    grade: null,
+    band: 'young',
   };
 }
 
@@ -104,7 +110,11 @@ export function parseProgress(raw: unknown): PlayerProgress {
   // Quien ya jugaba antes de la historia empieza en su primer combate guiado, sin prólogo a la fuerza.
   const storyFallback = placementDone ? { step: stepIndex('first-rescue'), count: 0, crystals: [] } : NEW_STORY;
   const story = parseStory(parsed.story, storyFallback);
-  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures), story, outfit: parseOutfit(parsed.outfit) };
+  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures), story, outfit: parseOutfit(parsed.outfit), grade: parseGrade(parsed.grade), band: parsed.band === 'older' ? 'older' : 'young' };
+}
+
+function parseGrade(raw: unknown): number | null {
+  return typeof raw === 'number' && (GRADES as readonly number[]).includes(raw) ? raw : null;
 }
 
 /** Dominio entre 0 y 100, intentos enteros ≥ 0 y aciertos ≤ intentos (lo mismo que exige la base de datos). */
@@ -148,6 +158,8 @@ export interface ExtraData {
   treasures: string[];
   story: StoryState;
   outfit: Outfit;
+  grade: number | null;
+  band: Band;
 }
 
 export interface ProgressRow {

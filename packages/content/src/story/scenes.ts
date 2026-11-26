@@ -188,3 +188,19 @@ export const PORTRAITS_BY_CHARACTER: Readonly<Record<CharacterId, PortraitId | u
   borron: 'borron',
   borroncito: 'borroncito',
 };
+
+/**
+ * Tramo de la historia (docs/JUEGO-SIN-FIN.md §1): `young` = «Brote» (5–8
+ * años), `older` = «Aventura» (8–12). Solo cambia el tono, nunca las mates.
+ */
+export type Band = 'young' | 'older';
+
+export const BANDS: readonly Band[] = ['young', 'older'];
+
+/** Curso escolar: 0 = Infantil 5 años, 1–6 = Primaria. */
+export const GRADES: readonly number[] = [0, 1, 2, 3, 4, 5, 6];
+
+/** Tramo que le toca a un curso: hasta 2.º, «Brote»; desde 3.º, «Aventura». */
+export function bandForGrade(grade: number): Band {
+  return grade >= 3 ? 'older' : 'young';
+}

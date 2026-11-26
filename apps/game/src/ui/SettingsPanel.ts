@@ -92,6 +92,10 @@ export class SettingsPanel {
         choice(tr('on', locale), s.music, change(() => (s.music = true))),
         choice(tr('off', locale), !s.music, change(() => (s.music = false))),
       ]),
+      item(tr('storyBand', locale), [
+        choice(tr('bandYoung', locale), progress.band === 'young', change(() => (progress.band = 'young'))),
+        choice(tr('bandOlder', locale), progress.band === 'older', change(() => (progress.band = 'older'))),
+      ]),
       privacyLink(tr('privacy', locale)),
       adultsButton,
       close,

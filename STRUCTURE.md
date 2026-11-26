@@ -101,6 +101,7 @@ kalku/
 │       │       ├── story.ts    Motor: advanceStory (nunca retrocede), objetivo de la tarjeta, zonas que abre, validateStory
 │       │       ├── regions.ts  RegionStory: capítulos, pasos y dónde vive cada personaje y luz en el mapa; REGION_STORIES
 │       │       ├── praderaUno.ts Capítulos y pasos de Pradera Uno
+│       │       ├── scenesOlder.ts Diálogos de «Aventura» (8–12 años); sceneLines elige según el tramo
 │       │       └── scenes.ts   Personajes y diálogos es/ca de cada escena, con {apodo}
 │       ├── temarios/         Un JSON por centro (docs/TEMARIO.md); entran solos en el juego
 │       └── test/             Tests con vitest
@@ -142,6 +143,7 @@ kalku/
             │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets, criaturas, edificios, personaje, retratos y personajes del mapa
             ├── scenes/         Escenas de Phaser
             │   ├── BootScene.ts    Genera las texturas y va a la escena de la historia que toca (o combate con ?combate)
+            │   ├── GradeScene.ts   «¿En qué curso estás?» (y el idioma) al empezar: elige el tono de la historia
             │   ├── PrologueScene.ts Prólogo: cuatro viñetas dibujadas por código con el Gran Borrón
             │   ├── CreateScene.ts  Crea tu personaje (también desde la Colección: «Cambiar mi personaje»)
             │   ├── RiddleScene.ts  Acertijos de Pedrolo (capítulo 4): problemas sin vida ni tiempo; salen del temario del centro si lo hay
