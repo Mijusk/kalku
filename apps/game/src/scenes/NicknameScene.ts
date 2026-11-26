@@ -4,6 +4,7 @@ import { NICKNAME_MAX, NICKNAMES, checkNickname } from '../nickname';
 import { applySettings, loadProgress, type PlayerProgress } from '../progress';
 import { appFamilyBackend } from '../family';
 import { createAccount, startSyncWithTimeout } from '../sync';
+import { goToStory } from '../storyFlow';
 import { button, showAdultGate } from '../ui/dom';
 import { FamilyPanel } from '../ui/FamilyPanel';
 
@@ -72,8 +73,7 @@ export class NicknameScene extends Phaser.Scene {
       refresh();
       await createAccount(check.nickname);
       await startSyncWithTimeout();
-      const next = loadProgress().placementDone ? 'world' : 'placement';
-      this.scene.start(next);
+      await goToStory(this);
     };
     go.addEventListener('click', () => void submit());
     input.addEventListener('keydown', (e) => {

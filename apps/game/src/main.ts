@@ -6,6 +6,8 @@ import { CollectionScene } from './scenes/CollectionScene';
 import { BootScene } from './scenes/BootScene';
 import { NicknameScene } from './scenes/NicknameScene';
 import { PlacementScene } from './scenes/PlacementScene';
+import { PrologueScene } from './scenes/PrologueScene';
+import { CreateScene } from './scenes/CreateScene';
 import { WorldScene } from './scenes/WorldScene';
 import { mountOfflineNotice } from './ui/OfflineNotice';
 import { installAudioUnlock, setAudioPrefs, sfx } from './audio/sound';
@@ -36,7 +38,7 @@ new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, ClassLoginScene, NicknameScene, PlacementScene, WorldScene, BattleScene, CollectionScene],
+  scene: [BootScene, PrologueScene, CreateScene, ClassLoginScene, NicknameScene, PlacementScene, WorldScene, BattleScene, CollectionScene],
 });
 
 // Web instalable: el service worker guarda el juego para jugar sin conexión.

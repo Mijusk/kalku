@@ -39,7 +39,7 @@ export function ensureFxTextures(scene: Phaser.Scene): void {
  * Escenario del combate: cielo en franjas, colinas lejanas, nubes, suelo y
  * dos tarimas de hierba donde se ponen el personaje y la criatura.
  */
-export function drawBattleBackground(scene: Phaser.Scene, width: number, height: number, mood: 'day' | 'dusk' | 'cave' = 'day'): void {
+export function drawBattleBackground(scene: Phaser.Scene, width: number, height: number, mood: 'day' | 'dusk' | 'cave' = 'day'): Phaser.GameObjects.Graphics {
   const g = scene.add.graphics().setDepth(-10);
   const skies: Record<typeof mood, number[]> = {
     day: [0x7cc8f2, 0x8fd3f5, 0xa6dcf7, 0xbfe6f9, 0xd6effb],
@@ -88,6 +88,7 @@ export function drawBattleBackground(scene: Phaser.Scene, width: number, height:
     const y = horizon + 8 + ((i * 53) % (gh - 12));
     g.fillRect(x, y, 1, 3).fillRect(x + 2, y - 1, 1, 4).fillRect(x + 4, y, 1, 3);
   }
+  return g;
 }
 
 /** Tarima elíptica bajo un luchador (sombra y borde de hierba). */

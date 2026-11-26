@@ -16,3 +16,18 @@ describe('retratos', () => {
     }
   });
 });
+
+import { drawMapSprite, MAP_SPRITES, validateMapSprites, type MapSpriteId } from '../src/index.js';
+
+describe('dibujos del mapa de la historia', () => {
+  it('los datos son válidos', () => {
+    expect(validateMapSprites()).toEqual([]);
+  });
+
+  it('cada uno pinta algo', () => {
+    for (const id of Object.keys(MAP_SPRITES) as MapSpriteId[]) {
+      const g = drawMapSprite(id);
+      expect(Array.from(g.px).filter((c) => c !== -1).length, id).toBeGreaterThan(10);
+    }
+  });
+});

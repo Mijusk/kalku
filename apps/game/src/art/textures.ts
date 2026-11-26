@@ -5,6 +5,12 @@ import {
   drawCharacter,
   drawChest,
   drawCreature,
+  drawMapSprite,
+  drawPortrait,
+  MAP_SPRITES,
+  PORTRAITS,
+  type MapSpriteId,
+  type PortraitId,
   drawGate,
   TILE_PX,
   tilesetGrids,
@@ -59,7 +65,14 @@ export function createArtTextures(scene: Phaser.Scene): void {
   addSheet(scene, CHEST_TEXTURES.closed, toSheet([drawChest(false)]));
   addSheet(scene, CHEST_TEXTURES.open, toSheet([drawChest(true)]));
   for (const creature of CREATURES) addSheet(scene, creature.sprite, toSheet(drawCreature(creature.look)));
+  for (const id of Object.keys(PORTRAITS) as PortraitId[]) addSheet(scene, portraitKey(id), toSheet([drawPortrait(id)]));
+  for (const id of Object.keys(MAP_SPRITES) as MapSpriteId[]) addSheet(scene, mapSpriteKey(id), toSheet([drawMapSprite(id)]));
 }
+
+/** Textura del retrato de un personaje de la historia. */
+export const portraitKey = (id: PortraitId): string => `portrait-${id}`;
+/** Textura de un personaje u objeto de la historia en el mapa. */
+export const mapSpriteKey = (id: MapSpriteId): string => `map-${id}`;
 
 /** Textura de un edificio entero (la crea la primera vez que se pide) y su clave. */
 export function buildingTexture(scene: Phaser.Scene, b: Pick<Building, 'kind' | 'width' | 'height'>): string {

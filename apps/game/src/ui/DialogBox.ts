@@ -13,6 +13,8 @@ export interface DialogOptions {
   voice: boolean;
   /** Botón «Saltar» para las escenas largas. */
   skippable?: boolean;
+  /** Se llama al enseñar cada globo (el prólogo cambia de viñeta). */
+  onLine?: (index: number) => void;
 }
 
 /** Velocidad del texto letra a letra (ms por letra). */
@@ -107,6 +109,7 @@ export function playDialog(lines: readonly DialogLine[], options: DialogOptions)
       portrait.replaceChildren(...(pid ? [portraitCanvas(pid)] : []));
       portrait.hidden = !pid;
       next.textContent = index === lines.length - 1 ? tr('dialogDone', locale) : tr('dialogNext', locale);
+      options.onLine?.(index);
       if (options.voice) speak(full, locale);
       if (reducedMotion()) {
         shown = full.length;

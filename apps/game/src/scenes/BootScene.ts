@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { createArtTextures, createHeroTexture } from '../art/textures';
 import { activeClassId, classIdFromSearch, wipeAbandonedClassData } from '../classDevice';
 import { loadProgress } from '../progress';
+import { goToStory } from '../storyFlow';
 import { LOCAL_KEYS, appBackend, clearAnswerQueue, needsNickname, startSyncWithTimeout } from '../sync';
 
 /** Carga (o genera) todas las texturas antes de empezar. */
@@ -30,15 +31,14 @@ export class BootScene extends Phaser.Scene {
       this.scene.start('classLogin', { classId: classIdFromSearch(window.location.search) });
       return;
     }
-    // Sin cuenta, primero el apodo (nunca un nombre real ni correo). ?combate se lo salta.
-    if (!battle && (await needsNickname(appBackend(), localStorage))) {
-      this.scene.start('nickname');
+    // Con cuenta, baja el progreso del servidor (sin red o sin servidor, sigue la copia local).
+    // Sin cuenta, no hay nada que bajar: el apodo se pide después del prólogo.
+    if (battle || !(await needsNickname(appBackend(), localStorage))) await startSyncWithTimeout();
+    if (battle) {
+      this.scene.start('battle');
       return;
     }
-    // Baja el progreso del servidor (sin red o sin servidor, sigue la copia local).
-    await startSyncWithTimeout();
-    // La primera vez, una prueba corta de nivel (?combate se la salta).
-    const placement = !battle && !loadProgress().placementDone;
-    this.scene.start(battle ? 'battle' : placement ? 'placement' : 'world');
+    // La historia decide: prólogo, apodo, crear personaje, entrenamiento o mapa.
+    await goToStory(this);
   }
 }
