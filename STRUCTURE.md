@@ -97,8 +97,10 @@ kalku/
 │       │   ├── weakness.ts     Debilidad por operación inversa (damageMultiplier; los problemus no tienen) y contador de encuentros para el cartel
 │       │   ├── outfit.ts       Piezas del personaje por capa y lectura del guardado
 │       │   ├── syllabus.ts     Temario de un centro: parseSyllabus (errores claros en castellano), preguntas propias como ejercicio
-│       │   └── story/          La historia (docs/HISTORIA.md) como datos
-│       │       ├── story.ts    Pasos y capítulos, advanceStory (nunca retrocede), objetivo de la tarjeta, zonas que abre
+│       │   └── story/          La historia (docs/HISTORIA.md) como datos, por regiones (docs/JUEGO-SIN-FIN.md)
+│       │       ├── story.ts    Motor: advanceStory (nunca retrocede), objetivo de la tarjeta, zonas que abre, validateStory
+│       │       ├── regions.ts  RegionStory: capítulos, pasos y dónde vive cada personaje y luz en el mapa; REGION_STORIES
+│       │       ├── praderaUno.ts Capítulos y pasos de Pradera Uno
 │       │       └── scenes.ts   Personajes y diálogos es/ca de cada escena, con {apodo}
 │       ├── temarios/         Un JSON por centro (docs/TEMARIO.md); entran solos en el juego
 │       └── test/             Tests con vitest

@@ -1,4 +1,5 @@
 import type { Localized } from '@kalku/exercises';
+import { FIRST_REGION, REGION_STORIES, regionStory, type RegionStory } from './regions.js';
 import type { CharacterId, SceneId } from './scenes.js';
 
 /**
@@ -32,20 +33,13 @@ export type StepKind =
   /** El jefe final. */
   | 'boss';
 
-export type StepId =
-  | 'prologue'
-  | 'create'
-  | 'training'
-  | 'first-rescue'
-  | 'meet-bruno'
-  | 'planks'
-  | 'bruno-fix'
-  | 'meet-lina'
-  | 'crystals'
-  | 'lina-light'
-  | 'meet-pedrolo'
-  | 'riddles'
-  | 'boss';
+/** Id de un paso, único dentro de su región (por ejemplo «meet-bruno»). */
+export type StepId = string;
+
+export interface ChapterInfo {
+  chapter: number;
+  title: Localized;
+}
 
 export type ItemId = 'plank' | 'crystal' | 'rune';
 
@@ -69,112 +63,6 @@ export interface StoryStep {
   objective: Localized;
 }
 
-export const CHAPTERS: readonly { chapter: number; title: Localized }[] = [
-  { chapter: 1, title: { es: 'La chispa', ca: "L'espurna" } },
-  { chapter: 2, title: { es: 'El puente roto', ca: 'El pont trencat' } },
-  { chapter: 3, title: { es: 'La cueva sin luz', ca: 'La cova sense llum' } },
-  { chapter: 4, title: { es: 'La Puerta de Piedra', ca: 'La Porta de Pedra' } },
-  { chapter: 5, title: { es: 'El Gran Borrón', ca: 'El Gran Borrón' } },
-];
-
-export const STORY: readonly StoryStep[] = [
-  { id: 'prologue', chapter: 1, kind: 'prologue', intro: 'prologue', objective: { es: 'Despierta', ca: 'Desperta’t' } },
-  { id: 'create', chapter: 1, kind: 'create', intro: 'uni-hello', objective: { es: 'Crea tu personaje', ca: 'Crea el teu personatge' } },
-  {
-    id: 'training',
-    chapter: 1,
-    kind: 'training',
-    npc: 'tecla',
-    intro: 'tecla-training',
-    outro: 'tecla-training-done',
-    objective: { es: 'Entrena con la abuela Tecla', ca: "Entrena amb l'àvia Tecla" },
-  },
-  {
-    id: 'first-rescue',
-    chapter: 1,
-    kind: 'firstRescue',
-    outro: 'first-rescue-done',
-    objective: { es: 'Ayuda al Sumus Brote asustado', ca: 'Ajuda el Sumus Brot espantat' },
-  },
-  {
-    id: 'meet-bruno',
-    chapter: 2,
-    kind: 'talk',
-    npc: 'bruno',
-    outro: 'bruno-planks',
-    objective: { es: 'Habla con Bruno junto al río', ca: 'Parla amb en Bruno vora el riu' },
-  },
-  {
-    id: 'planks',
-    chapter: 2,
-    kind: 'collect',
-    count: 3,
-    item: 'plank',
-    objective: { es: 'Devuelve la chispa a las criaturas y recupera los tablones', ca: "Torna l'espurna a les criatures i recupera els taulons" },
-  },
-  {
-    id: 'bruno-fix',
-    chapter: 2,
-    kind: 'talk',
-    npc: 'bruno',
-    outro: 'bruno-fixes',
-    opensZone: 'puente-roto',
-    objective: { es: 'Lleva los tablones a Bruno', ca: 'Porta els taulons a en Bruno' },
-  },
-  {
-    id: 'meet-lina',
-    chapter: 3,
-    kind: 'talk',
-    npc: 'lina',
-    outro: 'lina-cave',
-    opensZone: 'cueva',
-    objective: { es: 'Busca a Lina en la cueva', ca: 'Busca la Lina a la cova' },
-  },
-  {
-    id: 'crystals',
-    chapter: 3,
-    kind: 'crystals',
-    count: 3,
-    item: 'crystal',
-    objective: { es: 'Enciende los cristales de la cueva', ca: 'Encén els cristalls de la cova' },
-  },
-  {
-    id: 'lina-light',
-    chapter: 3,
-    kind: 'talk',
-    npc: 'lina',
-    outro: 'lina-light',
-    objective: { es: 'Cuéntaselo a Lina', ca: "Explica-ho a la Lina" },
-  },
-  {
-    id: 'meet-pedrolo',
-    chapter: 4,
-    kind: 'talk',
-    npc: 'pedrolo',
-    outro: 'pedrolo-riddles',
-    objective: { es: 'Ve a la Puerta de Piedra', ca: 'Ves a la Porta de Pedra' },
-  },
-  {
-    id: 'riddles',
-    chapter: 4,
-    kind: 'riddles',
-    npc: 'pedrolo',
-    count: 3,
-    item: 'rune',
-    outro: 'pedrolo-opens',
-    opensZone: 'puerta-de-piedra',
-    objective: { es: 'Resuelve los acertijos de Pedrolo', ca: 'Resol les endevinalles d’en Pedrolo' },
-  },
-  {
-    id: 'boss',
-    chapter: 5,
-    kind: 'boss',
-    intro: 'borron-appears',
-    outro: 'finale',
-    objective: { es: 'Encuentra al Gran Borrón en el claro del este', ca: "Troba el Gran Borrón a la clariana de l'est" },
-  },
-];
-
 /** Nombre de los objetos de las misiones (para «¡Has encontrado un tablón!»). */
 export const ITEMS: Readonly<Record<ItemId, { one: Localized; found: Localized }>> = {
   plank: { one: { es: 'Tablón', ca: 'Tauló' }, found: { es: '¡Has recuperado un tablón!', ca: 'Has recuperat un tauló!' } },
@@ -182,8 +70,10 @@ export const ITEMS: Readonly<Record<ItemId, { one: Localized; found: Localized }
   rune: { one: { es: 'Acertijo', ca: 'Endevinalla' }, found: { es: '¡Acertijo resuelto!', ca: 'Endevinalla resolta!' } },
 };
 
-/** En qué va el niño. `step` = índice en `STORY`; igual a `STORY.length` = historia terminada. */
+/** En qué va el niño. `step` = índice en los pasos de su región; igual a su longitud = historia terminada. */
 export interface StoryState {
+  /** Región de la historia (`REGION_STORIES`). Sin ella, la primera (guardados del hito 3). */
+  region?: string;
   step: number;
   /** Cuántas veces se ha cumplido el paso actual (tablones, cristales, acertijos). */
   count: number;
@@ -191,7 +81,12 @@ export interface StoryState {
   crystals: number[];
 }
 
-export const NEW_STORY: StoryState = { step: 0, count: 0, crystals: [] };
+export const NEW_STORY: StoryState = { region: FIRST_REGION, step: 0, count: 0, crystals: [] };
+
+/** Pasos de la región en la que va el niño. */
+export function stepsOf(state: StoryState): readonly StoryStep[] {
+  return regionStory(state.region).steps;
+}
 
 export type StoryEvent =
   | { type: 'prologueSeen' }
@@ -219,23 +114,24 @@ export interface StoryOutcome {
 }
 
 export function currentStep(state: StoryState): StoryStep | undefined {
-  return STORY[state.step];
+  return stepsOf(state)[state.step];
 }
 
 export function isStoryDone(state: StoryState): boolean {
-  return state.step >= STORY.length;
+  return state.step >= stepsOf(state).length;
 }
 
 /** Capítulos ya terminados (0–5): cuánto color ha recuperado el pueblo. */
 export function chaptersDone(state: StoryState): number {
   const step = currentStep(state);
-  if (!step) return CHAPTERS.length;
+  if (!step) return regionStory(state.region).chapters.length;
   return step.chapter - 1;
 }
 
 /** Zonas que la historia ya ha abierto. */
 export function zonesOpenedByStory(state: StoryState): string[] {
-  return STORY.slice(0, Math.min(state.step, STORY.length))
+  const steps = stepsOf(state);
+  return steps.slice(0, Math.min(state.step, steps.length))
     .map((s) => s.opensZone)
     .filter((z): z is string => z !== undefined);
 }
@@ -285,16 +181,16 @@ export function advanceStory(state: StoryState, event: StoryEvent): StoryOutcome
   const item = step.item ? { id: step.item, have, need } : undefined;
 
   if (have < need) {
-    return { state: { ...state, count: have, crystals }, changed: true, scenes: [], ...(item ? { item } : {}) };
+    return { state: { ...withRegion(state), step: state.step, count: have, crystals }, changed: true, scenes: [], ...(item ? { item } : {}) };
   }
 
   // Paso cumplido: se pasa al siguiente.
   const nextIndex = state.step + 1;
-  const next = STORY[nextIndex];
+  const next = stepsOf(state)[nextIndex];
   const scenes: SceneId[] = [];
   if (step.outro) scenes.push(step.outro);
   const outcome: StoryOutcome = {
-    state: { step: nextIndex, count: 0, crystals: next?.kind === 'crystals' ? [] : crystals },
+    state: { ...withRegion(state), step: nextIndex, count: 0, crystals: next?.kind === 'crystals' ? [] : crystals },
     changed: true,
     scenes,
     ...(item ? { item } : {}),
@@ -313,39 +209,63 @@ export function objectiveText(state: StoryState, locale: 'es' | 'ca'): { title: 
   return { title: step.objective[locale], chapter: step.chapter, ...(counter ? { counter } : {}) };
 }
 
+/** La región del estado, con la primera si es un guardado antiguo. */
+function withRegion(state: StoryState): { region: string } {
+  return { region: regionStory(state.region).id };
+}
+
 /** Lee el estado guardado. Lo que no sea válido vuelve al principio o se corrige. */
 export function parseStory(raw: unknown, fallback: StoryState = NEW_STORY): StoryState {
-  if (typeof raw !== 'object' || raw === null) return { ...fallback, crystals: [...fallback.crystals] };
+  if (typeof raw !== 'object' || raw === null) return { ...withRegion(fallback), step: fallback.step, count: fallback.count, crystals: [...fallback.crystals] };
   const r = raw as Record<string, unknown>;
-  const step = typeof r.step === 'number' && Number.isInteger(r.step) ? Math.min(Math.max(0, r.step), STORY.length) : fallback.step;
-  const current = STORY[step];
+  // Guardados del hito 3: sin región, son de Pradera Uno.
+  const region = regionStory(typeof r.region === 'string' ? r.region : undefined);
+  const steps = region.steps;
+  const step = typeof r.step === 'number' && Number.isInteger(r.step) ? Math.min(Math.max(0, r.step), steps.length) : fallback.step;
+  const current = steps[step];
   const max = current?.count ?? 1;
   const count = typeof r.count === 'number' && Number.isInteger(r.count) ? Math.min(Math.max(0, r.count), Math.max(0, max - 1)) : 0;
   const crystals =
     current?.kind === 'crystals' && Array.isArray(r.crystals)
       ? [...new Set(r.crystals.filter((c): c is number => typeof c === 'number' && Number.isInteger(c) && c >= 0 && c < max))].slice(0, max - 1)
       : [];
-  return { step, count, crystals };
+  return { region: region.id, step, count, crystals };
 }
 
-/** Índice de un paso por su id (para empezar a mitad, en pruebas o al migrar guardados antiguos). */
-export function stepIndex(id: StepId): number {
-  return STORY.findIndex((s) => s.id === id);
+/** Índice de un paso por su id en una región (para empezar a mitad, en pruebas o al migrar guardados antiguos). */
+export function stepIndex(id: StepId, region: string = FIRST_REGION): number {
+  return regionStory(region).steps.findIndex((s) => s.id === id);
 }
 
-/** Comprueba los datos de la historia: ids únicos, capítulos en orden, contadores y textos es/ca. */
-export function validateStory(): string[] {
+/**
+ * Comprueba los datos de la historia de cada región: ids únicos, capítulos en
+ * orden y con título, contadores, textos es/ca, personajes y luces.
+ */
+export function validateStory(regions: readonly RegionStory[] = REGION_STORIES): string[] {
   const errors: string[] = [];
-  const ids = new Set<string>();
-  let chapter = 1;
-  for (const step of STORY) {
-    if (ids.has(step.id)) errors.push(`Paso repetido: ${step.id}`);
-    ids.add(step.id);
-    if (step.chapter < chapter || step.chapter > chapter + 1) errors.push(`${step.id}: capítulo fuera de orden`);
-    chapter = step.chapter;
-    if (step.objective.es.trim() === '' || step.objective.ca.trim() === '') errors.push(`${step.id}: falta el objetivo en es o ca`);
-    if (['collect', 'crystals', 'riddles'].includes(step.kind) && !(step.count && step.count > 0)) errors.push(`${step.id}: falta el contador`);
-    if (step.kind === 'talk' && !step.npc) errors.push(`${step.id}: ¿con quién se habla?`);
+  const regionIds = new Set<string>();
+  for (const region of regions) {
+    const where = (msg: string): string => `${region.id}: ${msg}`;
+    if (regionIds.has(region.id)) errors.push(where('región repetida'));
+    regionIds.add(region.id);
+    if (!region.name.es.trim() || !region.name.ca.trim()) errors.push(where('falta el nombre en es o ca'));
+    if (region.steps.length === 0) errors.push(where('no tiene pasos'));
+    const ids = new Set<string>();
+    let chapter = 1;
+    for (const step of region.steps) {
+      if (ids.has(step.id)) errors.push(where(`paso repetido: ${step.id}`));
+      ids.add(step.id);
+      if (step.chapter < chapter || step.chapter > chapter + 1) errors.push(where(`${step.id}: capítulo fuera de orden`));
+      chapter = step.chapter;
+      if (!region.chapters.some((c) => c.chapter === step.chapter)) errors.push(where(`${step.id}: el capítulo ${step.chapter} no tiene título`));
+      if (step.objective.es.trim() === '' || step.objective.ca.trim() === '') errors.push(where(`${step.id}: falta el objetivo en es o ca`));
+      if (['collect', 'crystals', 'riddles'].includes(step.kind) && !(step.count && step.count > 0)) errors.push(where(`${step.id}: falta el contador`));
+      if (step.kind === 'talk' && !step.npc) errors.push(where(`${step.id}: ¿con quién se habla?`));
+      if (step.kind === 'talk' && step.npc && !region.npcs[step.npc]) errors.push(where(`${step.id}: ${step.npc} no está en el mapa`));
+      if (step.kind === 'crystals' && (step.count ?? 0) > region.lights.length) errors.push(where(`${step.id}: hay menos luces que el contador`));
+    }
+    for (const c of region.chapters) if (!c.title.es.trim() || !c.title.ca.trim()) errors.push(where(`capítulo ${c.chapter}: falta el título en es o ca`));
+    if (region.next !== undefined && !regions.some((r) => r.id === region.next)) errors.push(where(`la región siguiente «${region.next}» no existe`));
   }
   return errors;
 }
