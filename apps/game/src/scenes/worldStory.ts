@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 import {
-  CHAPTERS,
   chaptersDone,
+  regionStory,
+  type Anchor,
+  type CreatureId,
+  type RegionStory,
   creaturesForSkill,
   currentStep,
   getCreature,
@@ -12,6 +15,7 @@ import {
 } from '@kalku/content';
 import { pickSkill, type Rng } from '@kalku/exercises';
 import type { Point, RegionMap } from '@kalku/world';
+import type { MapSpriteId } from '@kalku/art';
 import { mapSpriteKey, TILE_SIZE } from '../art/textures';
 import { tr } from '../i18n';
 import { loadProgress } from '../progress';
@@ -31,9 +35,17 @@ export type StoryAction =
 const key = (p: Point): string => `${p.x},${p.y}`;
 const dist = (a: Point, b: Point): number => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
+/** Esquina del lugar o de la zona, o puerta de la zona, de un punto de los datos. */
+function anchorBase(region: RegionMap, anchor: Anchor): Point | undefined {
+  if (anchor.place) return region.places.find((p) => p.id === anchor.place);
+  if (anchor.zone) return region.places.find((p) => p.zone === anchor.zone);
+  if (anchor.gate) return region.places.find((p) => p.zone === anchor.gate)?.gate;
+  return undefined;
+}
+
 /** Cuánto gris le queda al mundo: 70 % al principio y nada al final. */
 export function greyFor(story: StoryState): number {
-  return 0.7 * (1 - chaptersDone(story) / CHAPTERS.length);
+  return 0.7 * (1 - chaptersDone(story) / regionStory(story.region).chapters.length);
 }
 
 /**
@@ -58,6 +70,7 @@ export class WorldStory {
   /** Último personaje con el que se ha hablado; no repite hasta alejarse. */
   private lastTalk: MapNpc | undefined;
   private story: StoryState;
+  private readonly data: RegionStory;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -65,21 +78,18 @@ export class WorldStory {
     private readonly hero: Phaser.GameObjects.Image,
   ) {
     this.story = loadProgress().story;
-    const place = (id: string): { x: number; y: number; gate?: Point } | undefined => region.places.find((p) => p.id === id);
-    const pueblo = place('pueblo-pradera');
-    if (pueblo) this.npcTiles.set('tecla', { x: pueblo.x + 6, y: pueblo.y + 4 });
-    const byZone = (zone: string): Point | undefined => region.places.find((p) => p.zone === zone)?.gate;
-    const nextTo = (p: Point | undefined): Point | undefined => (p ? { x: p.x + 1, y: p.y + 1 } : undefined);
-    const bruno = nextTo(byZone('puente-roto'));
-    const lina = nextTo(byZone('cueva'));
-    const pedrolo = nextTo(byZone('puerta-de-piedra'));
-    if (bruno) this.npcTiles.set('bruno', bruno);
-    if (lina) this.npcTiles.set('lina', lina);
-    if (pedrolo) this.npcTiles.set('pedrolo', pedrolo);
-    if (pueblo) this.npcTiles.set('borroncito', { x: pueblo.x + 4, y: pueblo.y + 4 });
-
-    const cave = region.places.find((p) => p.zone === 'cueva');
-    if (cave) for (const dx of [1, 3, 5]) this.crystalTiles.push({ x: cave.x + dx, y: cave.y + 1 });
+    const data = regionStory(this.story.region);
+    this.data = data;
+    // Dónde vive cada cosa sale de los datos de la región (docs/JUEGO-SIN-FIN.md).
+    for (const [npc, anchor] of Object.entries(data.npcs) as [MapNpc, Anchor][]) {
+      const tile = this.anchorTile(anchor);
+      if (tile) this.npcTiles.set(npc, tile);
+    }
+    for (const light of data.lights) {
+      const tile = this.anchorTile(light);
+      if (tile) this.crystalTiles.push(tile);
+    }
+    const shadeAt = data.shade ? this.anchorTile(data.shade) : undefined;
 
     const bossIndex = region.tiles.indexOf('boss');
     this.bossTile = bossIndex >= 0 ? { x: bossIndex % region.width, y: Math.floor(bossIndex / region.width) } : undefined;
@@ -90,10 +100,10 @@ export class WorldStory {
       this.npcSprites.set(npc, sprite);
       if (!reducedMotion()) scene.tweens.add({ targets: sprite, y: sprite.y - 1, duration: 600 + tile.x * 7, yoyo: true, repeat: -1 });
     }
-    if (cave) {
+    if (shadeAt && data.shade) {
       // La cueva está a oscuras hasta encender los cristales.
       this.caveShade = scene.add
-        .rectangle((cave.x + 1) * TILE_SIZE, (cave.y + 1) * TILE_SIZE, 5 * TILE_SIZE, 2 * TILE_SIZE, 0x0b0a14, 0.6)
+        .rectangle(shadeAt.x * TILE_SIZE, shadeAt.y * TILE_SIZE, data.shade.width * TILE_SIZE, data.shade.height * TILE_SIZE, 0x0b0a14, 0.6)
         .setOrigin(0)
         .setDepth(1.5);
     }
@@ -107,6 +117,12 @@ export class WorldStory {
     if (!reducedMotion()) scene.tweens.add({ targets: this.alert, scale: 1.25, duration: 350, yoyo: true, repeat: -1 });
     this.arrow = scene.add.image(0, 0, FX_TEXTURES.arrow).setDepth(4).setVisible(false);
     this.refresh();
+  }
+
+  /** Casilla de un punto de los datos: esquina de un lugar o puerta de una zona, más el desplazamiento. */
+  private anchorTile(anchor: Anchor): Point | undefined {
+    const base = anchorBase(this.region, anchor);
+    return base ? { x: base.x + anchor.dx, y: base.y + anchor.dy } : undefined;
   }
 
   private cx(p: Point): number {
@@ -145,23 +161,24 @@ export class WorldStory {
     if (before !== this.story.step) this.lastTalk = undefined;
     const step = currentStep(this.story);
     const done = isStoryDone(this.story);
-    // Borroncito solo vive en el pueblo después del final.
-    this.npcSprites.get('borroncito')?.setVisible(done);
+    // Hay quien solo vive en el mapa después del final (Borroncito).
+    for (const [npc, sprite] of this.npcSprites) if (this.data.npcs[npc]?.afterEnd) sprite.setVisible(done);
     // Cristales encendidos (todos, una vez pasado ese paso).
     const crystalStep = currentStep(this.story)?.kind === 'crystals';
-    const pastCrystals = chaptersDone(this.story) >= 3;
+    const crystalsIndex = this.data.steps.findIndex((st) => st.kind === 'crystals');
+    const pastCrystals = crystalsIndex >= 0 && this.story.step > crystalsIndex;
     let lit = 0;
     this.crystalSprites.forEach((sprite, i) => {
       const on = pastCrystals || (crystalStep && this.story.crystals.includes(i));
       if (on) lit += 1;
       sprite.setTexture(mapSpriteKey(on ? 'crystal-on' : 'crystal-off'));
     });
-    this.caveShade?.setFillStyle(0x0b0a14, 0.6 * (1 - lit / 3));
+    this.caveShade?.setFillStyle(0x0b0a14, 0.6 * (1 - lit / Math.max(1, this.crystalSprites.length)));
 
     // Primer Sumus Brote, solo en su paso.
     if (step?.kind === 'firstRescue' && !this.firstSprite) {
       this.firstSprite = this.scene.add
-        .image(this.cx(this.firstTile), this.cy(this.firstTile), getCreature('sumus-brote').sprite, 0)
+        .image(this.cx(this.firstTile), this.cy(this.firstTile), getCreature(this.data.firstCreature as CreatureId).sprite, 0)
         .setScale(0.75)
         .setDepth(2);
       if (!reducedMotion()) this.scene.tweens.add({ targets: this.firstSprite, x: this.firstSprite.x + 1.5, duration: 80, yoyo: true, repeat: -1 });
@@ -171,7 +188,7 @@ export class WorldStory {
     }
     // El Borrón espera en su claro desde el capítulo 5.
     if (step?.kind === 'boss' && this.bossTile && !this.bossSprite) {
-      this.bossSprite = this.scene.add.image(this.cx(this.bossTile), this.cy(this.bossTile) - 8, mapSpriteKey('borron')).setDepth(2);
+      this.bossSprite = this.scene.add.image(this.cx(this.bossTile), this.cy(this.bossTile) - 8, mapSpriteKey(this.data.boss as MapSpriteId)).setDepth(2);
       if (!reducedMotion()) this.scene.tweens.add({ targets: this.bossSprite, scaleX: 1.08, duration: 500, yoyo: true, repeat: -1 });
     } else if (step?.kind !== 'boss') {
       this.bossSprite?.destroy();
@@ -235,7 +252,7 @@ export class WorldStory {
     if (step?.kind === 'firstRescue' && here === key(this.firstTile)) {
       // El primer combate es siempre un Sumus Brote, con ejercicios de su nivel.
       const pick = pickSkill(profile, rng);
-      return { type: 'battle', encounter: { wandererId: -1, data: { creature: 'sumus-brote', skill: pick.skill, slot: pick.slot }, story: { where: 'first' } } };
+      return { type: 'battle', encounter: { wandererId: -1, data: { creature: this.data.firstCreature as CreatureId, skill: pick.skill, slot: pick.slot }, story: { where: 'first' } } };
     }
     if (step?.kind === 'crystals') {
       const i = this.crystalTiles.findIndex((c) => key(c) === here);
@@ -251,7 +268,7 @@ export class WorldStory {
     }
     // Personajes: el del objetivo habla al acercarse; los demás, si te pones encima.
     for (const [npc, t] of this.npcTiles) {
-      if (npc === 'borroncito' && !isStoryDone(this.story)) continue;
+      if (this.data.npcs[npc]?.afterEnd && !isStoryDone(this.story)) continue;
       const isTarget = (step?.kind === 'talk' && step.npc === npc) || (step?.kind === 'riddles' && npc === 'pedrolo');
       const d = dist(t, tile);
       if ((isTarget && d <= 1) || d === 0) {
@@ -287,7 +304,7 @@ export class WorldStory {
       this.card.replaceChildren(chapter, title);
       return;
     }
-    const chapterTitle = CHAPTERS.find((c) => c.chapter === obj.chapter)?.title[locale] ?? '';
+    const chapterTitle = this.data.chapters.find((c) => c.chapter === obj.chapter)?.title[locale] ?? '';
     chapter.textContent = `${tr('chapter', locale)} ${obj.chapter} · ${chapterTitle}`;
     title.textContent = obj.title;
     this.card.replaceChildren(chapter, title);
