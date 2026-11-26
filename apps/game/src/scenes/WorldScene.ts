@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { creaturesForSkill, getCreature, getZone, ITEMS, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
+import { creaturesForSkill, getCreature, getZone, ITEMS, questTemplate, questText, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
 import { currentSkill, challengeSkill, createRng, pickSkill, randomSeed, type Rng } from '@kalku/exercises';
 import {
   createWildlife,
@@ -19,12 +19,13 @@ import {
 import { playMusic, sfx } from '../audio/sound';
 import { tr } from '../i18n';
 import { loadProgress, saveProgress } from '../progress';
-import { WORLD_STATE_KEY, BATTLE_RESULT_KEY, PENDING_OUTCOME_KEY, type BattleResult, type EncounterData, type WildData, type WorldState } from '../worldState';
-import { applyStoryEvent, playScenes } from '../storyFlow';
-import { dialogOpen } from '../ui/DialogBox';
+import { WORLD_STATE_KEY, BATTLE_RESULT_KEY, PENDING_OUTCOME_KEY, PENDING_QUEST_KEY, type BattleResult, type EncounterData, type WildData, type WorldState } from '../worldState';
+import { applyQuestEvent, applyStoryEvent, nickname, playScenes, type QuestOutcome } from '../storyFlow';
+import { dialogOpen, playDialog } from '../ui/DialogBox';
+import { openMissionsPanel } from '../ui/MissionsPanel';
 import { banner, confetti } from '../ui/fx';
 import { ensureFxTextures } from './battleFx';
-import { greyFor, WorldStory, type StoryAction } from './worldStory';
+import { greyFor, WorldStory, type MapNpc, type StoryAction } from './worldStory';
 import { findBuildings, tilemapData } from '@kalku/art';
 import { activeClassId } from '../classDevice';
 import { appClassLoginBackend, leaveSharedDevice } from '../classLogin';
@@ -148,6 +149,9 @@ export class WorldScene extends Phaser.Scene {
       this.removeSign();
       this.story.destroy();
     });
+    // Después del final siempre hay un encargo en marcha.
+    applyQuestEvent(undefined);
+    this.story.refresh();
     this.afterBattle();
   }
 
@@ -168,7 +172,17 @@ export class WorldScene extends Phaser.Scene {
       void this.showOutcome(pending);
       return;
     }
+    const pendingQuest = this.registry.get(PENDING_QUEST_KEY) as QuestOutcome | undefined;
+    this.registry.remove(PENDING_QUEST_KEY);
+    if (pendingQuest) {
+      void this.showQuest(pendingQuest);
+      return;
+    }
     if (!result) return;
+    if (result.won && result.story.where === 'wild') {
+      const q = applyQuestEvent({ type: 'battleWon', rescued: result.rescued });
+      if (q.changed) void this.showQuest(q);
+    }
     if (!result.won) {
       // Perder no quita nada: Uni lo dice y se sigue.
       if (result.story.where !== 'wild') void this.tell(() => playScenes(['defeat']));
@@ -219,9 +233,50 @@ export class WorldScene extends Phaser.Scene {
         await playScenes(outcome.scenes);
       }
       if (outcome.chapterDone !== undefined) await this.chapterDone();
-      if (outcome.finished) await this.ending();
+      if (outcome.finished) {
+        await this.ending();
+        // Y ahora, el primer encargo de los personajes.
+        applyQuestEvent(undefined);
+      }
       this.story.refresh();
     });
+  }
+
+  /** Hablar con quien da el encargo: lo pide y queda aceptado. */
+  private async acceptQuest(npc: MapNpc): Promise<void> {
+    const progress = loadProgress();
+    const quest = progress.quest;
+    const template = quest ? questTemplate(quest.template) : undefined;
+    if (!quest || !template) return;
+    await this.tell(() =>
+      playDialog([{ who: npc, text: { es: questText(template.ask, quest.need, 'es'), ca: questText(template.ask, quest.need, 'ca') } }], {
+        locale: progress.locale,
+        nickname: nickname(),
+        voice: progress.settings.autoVoice,
+      }),
+    );
+    sfx('quest');
+    applyQuestEvent({ type: 'talked', npc });
+    this.story.refresh();
+    // Los acertijos empiezan ya, sin tener que irse y volver.
+    if (this.scene.isActive()) this.handleStory();
+  }
+
+  /** Enseña el avance del encargo y, si se ha terminado, el premio y el agradecimiento. */
+  private async showQuest(outcome: QuestOutcome): Promise<void> {
+    this.story.refresh();
+    const done = outcome.done;
+    const template = done ? questTemplate(done.template) : undefined;
+    if (!done || !template) return;
+    const progress = loadProgress();
+    await this.tell(async () => {
+      sfx('chest');
+      confetti(50);
+      banner(`${tr('questComplete', progress.locale)} +${done.reward} ${tr('coins', progress.locale)}`, 'win', 2400);
+      await this.wait(1200);
+      await playDialog([{ who: done.npc, text: template.thanks }], { locale: progress.locale, nickname: nickname(), voice: progress.settings.autoVoice });
+    });
+    this.story.refresh();
   }
 
   private wait(ms: number): Promise<void> {
@@ -273,6 +328,10 @@ export class WorldScene extends Phaser.Scene {
       this.scene.start('riddle');
       return;
     }
+    if (action.type === 'quest') {
+      await this.acceptQuest(action.npc);
+      return;
+    }
     const npc = action.npc;
     if (!action.target) {
       await this.tell(() => playScenes([`idle-${npc}` as const]));
@@ -302,7 +361,16 @@ export class WorldScene extends Phaser.Scene {
     // El toque en el botón no debe mover al personaje.
     button.addEventListener('pointerdown', (e) => e.stopPropagation());
     button.addEventListener('click', () => this.openCollection());
-    ui.replaceChildren(button);
+    const missions = document.createElement('button');
+    missions.type = 'button';
+    missions.className = 'btn btn-small world-button world-button-missions';
+    missions.textContent = tr('missions', loadProgress().locale);
+    missions.addEventListener('pointerdown', (e) => e.stopPropagation());
+    missions.addEventListener('click', () => {
+      if (this.encounterStarted || this.storyBusy) return;
+      void this.tell(() => openMissionsPanel(ui, loadProgress()));
+    });
+    ui.replaceChildren(button, missions);
     // En un aparato de clase (#53), «Salir» deja el aparato limpio para el siguiente alumno.
     if (activeClassId(sessionStorage) !== null) {
       const leave = document.createElement('button');

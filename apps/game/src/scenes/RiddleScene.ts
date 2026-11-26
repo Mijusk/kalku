@@ -13,16 +13,17 @@ import {
   type Hint,
 } from '@kalku/exercises';
 import { playMusic, sfx } from '../audio/sound';
+import { applyMissionEvent } from '../missions';
 import { mapSpriteKey } from '../art/textures';
 import { tr } from '../i18n';
 import { applyServerSkills, applySettings, loadProgress, saveProgress, type PlayerProgress } from '../progress';
-import { applyStoryEvent, playScenes } from '../storyFlow';
+import { applyQuestEvent, applyStoryEvent, playScenes } from '../storyFlow';
 import { exerciseView, sendAnswer } from '../sync';
 import { riddleExercise } from '../syllabus';
 import { ExercisePanel } from '../ui/ExercisePanel';
 import { banner, clearFx, reducedMotion } from '../ui/fx';
 import { showLevelUp } from '../ui/LevelUp';
-import { PENDING_OUTCOME_KEY } from '../worldState';
+import { PENDING_OUTCOME_KEY, PENDING_QUEST_KEY } from '../worldState';
 import { burst, drawBattleBackground, ensureFxTextures } from './battleFx';
 import { GAME_HEIGHT, GAME_WIDTH } from './BattleScene';
 
@@ -45,6 +46,7 @@ export class RiddleScene extends Phaser.Scene {
   private runes: Phaser.GameObjects.Arc[] = [];
   private solved = 0;
   private need = 3;
+  private forQuest = false;
 
   constructor() {
     super('riddle');
@@ -54,8 +56,11 @@ export class RiddleScene extends Phaser.Scene {
     this.progress = loadProgress();
     applySettings(this.progress.settings);
     const step = currentStep(this.progress.story);
-    this.need = step?.kind === 'riddles' ? (step.count ?? 3) : 3;
-    this.solved = step?.kind === 'riddles' ? this.progress.story.count : 0;
+    // Acertijos de la historia o, después del final, un encargo de Pedrolo.
+    const quest = this.progress.quest;
+    this.forQuest = step?.kind !== 'riddles' && quest !== null && quest.accepted && quest.kind === 'riddles';
+    this.need = step?.kind === 'riddles' ? (step.count ?? 3) : this.forQuest && quest ? quest.need : 3;
+    this.solved = step?.kind === 'riddles' ? this.progress.story.count : this.forQuest && quest ? quest.have : 0;
     this.busy = false;
     ensureFxTextures(this);
     playMusic('story');
@@ -67,7 +72,7 @@ export class RiddleScene extends Phaser.Scene {
     g.fillStyle(0x8c867d).fillRoundedRect(254, 44, 142, 162, 8);
     g.fillStyle(0xa9a39a).fillRect(262, 52, 60, 150).fillRect(328, 52, 60, 150);
     g.fillStyle(0x6c675f).fillRect(323, 52, 4, 150);
-    this.runes = [0, 1, 2].map((i) => this.add.circle(280 + i * 45, 90, 11, 0x4b4658).setStrokeStyle(3, 0x1b2a1f));
+    this.runes = Array.from({ length: Math.min(this.need, 4) }, (_, i) => i).map((i) => this.add.circle(325 - ((Math.min(this.need, 4) - 1) * 45) / 2 + i * 45, 90, 11, 0x4b4658).setStrokeStyle(3, 0x1b2a1f));
     this.runes.forEach((r, i) => i < this.solved && this.lightRune(r, false));
     this.add.image(190, 175, mapSpriteKey('pedrolo')).setScale(4);
     this.add.image(440, 190, 'hero', 0).setScale(3).setFlipX(true);
@@ -85,7 +90,7 @@ export class RiddleScene extends Phaser.Scene {
     this.panel.setLocale(this.progress.locale);
     this.panel.setAutoVoice(this.progress.settings.autoVoice);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.panel.destroy());
-    if (this.solved === 0) void playScenes(['pedrolo-riddles']).then(() => this.ask());
+    if (this.solved === 0 && !this.forQuest) void playScenes(['pedrolo-riddles']).then(() => this.ask());
     else this.ask();
   }
 
@@ -173,6 +178,9 @@ export class RiddleScene extends Phaser.Scene {
     const helped = this.tries > 0 || this.hintLevel > 0;
     const score = scoreAnswer({ correct: true, difficulty: ex.difficulty, streak: 0, helped, elapsedMs: undefined });
     this.progress.coins += score.total;
+    for (const m of applyMissionEvent(this.progress, { type: 'answer', correct: true, operator: ex.operator === '-' ? '-' : '+', strong: false })) {
+      banner(`${tr('missionDone', locale)} +${m.reward} ${tr('coins', locale)}`, 'win', 2200);
+    }
     const before = levelForXp(this.progress.xp);
     this.progress.xp += xpForAnswer({ correct: true, difficulty: ex.difficulty, helped });
     this.record(ex, true, given);
@@ -185,6 +193,21 @@ export class RiddleScene extends Phaser.Scene {
     this.panel.showCasting(`${tr('correct', locale)} +${score.total} ${tr('coins', locale)}`);
     this.lightRune(this.runes[this.solved], true);
     this.solved += 1;
+    if (this.forQuest) {
+      const quest = applyQuestEvent({ type: 'riddleSolved' }, this.progress);
+      this.progress = loadProgress();
+      if (quest.done) {
+        this.registry.set(PENDING_QUEST_KEY, quest);
+        this.time.delayedCall(1000, () => {
+          sfx('door');
+          this.scene.start('world');
+        });
+        return;
+      }
+      banner(`${tr('riddleProgress', locale)} ${this.solved}/${this.need}`, 'streak', 1100);
+      this.time.delayedCall(1400, () => this.ask());
+      return;
+    }
     const outcome = applyStoryEvent({ type: 'riddleSolved' });
     this.progress = loadProgress();
     if (this.solved >= this.need || outcome.zoneOpened) {

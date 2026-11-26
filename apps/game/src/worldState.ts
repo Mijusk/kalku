@@ -47,3 +47,6 @@ export const BATTLE_RESULT_KEY = 'battleResult';
 export const PENDING_OUTCOME_KEY = 'pendingOutcome';
 
 export const WORLD_STATE_KEY = 'worldState';
+
+/** Un encargo que avanzó fuera del mapa (los acertijos de Pedrolo) y que el mapa tiene que enseñar al volver. */
+export const PENDING_QUEST_KEY = 'pendingQuest';

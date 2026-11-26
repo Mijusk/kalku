@@ -97,6 +97,8 @@ kalku/
 │       │   ├── weakness.ts     Debilidad por operación inversa (damageMultiplier; los problemus no tienen) y contador de encuentros para el cartel
 │       │   ├── outfit.ts       Piezas del personaje por capa y lectura del guardado
 │       │   ├── syllabus.ts     Temario de un centro: parseSyllabus (errores claros en castellano), preguntas propias como ejercicio
+│       │   ├── quests.ts       Encargos de los personajes tras el final: plantillas, nextQuest con semilla, advanceQuest
+│       │   ├── missions.ts     Misiones del día y de la semana: iguales para todos según la fecha (Europe/Madrid)
 │       │   └── story/          La historia (docs/HISTORIA.md) como datos, por regiones (docs/JUEGO-SIN-FIN.md)
 │       │       ├── story.ts    Motor: advanceStory (nunca retrocede), objetivo de la tarjeta, zonas que abre, validateStory
 │       │       ├── regions.ts  RegionStory: capítulos, pasos y dónde vive cada personaje y luz en el mapa; REGION_STORIES
@@ -137,6 +139,7 @@ kalku/
             ├── worldState.ts   Estado del mapa que sobrevive al combate (posición y criaturas) y resultado de la historia al volver
             ├── storyFlow.ts    Avanzar la historia y guardarla, reproducir diálogos, ir a la escena que toca
             ├── syllabus.ts     Temarios de packages/content/temarios, ?temario=<id> y el acertijo que toca
+            ├── missions.ts     Misiones de hoy en la partida: avanzar con cada evento y dar las Cifras
             ├── audio/
             │   └── sound.ts    Sonido por código (Web Audio): efectos y melodías como notas, ajustes de sonido y música
             ├── art/
@@ -160,7 +163,8 @@ kalku/
                 ├── Hud.ts            Cifras, gemas y dominio
                 ├── fx.ts             Efectos en HTML sobre el canvas: números que saltan, carteles y confeti
                 ├── DialogBox.ts      Diálogos con retrato, texto que se escribe solo, voz y «Saltar»
-                ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz y «Para adultos»
+                ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz, historia y «Para adultos»
+                ├── MissionsPanel.ts  Misiones del día y de la semana, con lo que lleva cada una
                 ├── dom.ts            Ayudas de HTML (texto, botón, estado) y la cuenta de «Para adultos»
                 ├── FamilyPanel.ts    Familia: entrar con correo, lista de hijos, unir, entrar como, quitar
                 ├── AdultsPanel.ts    Para adultos (con «Familia»): cuenta de entrada, descargar los datos en JSON y borrarlos (con confirmación)
