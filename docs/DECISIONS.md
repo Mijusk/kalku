@@ -2,6 +2,12 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-27 · Compañero y tienda del Bosque
+
+- **Contexto:** tras los objetos, Luis pidió seguir con los siguientes pasos. Modo autónomo: decide Claude.
+- **Compañero:** en la Colección, cada criatura rescatada tiene «Que me acompañe». La elegida anda un paso por detrás del personaje en el mapa (más pequeña que las salvajes para no confundirla) y en el combate se queda detrás y salta de alegría al acertar. Si se rescató brillante, va brillante. **No da ninguna ventaja:** no cambia daño, vida ni Cifras. Contra el jefe, el amigo que sale a ayudar entre fases (ya existía, #109) pasa a ser el compañero, para no duplicarlo. Se guarda como `companion` y se descarta si la criatura ya no está en la colección.
+- **Tienda en el Bosque:** el campamento de Olma tiene una tienda pequeña con el mismo catálogo; se añaden dos objetos del bosque (gorro de bellota, nivel 6; capa de hojas, nivel 7).
+
 ## 2026-11-27 · Objetos: tienda, armario, cofre sorpresa y límite de Cifras (#12, #13, #72)
 
 - **Contexto:** Luis pidió «tema items y cosas random». Las Cifras no servían para nada y los tesoros de las zonas eran solo un nombre. Modo autónomo: decide Claude, pensando en cómo lo vería un colegio.

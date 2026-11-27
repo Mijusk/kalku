@@ -174,3 +174,11 @@
   font-size: 1.0625rem;
   line-height: 1.25;
 }
+
+/* Botón «Que me acompañe» de cada criatura rescatada (colección). */
+.btn.companion-button {
+  min-height: 48px;
+  padding: 0 8px;
+  font-size: 0.875rem;
+  line-height: 1.1;
+}

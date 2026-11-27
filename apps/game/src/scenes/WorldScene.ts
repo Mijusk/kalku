@@ -31,7 +31,7 @@ import { burst, ensureFxTextures } from './battleFx';
 /** Clave del registro: día en que ya se avisó del cofre sorpresa (para no repetirlo tras cada combate). */
 const SURPRISE_HINT_KEY = 'surpriseHinted';
 import { greyFor, WorldStory, type MapNpc, type StoryAction } from './worldStory';
-import { findBuildings, tilemapData } from '@kalku/art';
+import { CREATURE_FRAMES, findBuildings, tilemapData } from '@kalku/art';
 import { activeClassId } from '../classDevice';
 import { appClassLoginBackend, leaveSharedDevice } from '../classLogin';
 import { ANIMATION_MS, buildingTexture, CHEST_TEXTURES, createHeroTexture, GATE_TEXTURE, HERO_KEY, mapSpriteKey, SURPRISE_TEXTURES, TILE_SIZE, TILESET_KEYS } from '../art/textures';
@@ -45,6 +45,9 @@ import { openWardrobe } from '../ui/WardrobePanel';
  * perder el contorno, que a la mitad se pierde en la hierba alta.
  */
 const WILD_SCALE = 0.75;
+
+/** El compañero se ve algo más pequeño que las criaturas salvajes, para no confundirlo con ellas. */
+const COMPANION_SCALE = 0.55;
 
 /** Lo que tarda el personaje en pasar de una casilla a la siguiente (ms). */
 const STEP_MS = 150;
@@ -114,6 +117,8 @@ export class WorldScene extends Phaser.Scene {
   private storyBusy = false;
   /** Casillas delante de la puerta de cada tienda: al pararse ahí, se entra. */
   private shopDoors: Point[] = [];
+  /** La criatura que le acompaña (elegida en la Colección), un paso por detrás. */
+  private companion: Phaser.GameObjects.Image | undefined;
   /** El cofre sorpresa de hoy en este mapa, si aún no se ha abierto. */
   private surprise: { tile: Point; sprite: Phaser.GameObjects.Image } | undefined;
 
@@ -152,6 +157,7 @@ export class WorldScene extends Phaser.Scene {
     }
     this.tile = { ...this.state.tile };
     this.hero = this.add.image(this.centerOf(this.tile).x, this.centerOf(this.tile).y, 'hero', 0).setDepth(2);
+    this.createCompanion();
 
     const camera = this.cameras.main;
     camera.setBounds(0, 0, this.region.width * TILE_SIZE, this.region.height * TILE_SIZE);
@@ -519,6 +525,36 @@ export class WorldScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Compañero: la criatura elegida en la Colección anda un paso por detrás del
+   * personaje y se mueve un poco (sus fotogramas). Solo compañía: no cuenta para
+   * los encuentros ni para nada del juego.
+   */
+  private createCompanion(): void {
+    this.companion = undefined;
+    const chosen = loadProgress().companion;
+    if (!chosen) return;
+    const sprite = getCreature(chosen.id).sprite;
+    const key = chosen.shiny ? shinySprite(sprite) : sprite;
+    if (!this.textures.exists(key)) return;
+    const { x, y } = this.centerOf(this.tile);
+    const image = this.add.image(x - TILE_SIZE * 0.7, y + 2, key, 0).setScale(COMPANION_SCALE).setDepth(1.9);
+    this.companion = image;
+    if (reducedMotionNow()) return;
+    let frame = 0;
+    this.time.addEvent({ delay: ANIMATION_MS * 2, loop: true, callback: () => image.setFrame((frame = (frame + 1) % CREATURE_FRAMES)) });
+  }
+
+  /** El compañero va a la casilla que deja el personaje, mirando hacia donde anda. */
+  private follow(from: Point, to: Point): void {
+    const c = this.companion;
+    if (!c) return;
+    const { x, y } = this.centerOf(from);
+    if (to.x !== from.x) c.setFlipX(to.x < from.x);
+    this.tweens.killTweensOf(c);
+    this.tweens.add({ targets: c, x, y: y + 2, duration: STEP_MS + 40, delay: 30 });
+  }
+
   /** Armario o tienda, encima del mapa. El personaje no se mueve mientras está abierto. */
   private openItems(mode: 'wardrobe' | 'shop'): void {
     const ui = document.getElementById('ui');
@@ -651,6 +687,7 @@ export class WorldScene extends Phaser.Scene {
     if (right) this.hero.setFlipX(false);
     if (to.x === this.tile.x && to.y === this.tile.y) return;
 
+    this.follow(this.tile, to);
     this.tile = to;
     this.moving = true;
     // Dos pasos alternados; con «reducir movimiento» se queda el fotograma parado.

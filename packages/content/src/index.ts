@@ -17,3 +17,4 @@ export * from './wardrobe.js';
 export * from './surprise.js';
 export * from './events.js';
 export * from './shiny.js';
+export * from './companion.js';
