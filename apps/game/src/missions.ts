@@ -1,4 +1,5 @@
 import { advanceMissions, dateKey, missionsFor, refreshMissions, type Mission, type MissionEvent } from '@kalku/content';
+import { currentEvent } from './events';
 import type { PlayerProgress } from './progress';
 
 /**
@@ -6,7 +7,7 @@ import type { PlayerProgress } from './progress';
  * para todos los niños el mismo día (y así, para toda la clase).
  */
 export function todaysMissions(now: Date = new Date()): Mission[] {
-  return missionsFor(dateKey(now));
+  return missionsFor(dateKey(now), null, currentEvent(now));
 }
 
 /**
@@ -16,7 +17,7 @@ export function todaysMissions(now: Date = new Date()): Mission[] {
 export function applyMissionEvent(progress: PlayerProgress, event: MissionEvent, now: Date = new Date()): Mission[] {
   const day = dateKey(now);
   const state = refreshMissions(progress.missions, day);
-  const { state: next, completed } = advanceMissions(state, missionsFor(day), event);
+  const { state: next, completed } = advanceMissions(state, missionsFor(day, null, currentEvent(now)), event);
   progress.missions = next;
   for (const m of completed) progress.coins += m.reward;
   return completed;
@@ -26,7 +27,7 @@ export function applyMissionEvent(progress: PlayerProgress, event: MissionEvent,
 export function missionProgress(progress: PlayerProgress, now: Date = new Date()): { mission: Mission; have: number; done: boolean }[] {
   const day = dateKey(now);
   const state = refreshMissions(progress.missions, day);
-  return missionsFor(day).map((mission) => ({
+  return missionsFor(day, null, currentEvent(now)).map((mission) => ({
     mission,
     have: Math.min(mission.need, state.progress[mission.id] ?? 0),
     done: state.claimed.includes(mission.id),

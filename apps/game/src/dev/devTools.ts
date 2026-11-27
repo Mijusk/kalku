@@ -1,9 +1,11 @@
 import type Phaser from 'phaser';
-import { REGION_STORIES, regionIndex, regionStory } from '@kalku/content';
+import { EVENTS, REGION_STORIES, regionIndex, regionStory } from '@kalku/content';
+import type { Point } from '@kalku/world';
+import { DEV_EVENT_KEY } from '../events';
 import { loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { applyQuestEvent } from '../storyFlow';
 import { banner } from '../ui/fx';
-import { ARRIVAL_KEY, WORLD_STATE_KEY } from '../worldState';
+import { ARRIVAL_KEY, WORLD_STATE_KEY, type WorldState } from '../worldState';
 import { completeMissions, completeQuest, finishRegion, jumpToRegion, masterAll, skipStep } from './devActions';
 
 /**
@@ -98,6 +100,23 @@ export function mountDevTools(game: Phaser.Game): void {
     add('Completar el encargo', () => apply(completeQuest, 'Encargo completado'));
     add('Completar las misiones', () => apply((p) => completeMissions(p) > 0, 'Misiones completadas'));
 
+    section('Eventos y brillantes');
+    const forced = readForcedEvent();
+    for (const event of EVENTS) {
+      add(`${forced === event.id ? '✓ ' : ''}Evento: ${event.name.es}`, () => forceEvent(event.id, `Evento: ${event.name.es}`));
+    }
+    add(`${forced === 'ninguno' ? '✓ ' : ''}Sin evento`, () => forceEvent('ninguno', 'Sin evento'));
+    add(`${forced === null ? '✓ ' : ''}Fechas reales`, () => forceEvent(null, 'Fechas reales'));
+    add('Brillantes en el mapa', () => {
+      const world = active('world') as (Phaser.Scene & { state?: WorldState; tile?: Point }) | undefined;
+      if (!world?.state || !world.tile) return void banner('Ve al mapa primero', 'info');
+      for (const w of world.state.wildlife.wanderers) w.data.shiny = true;
+      world.state.tile = { ...world.tile };
+      game.registry.set(WORLD_STATE_KEY, world.state);
+      world.scene.restart();
+      banner('Todas brillantes', 'info');
+    });
+
     section('Progreso');
     add('Dominar todas las habilidades', () => apply(masterAll, 'Todo dominado'));
     add('+1000 Cifras', () => apply((p) => void (p.coins += 1000), '+1000 Cifras'));
@@ -113,6 +132,26 @@ export function mountDevTools(game: Phaser.Game): void {
       window.location.reload();
     });
     reset.classList.add('dev-danger');
+  }
+
+  function readForcedEvent(): string | null {
+    try {
+      return localStorage.getItem(DEV_EVENT_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Fuerza un evento (o ninguno, o las fechas de verdad) y rehace las criaturas del mapa. */
+  function forceEvent(id: string | null, message: string): void {
+    try {
+      if (id === null) localStorage.removeItem(DEV_EVENT_KEY);
+      else localStorage.setItem(DEV_EVENT_KEY, id);
+    } catch {
+      return void banner('No se puede guardar', 'info');
+    }
+    game.registry.remove('eventGreeted');
+    apply(() => undefined, message);
   }
 
   function section(title: string): void {

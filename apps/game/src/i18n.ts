@@ -400,6 +400,13 @@ const STRINGS = {
   classLeaving: { es: 'Guardando y saliendo…', ca: 'Desant i sortint…' },
   offlineNotice: { es: 'Sin conexión · se guardará al volver', ca: 'Sense connexió · es desarà en tornar' },
   language: { es: 'Català', ca: 'Castellano' },
+  // Álbum, brillantes y eventos de temporada (#101).
+  shinyTag: { es: '¡brillante!', ca: 'brillant!' },
+  shinyRescued: { es: '¡Pegatina brillante para tu álbum!', ca: 'Adhesiu brillant per al teu àlbum!' },
+  shinyCount: { es: 'brillantes', ca: 'brillants' },
+  albumComplete: { es: '¡Página completa!', ca: 'Pàgina completa!' },
+  albumEvents: { es: 'Invitados de temporada', ca: 'Convidats de temporada' },
+  guestHint: { es: 'Viene en', ca: 'Ve per' },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type StringKey = keyof typeof STRINGS;

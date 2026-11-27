@@ -1,4 +1,5 @@
 import { createRng, type Localized } from '@kalku/exercises';
+import { activeEvent, getEvent, type SeasonalEvent } from './events.js';
 
 /**
  * Misiones del día y de la semana (docs/JUEGO-SIN-FIN.md §3, #98).
@@ -22,7 +23,9 @@ export type MissionKind =
   /** Ganar combates. */
   | 'battles'
   /** Rescatar criaturas. */
-  | 'rescues';
+  | 'rescues'
+  /** Ganar a la invitada del evento de temporada (solo mientras dura, `events.ts`). */
+  | 'guests';
 
 export interface MissionTemplate {
   kind: MissionKind;
@@ -53,7 +56,7 @@ export interface MissionsState {
 
 export type MissionEvent =
   | { type: 'answer'; correct: boolean; operator: '+' | '-'; strong: boolean }
-  | { type: 'battleWon'; rescued: boolean };
+  | { type: 'battleWon'; rescued: boolean; guest?: boolean };
 
 const t = (es: string, ca: string): Localized => ({ es, ca });
 
@@ -90,8 +93,11 @@ export function textSeed(text: string): number {
   return h;
 }
 
-/** Las 3 del día y la de la semana. Misma fecha y misma clase = mismas misiones. */
-export function missionsFor(day: string, classId: string | null = null): Mission[] {
+/**
+ * Las 3 del día y la de la semana. Misma fecha y misma clase = mismas misiones.
+ * Durante un evento de temporada se añade su misión (`event`, por defecto el de ese día).
+ */
+export function missionsFor(day: string, classId: string | null = null, event: SeasonalEvent | undefined = activeEvent(day)): Mission[] {
   const rng = createRng(textSeed(`dia:${day}:${classId ?? ''}`));
   const pool = [...MISSION_TEMPLATES];
   const daily: Mission[] = [];
@@ -107,12 +113,14 @@ export function missionsFor(day: string, classId: string | null = null): Mission
   const wt = wrng.pick(MISSION_TEMPLATES);
   const wneed = wrng.pick(wt.weekly);
   const weekly: Mission = { id: `${week}:${wt.kind}:semana`, kind: wt.kind, need: wneed, reward: 100, weekly: true };
-  return [...daily, weekly];
+  if (!event) return [...daily, weekly];
+  const special: Mission = { id: `${day}:guests:${event.id}`, kind: 'guests', need: event.mission.need, reward: 30, weekly: false };
+  return [...daily, special, weekly];
 }
 
 export function missionText(mission: Mission, locale: 'es' | 'ca'): string {
-  const template = MISSION_TEMPLATES.find((m) => m.kind === mission.kind);
-  return (template?.text[locale] ?? '').split('{n}').join(String(mission.need));
+  const text = mission.kind === 'guests' ? getEvent(mission.id.split(':')[2] ?? '')?.mission.text : MISSION_TEMPLATES.find((m) => m.kind === mission.kind)?.text;
+  return (text?.[locale] ?? '').split('{n}').join(String(mission.need));
 }
 
 function counts(kind: MissionKind, event: MissionEvent): boolean {
@@ -126,6 +134,7 @@ function counts(kind: MissionKind, event: MissionEvent): boolean {
   }
   if (kind === 'battles') return true;
   if (kind === 'rescues') return event.rescued;
+  if (kind === 'guests') return event.guest === true;
   return false;
 }
 

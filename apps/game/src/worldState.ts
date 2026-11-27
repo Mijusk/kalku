@@ -7,6 +7,8 @@ export interface WildData {
   creature: CreatureId;
   skill: SkillId;
   slot: Slot;
+  /** Brillante: solo cambia el color (#101). */
+  shiny?: boolean;
 }
 
 /**
