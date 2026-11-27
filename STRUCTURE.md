@@ -103,6 +103,7 @@ kalku/
 │       │   ├── surprise.ts     Cofre sorpresa del día: sitio fijo por fecha y región, siguiente regalo de la lista (sin azar en el premio)
 │       │   ├── companion.ts    Compañero: una criatura rescatada que acompaña (solo compañía, sin ventaja)
 │       │   ├── home.ts         Casa del niño: muebles como datos, comprar, colocar y leer lo guardado
+│       │   ├── sky.ts          Tiempo del día (igual para todos según la fecha) y luz según la hora (solo se ve)
 │       │   ├── syllabus.ts     Temario de un centro: parseSyllabus (errores claros en castellano), preguntas propias como ejercicio
 │       │   ├── quests.ts       Encargos de los personajes tras el final: plantillas, nextQuest con semilla, advanceQuest
 │       │   ├── missions.ts     Misiones del día y de la semana: iguales para todos según la fecha (Europe/Madrid)
@@ -167,6 +168,7 @@ kalku/
             │   ├── CreateScene.ts  Crea tu personaje (también desde la Colección: «Cambiar mi personaje»)
             │   ├── SurpriseScene.ts Cofre sorpresa: una cuenta y se abre con su regalo
             │   ├── HomeScene.ts    Casa del niño: decorar la habitación con muebles
+            │   ├── worldSky.ts     Cielo del mapa: velo de luz, nubes, lluvia, nieve, hojas, pétalos y luciérnagas
             │   ├── RiddleScene.ts  Acertijos de Pedrolo (capítulo 4): problemas sin vida ni tiempo; salen del temario del centro si lo hay
             │   ├── ClassLoginScene.ts Entrada a la clase del QR: apodo, animal o código de la tarjeta
             │   ├── NicknameScene.ts Pantalla de apodo (paso 2 de 3; lista o escrito), solo si no hay cuenta

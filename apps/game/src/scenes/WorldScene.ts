@@ -18,7 +18,7 @@ import {
   type RegionSpec,
 } from '@kalku/world';
 import { playMusic, sfx } from '../audio/sound';
-import { tr } from '../i18n';
+import { tr, type StringKey } from '../i18n';
 import { currentEvent } from '../events';
 import { loadProgress, saveProgress } from '../progress';
 import { ARRIVAL_KEY, WORLD_STATE_KEY, BATTLE_RESULT_KEY, PENDING_OUTCOME_KEY, PENDING_QUEST_KEY, type BattleResult, type EncounterData, type WildData, type WorldState } from '../worldState';
@@ -27,11 +27,15 @@ import { dialogOpen, playDialog } from '../ui/DialogBox';
 import { openMissionsPanel } from '../ui/MissionsPanel';
 import { banner, confetti } from '../ui/fx';
 import { burst, ensureFxTextures } from './battleFx';
+import { createSky } from './worldSky';
+import { currentDayTime, currentWeather } from '../sky';
 
 /** Clave del registro: día en que ya se avisó del cofre sorpresa (para no repetirlo tras cada combate). */
 const SURPRISE_HINT_KEY = 'surpriseHinted';
 /** Para decir solo una vez por partida «Esta es tu casa» al pasar cerca. */
 const HOME_HINT_KEY = 'homeHinted';
+/** Para contar el tiempo que hace una vez al día por región. */
+const SKY_HINT_KEY = 'skyHinted';
 import { greyFor, WorldStory, type MapNpc, type StoryAction } from './worldStory';
 import { CREATURE_FRAMES, findBuildings, tilemapData } from '@kalku/art';
 import { activeClassId } from '../classDevice';
@@ -143,6 +147,7 @@ export class WorldScene extends Phaser.Scene {
     this.createBuildings();
     this.createZones();
     this.createSurprise();
+    this.createWeather();
 
     this.encounterStarted = false;
     this.wild = new Map();
@@ -634,6 +639,25 @@ export class WorldScene extends Phaser.Scene {
         if (!this.storyBusy) this.showMessage(tr('surpriseHint', progress.locale));
       });
     }
+  }
+
+  /**
+   * Cielo: el tiempo de hoy (igual para todos) y la luz de la hora. Solo se ve.
+   * La primera vez del día en la región, una frase lo cuenta.
+   */
+  private createWeather(): void {
+    const weather = currentWeather(this.spec.id);
+    const time = currentDayTime();
+    createSky(this, weather, time, reducedMotionNow());
+    const key = `${SKY_HINT_KEY}:${this.spec.id}:${dateKey(new Date())}:${weather}:${time === 'night'}`;
+    if (this.registry.get(key)) return;
+    this.registry.set(key, true);
+    const line: StringKey | undefined =
+      weather === 'rain' ? 'skyRain' : weather === 'snow' ? 'skySnow' : weather === 'leaves' ? 'skyLeaves' : weather === 'petals' ? 'skyPetals' : time === 'night' ? 'skyNight' : undefined;
+    if (!line) return;
+    this.time.delayedCall(4200, () => {
+      if (!this.storyBusy && !this.encounterStarted) this.showMessage(tr(line, loadProgress().locale));
+    });
   }
 
   /** Entra en su casa (desde la puerta o el botón). Al salir vuelve al mismo sitio del mapa. */

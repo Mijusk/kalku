@@ -2,6 +2,14 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-27 · Tiempo y hora en el mapa
+
+- **Contexto:** Luis pidió seguir («vale siguientes pasos»). El mapa era igual siempre; un mundo que cambia invita a volver cada día sin premiar las rachas. Modo autónomo: decide Claude.
+- **Tiempo del día (`content/sky.ts`):** sol, nubes, lluvia, nieve, hojas o pétalos, según la estación (nunca nieve en verano ni hojas en primavera; casi siempre sol en verano). Sale de la fecha de Madrid y la región con semilla: **el mismo para todos el mismo día**, para que en clase lo vean igual. Una frase corta lo cuenta la primera vez del día («¡Hoy llueve! Las criaturas siguen jugando bajo la lluvia.»).
+- **Luz según la hora de Madrid:** amanecer (7–8), día, atardecer (18–19) y noche con luciérnagas. Velos suaves: de noche se sigue viendo todo; la letra va en HTML y no cambia.
+- **Solo se ve:** no cambia encuentros, ejercicios, Cifras ni nada del juego. Con «menos movimiento» solo queda el color (sin lluvia ni partículas).
+- Panel DEV: forzar el tiempo y la hora para probarlos.
+
 ## 2026-11-27 · La casa del niño
 
 - **Contexto:** tras el compañero, Luis pidió seguir con lo siguiente («no pares»). Las Cifras se acumulaban sin mucho en qué gastarlas y faltaba un sitio propio en el juego. Modo autónomo: decide Claude.
