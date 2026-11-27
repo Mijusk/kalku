@@ -15,11 +15,11 @@ import {
   shinySprite,
   type FurniturePiece,
 } from '@kalku/content';
-import { CREATURE_FRAMES, drawFurniture, gridToRgba, TILE_PX } from '@kalku/art';
+import { CREATURE_FRAMES, TILE_PX } from '@kalku/art';
 import { playMusic, sfx } from '../audio/sound';
 import { ANIMATION_MS, createHeroTexture, furnitureTexture, HERO_KEY, roomTexture } from '../art/textures';
 import { tr, trf } from '../i18n';
-import { lockText, wardrobeOf } from '../items';
+import { furnitureCanvas, lockText, wardrobeOf } from '../items';
 import { applySettings, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { confetti, reducedMotion } from '../ui/fx';
 import '../ui/items.css';
@@ -34,23 +34,6 @@ const ROOM_W = HOME.width * CELL;
 const ROOM_H = (HOME.height + WALL_ROWS) * CELL;
 const ORIGIN_X = Math.round((GAME_WIDTH - ROOM_W) / 2);
 const ORIGIN_Y = Math.round((GAME_HEIGHT - ROOM_H) / 2);
-
-/** Un mueble como canvas HTML para las tarjetas (en pixel art, escalado por CSS). */
-function furnitureCanvas(piece: FurniturePiece): HTMLCanvasElement {
-  const grid = drawFurniture(piece.art, piece.color, piece.width);
-  const canvas = document.createElement('canvas');
-  canvas.className = `home-card-art home-card-art-${piece.width}`;
-  canvas.width = grid.width;
-  canvas.height = grid.height;
-  canvas.setAttribute('aria-hidden', 'true');
-  const ctx = canvas.getContext('2d');
-  if (ctx) {
-    const image = ctx.createImageData(grid.width, grid.height);
-    image.data.set(gridToRgba(grid));
-    ctx.putImageData(image, 0, 0);
-  }
-  return canvas;
-}
 
 /**
  * La casa del niño: una habitación vista de frente que decora con sus
@@ -308,7 +291,7 @@ export class HomeScene extends Phaser.Scene {
       status.className = 'wardrobe-card-status';
       if (owned) status.textContent = placed ? tr('homePlaced', locale) : tr('homeInBox', locale);
       else if (lock) status.textContent = lock.kind === 'price' ? `● ${lock.price}` : `🔒 ${lockText(lock, locale)}`;
-      b.append(furnitureCanvas(piece), name, status);
+      b.append(furnitureCanvas(piece, `home-card-art home-card-art-${piece.width}`), name, status);
       b.addEventListener('click', () => (owned ? this.select(piece.id) : this.look(piece)));
       return b;
     });

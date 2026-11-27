@@ -8,7 +8,7 @@ Registro de decisiones del proyecto: qué se decidió, por qué y qué alternati
 - **Qué es:** la primera casa del pueblo de Pradera Uno es la del niño. Se entra parándose en su puerta o con el botón «Mi casa» del mapa (desde cualquier región; al salir vuelve al mismo sitio). Dentro, una habitación vista de frente con su personaje y su compañero junto a la puerta.
 - **Decorar:** se toca un mueble abajo (o uno ya puesto) y luego un sitio del suelo. Si no cabe, lo dice y no pasa nada. «Guardar en la caja» lo quita sin perderlo. Las alfombras van debajo de los demás muebles.
 - **Muebles como datos (`home.ts`) y dibujados por código (`art/furniture.ts`):** 16 muebles de 14 dibujos. Cama y mesa desde el principio; 11 se compran con Cifras (60 a 400, algunos desde un nivel); copas con las gemas de sumar y restar hasta 10; telescopio al nivel 8. Mismas reglas que la ropa: **nada da ventaja**, lo de nivel o gema no se puede comprar antes, y un guardado con muebles que no se tienen o que no caben los devuelve a la caja.
-- Se guarda como `home` (comprados y colocados).
+- Se guarda como `home` (comprados y colocados). Un corazón encima del tejado marca cuál es su casa, y al ganar un mueble (nivel o gema) sale el aviso «¡Mueble nuevo!» como con la ropa.
 
 ## 2026-11-27 · Compañero y tienda del Bosque
 

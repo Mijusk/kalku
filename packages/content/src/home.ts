@@ -53,6 +53,14 @@ export function getFurniture(id: string): FurniturePiece | undefined {
   return FURNITURE.find((p) => p.id === id);
 }
 
+/**
+ * Muebles que se acaban de ganar (por nivel o gema) entre dos momentos. Los de
+ * la tienda no cuentan: esos se compran a propósito.
+ */
+export function newlyEarnedFurniture(before: WardrobeState, after: WardrobeState): FurniturePiece[] {
+  return FURNITURE.filter((p) => p.get !== undefined && p.get.kind !== 'shop' && !ownsPiece(p, before) && ownsPiece(p, after));
+}
+
 /** Medidas del suelo de la habitación, en casillas. */
 export const HOME = {
   width: 10,

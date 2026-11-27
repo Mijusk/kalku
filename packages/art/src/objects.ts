@@ -69,3 +69,17 @@ export function drawChest(open: boolean, wood: Ramp = MATERIAL.tierra): Grid {
   }
   return g;
 }
+
+/** Corazón pequeño encima de la casa del niño, para que sepa cuál es la suya (11×10 px). */
+export function drawHomeMark(): Grid {
+  const g = newGrid(11, 10);
+  const red = [0xff9ed2, 0xf07ea6, 0xc4517e] as const;
+  shape(
+    g, 0, 0, 11, 10,
+    // Dos lóbulos redondos arriba y la punta abajo.
+    (x, y) => (x - 3) ** 2 + (y - 3.2) ** 2 <= 7.3 || (x - 8) ** 2 + (y - 3.2) ** 2 <= 7.3 || (y >= 3.2 && Math.abs(x - 5.5) <= (9.6 - y) * 0.85),
+    (x, y, px, py) => tone(red, Math.min(2, light((x - 5.5) / 5, (y - 4) / 5, px, py))),
+    OUTLINE,
+  );
+  return g;
+}

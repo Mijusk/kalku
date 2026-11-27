@@ -15,6 +15,7 @@ import {
   type MapSpriteId,
   type PortraitId,
   drawGate,
+  drawHomeMark,
   TILE_PX,
   tilesetGrids,
   toSheet,
@@ -34,6 +35,9 @@ export const TILESET_KEYS: readonly string[] = Array.from({ length: WATER_FRAMES
 export const GATE_TEXTURE = 'zone-gate';
 export const CHEST_TEXTURES = { closed: 'zone-chest-closed', open: 'zone-chest-open' } as const;
 /** El cofre sorpresa del día: morado, para que no se confunda con los de las zonas. */
+/** Corazón encima de la casa del niño. */
+export const HOME_MARK_TEXTURE = 'home-mark';
+
 export const SURPRISE_TEXTURES = { closed: 'surprise-chest-closed', open: 'surprise-chest-open' } as const;
 
 /** Cuánto dura cada fotograma de las animaciones (ms). */
@@ -69,6 +73,7 @@ export function createArtTextures(scene: Phaser.Scene): void {
   addSheet(scene, GATE_TEXTURE, toSheet([drawGate()]));
   addSheet(scene, CHEST_TEXTURES.closed, toSheet([drawChest(false)]));
   addSheet(scene, CHEST_TEXTURES.open, toSheet([drawChest(true)]));
+  addSheet(scene, HOME_MARK_TEXTURE, toSheet([drawHomeMark()]));
   addSheet(scene, SURPRISE_TEXTURES.closed, toSheet([drawChest(false, MATERIAL.runa)]));
   addSheet(scene, SURPRISE_TEXTURES.open, toSheet([drawChest(true, MATERIAL.runa)]));
   for (const creature of CREATURES) {

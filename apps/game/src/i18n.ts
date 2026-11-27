@@ -84,6 +84,8 @@ const STRINGS = {
   companionCheer: { es: '¡Vamos!', ca: 'Som-hi!' },
   homeTitle: { es: 'Tu casa', ca: 'Casa teva' },
   homeButton: { es: 'Mi casa', ca: 'Casa meva' },
+  homeNew: { es: '¡Mueble nuevo!', ca: 'Moble nou!' },
+  homeTry: { es: 'Ponlo en Mi casa.', ca: 'Posa-ho a Casa meva.' },
   homeNote: { es: 'Toca un mueble y luego un sitio del suelo.', ca: 'Toca un moble i després un lloc del terra.' },
   homeMine: { es: 'Mis muebles', ca: 'Els meus mobles' },
   homeCatalog: { es: 'Comprar muebles', ca: 'Comprar mobles' },
