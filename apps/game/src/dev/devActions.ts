@@ -10,6 +10,7 @@ import {
   type StoryState,
 } from '@kalku/content';
 import { SKILL_IDS } from '@kalku/exercises';
+import { currentEvent } from '../events';
 import type { PlayerProgress } from '../progress';
 
 /**
@@ -84,7 +85,7 @@ export function completeMissions(progress: PlayerProgress, now: Date = new Date(
   const day = dateKey(now);
   const state = refreshMissions(progress.missions, day);
   let given = 0;
-  for (const mission of missionsFor(day)) {
+  for (const mission of missionsFor(day, null, currentEvent(now))) {
     state.progress[mission.id] = mission.need;
     if (state.claimed.includes(mission.id)) continue;
     state.claimed = [...state.claimed, mission.id];

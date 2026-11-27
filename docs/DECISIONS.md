@@ -449,3 +449,12 @@ Luis pidió una historia para 5–8 años y otra para 8–12. Mismas mates y mis
 - Es una herramienta de adulto y va solo en castellano (no es interfaz del juego).
 - Lo que se gana con los atajos no pasa por el servidor como respuestas; solo cambia el progreso guardado de quien lo usa.
 
+## Brillantes, álbum y eventos de temporada (#101, 2026-11-27)
+
+- **Brillantes:** 1 de cada 25 criaturas del mapa (rng con semilla del mapa) sale con otra escala de color (`SHINY_RAMP` en `@kalku/content`). Solo cambia el dibujo: vida, familia, debilidad, ejercicios y rescate son los de siempre (regla 1, con test). Al rescatarla se apunta su pegatina brillante en la colección (`shiny` con la fecha) sin tocar la fecha del primer rescate.
+- **Álbum:** la colección se ve por páginas, una por región (`album` en cada criatura) y otra de invitados de temporada. Al completar una página sale su pegatina «¡Página completa!».
+- **Eventos como datos** (`packages/content/src/events.ts`): Castañada (25 oct–5 nov), Navidad (15 dic–7 ene), Sant Jordi (20–26 abr) y fin de curso (15–30 jun). Cada uno trae una criatura invitada (1 de cada 5 criaturas del mapa mientras dura), un cartel al entrar al mapa y una misión del día propia. Fuera de fechas no existen (test). Nunca se solapan (test recorre un año entero).
+- La invitada no tiene habilidad propia: sus ejercicios, también al rescatarla, son los que le tocan al niño. Es de la familia problemus (sin debilidad) para no dar ventaja a ninguna operación.
+- Nombres de las invitadas (Castaña/Castanya, Copito/Floquet, Roseta, Solete/Solet) **pendientes de aprobar por Luis**.
+- En el panel DEV se puede forzar un evento (o ninguno) y poner brillantes todas las criaturas del mapa.
+

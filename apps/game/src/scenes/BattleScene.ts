@@ -48,7 +48,7 @@ import { showNewItems } from '../ui/itemToast';
 import { addAnswerCoins, earnedSince, wardrobeOf } from '../items';
 import { SettingsPanel } from '../ui/SettingsPanel';
 import { BATTLE_RESULT_KEY, WORLD_STATE_KEY, type BattleResult, type EncounterData, type StoryBattle, type WorldState } from '../worldState';
-import { characterName, CREATURES as ALL_CREATURES, regionStory, type BossInfo } from '@kalku/content';
+import { characterName, CREATURES as ALL_CREATURES, regionStory, shinySprite, type BossInfo } from '@kalku/content';
 import { mapSpriteKey } from '../art/textures';
 import { playScenes } from '../storyFlow';
 
@@ -156,7 +156,7 @@ export class BattleScene extends Phaser.Scene {
     drawPlatform(this, ENEMY_AT.x, ENEMY_AT.y + 62, 140);
     this.player = this.createFighter('hero', HERO_AT.x, HERO_AT.y, 4, BATTLE.playerHp);
     this.enemy = this.createFighter(
-      this.creature?.sprite ?? CREATURES[0]?.sprite ?? 'hero',
+      this.creatureTexture ?? CREATURES[0]?.sprite ?? 'hero',
       ENEMY_AT.x,
       ENEMY_AT.y,
       4,
@@ -245,7 +245,8 @@ export class BattleScene extends Phaser.Scene {
   /** Entrada del combate: el personaje llega andando y la criatura cae dando un bote. */
   private playIntro(): void {
     const name = this.boss ? characterName(this.bossInfo.character)[this.progress.locale] : this.creature?.name[this.progress.locale];
-    if (name) banner(`${name}!`, 'info', 1200);
+    if (name) banner(this.shiny ? `${name} ${tr('shinyTag', this.progress.locale)}` : `${name}!`, this.shiny ? 'streak' : 'info', 1400);
+    if (this.shiny) this.time.delayedCall(700, () => burst(this, this.enemy.home.x, this.enemy.home.y, 'star', 24));
     if (reducedMotion()) return;
     const hero = this.player.sprite;
     const enemy = this.enemy.sprite;
@@ -291,7 +292,7 @@ export class BattleScene extends Phaser.Scene {
     if (!this.encounter) this.creature = this.rng.pick(CREATURES);
     this.tweens.killTweensOf(this.enemy.sprite);
     this.enemy.sprite
-      .setTexture(this.boss ? mapSpriteKey(this.bossInfo.sprite) : (this.creature?.sprite ?? 'hero'), 0)
+      .setTexture(this.boss ? mapSpriteKey(this.bossInfo.sprite) : (this.creatureTexture ?? 'hero'), 0)
       .setAlpha(1)
       .setAngle(0)
       .setScale(this.boss ? BOSS.scales[0] ?? 4 : 4)
@@ -354,7 +355,8 @@ export class BattleScene extends Phaser.Scene {
     const profile = this.progress.profile;
     const fromCreature = this.encounter?.data;
     const pick = rescue && this.creature
-      ? { skill: this.creature.skill, slot: fromCreature?.slot ?? ('current' as const) }
+      ? // La invitada de un evento no tiene habilidad propia: se rescata con lo que le toca al niño.
+        { skill: this.creature.guest !== undefined && fromCreature ? fromCreature.skill : this.creature.skill, slot: fromCreature?.slot ?? ('current' as const) }
       : strong
       ? { skill: challengeSkill(profile) ?? currentSkill(profile), slot: 'challenge' as const }
       : fromCreature
@@ -456,8 +458,9 @@ export class BattleScene extends Phaser.Scene {
       if (turn.rescue && this.creature) {
         // Rescatar no hace daño ni da ventaja: solo guarda la criatura (sin duplicar) y termina el combate.
         const had = this.progress.collection.some((e) => e.id === this.creature?.id);
-        this.progress.collection = addToCollection(this.progress.collection, this.creature.id, new Date().toISOString().slice(0, 10));
+        this.progress.collection = addToCollection(this.progress.collection, this.creature.id, new Date().toISOString().slice(0, 10), this.shiny);
         this.rescuedNow = had ? 'again' : 'new';
+        if (this.shiny) this.time.delayedCall(1200, () => banner(tr('shinyRescued', locale), 'win', 2400));
       } else {
         // Un momento para que el combate crezca al quitar el teclado, y sale el hechizo.
         this.time.delayedCall(200, () => {
@@ -612,6 +615,16 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
+  /** Brillante: solo cambia el dibujo (#101). La vida, el daño y los ejercicios son los de siempre. */
+  private get shiny(): boolean {
+    return !this.boss && this.encounter?.data.shiny === true;
+  }
+
+  private get creatureTexture(): string | undefined {
+    if (!this.creature) return undefined;
+    return this.shiny ? shinySprite(this.creature.sprite) : this.creature.sprite;
+  }
+
   /** Solo para desarrollo (`src/dev`): gana el combate de un toque, sin contar respuestas. */
   devWin(): void {
     if (this.busy || this.enemy.hp <= 0) return;
@@ -650,7 +663,7 @@ export class BattleScene extends Phaser.Scene {
       world.wildlife = endEncounter(regionSpec(this.progress.at).wildlife, world.wildlife, encounter.wandererId);
     }
     if (this.won) {
-      for (const m of applyMissionEvent(this.progress, { type: 'battleWon', rescued: this.rescuedNow !== undefined })) {
+      for (const m of applyMissionEvent(this.progress, { type: 'battleWon', rescued: this.rescuedNow !== undefined, guest: this.creature?.guest !== undefined })) {
         banner(`${tr('missionDone', this.progress.locale)} +${m.reward} ${tr('coins', this.progress.locale)}`, 'win', 2200);
       }
       saveProgress(this.progress);

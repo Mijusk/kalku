@@ -15,8 +15,8 @@ describe('criaturas de Pradera Uno', () => {
     expect(validateCreatures(CREATURES)).toEqual([]);
   });
 
-  it('hay una criatura por habilidad, en orden de currículo', () => {
-    expect(CREATURES.map((c) => c.skill)).toEqual(SKILL_IDS);
+  it('hay una criatura por habilidad, en orden de currículo (sin contar las invitadas)', () => {
+    expect(CREATURES.filter((c) => c.guest === undefined).map((c) => c.skill)).toEqual(SKILL_IDS);
   });
 
   it('todas las familias tienen nombre en los dos idiomas', () => {
@@ -26,8 +26,14 @@ describe('criaturas de Pradera Uno', () => {
     }
   });
 
-  it('Luis ha aprobado todos los nombres menos el de Cuentín (los del bosque, el 2026-11-27)', () => {
-    expect(CREATURES.filter((c) => c.provisional).map((c) => c.id)).toEqual(['problemus-cuentin']);
+  it('Luis ha aprobado todos los nombres menos el de Cuentín y los de las invitadas (los del bosque, el 2026-11-27)', () => {
+    expect(CREATURES.filter((c) => c.provisional).map((c) => c.id)).toEqual([
+      'problemus-cuentin',
+      'problemus-castana',
+      'problemus-copito',
+      'problemus-roseta',
+      'problemus-solete',
+    ]);
   });
 });
 

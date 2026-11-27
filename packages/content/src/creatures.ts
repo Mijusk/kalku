@@ -34,7 +34,11 @@ export type CreatureId =
   | 'restus-musgo'
   | 'sumus-bellota'
   | 'restus-seta'
-  | 'problemus-corteza';
+  | 'problemus-corteza'
+  | 'problemus-castana'
+  | 'problemus-copito'
+  | 'problemus-roseta'
+  | 'problemus-solete';
 
 export interface CreatureDefinition {
   id: CreatureId;
@@ -53,7 +57,18 @@ export interface CreatureDefinition {
   provisional: boolean;
   /** Los jefes nunca se pueden rescatar. Ausente cuenta como false. */
   boss?: boolean;
+  /** Página del álbum: la región donde vive (id de su historia) o `eventos`. */
+  album: string;
+  /**
+   * Criatura invitada de un evento de temporada (id del evento, `events.ts`).
+   * Solo sale en el mapa durante sus fechas y sus ejercicios son los que le
+   * tocan al niño (su `skill` es solo nominal). Nunca sale por su habilidad.
+   */
+  guest?: string;
 }
+
+/** Página del álbum de las criaturas invitadas de los eventos. */
+export const EVENTS_ALBUM = 'eventos';
 
 /**
  * Criaturas, una por habilidad y en orden de currículo (Pradera Uno y Bosque de las Decenas).
@@ -70,6 +85,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-sumus-brote',
     look: { ramp: 'verde', body: 'round', top: 'sprout', eyes: 'big', cheeks: true, sign: '+' },
     provisional: false,
+    album: 'pradera-uno',
   },
   {
     id: 'restus-gota',
@@ -81,6 +97,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-restus-gota',
     look: { ramp: 'azul', body: 'drop', top: 'droplet', eyes: 'big', sign: '-' },
     provisional: false,
+    album: 'pradera-uno',
   },
   {
     id: 'sumus-trebol',
@@ -92,6 +109,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-sumus-trebol',
     look: { ramp: 'verde', body: 'pear', top: 'ears', eyes: 'small', spots: true, sign: '+' },
     provisional: false,
+    album: 'pradera-uno',
   },
   {
     id: 'restus-bruma',
@@ -103,6 +121,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-restus-bruma',
     look: { ramp: 'gris', body: 'bean', top: 'puff', eyes: 'sleepy', cheeks: true, sign: '-' },
     provisional: false,
+    album: 'pradera-uno',
   },
   {
     id: 'sumus-roble',
@@ -114,6 +133,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-sumus-roble',
     look: { ramp: 'marron', body: 'bean', top: 'sprout', eyes: 'small', spots: true, sign: '+' },
     provisional: false,
+    album: 'pradera-uno',
   },
   {
     id: 'restus-sombra',
@@ -125,6 +145,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-restus-sombra',
     look: { ramp: 'morado', body: 'pear', top: 'horns', eyes: 'small', sign: '-' },
     provisional: false,
+    album: 'pradera-uno',
   },
   {
     id: 'problemus-cuentin',
@@ -136,6 +157,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-problemus-cuentin',
     look: { ramp: 'naranja', body: 'round', top: 'antenna', eyes: 'big', cheeks: true, sign: '±' },
     provisional: true,
+    album: 'pradera-uno',
   },
   // Bosque de las Decenas (números hasta 100).
   {
@@ -148,6 +170,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-sumus-pina',
     look: { ramp: 'marron', body: 'pear', top: 'sprout', eyes: 'big', spots: true, sign: '+' },
     provisional: false,
+    album: 'bosque-decenas',
   },
   {
     id: 'sumus-helecho',
@@ -159,6 +182,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-sumus-helecho',
     look: { ramp: 'verde', body: 'round', top: 'ears', eyes: 'big', cheeks: true, sign: '+' },
     provisional: false,
+    album: 'bosque-decenas',
   },
   {
     id: 'restus-musgo',
@@ -170,6 +194,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-restus-musgo',
     look: { ramp: 'verde', body: 'bean', top: 'puff', eyes: 'sleepy', sign: '-' },
     provisional: false,
+    album: 'bosque-decenas',
   },
   {
     id: 'sumus-bellota',
@@ -181,6 +206,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-sumus-bellota',
     look: { ramp: 'naranja', body: 'bean', top: 'antenna', eyes: 'small', spots: true, sign: '+' },
     provisional: false,
+    album: 'bosque-decenas',
   },
   {
     id: 'restus-seta',
@@ -192,6 +218,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-restus-seta',
     look: { ramp: 'rosa', body: 'round', top: 'horns', eyes: 'small', spots: true, sign: '-' },
     provisional: false,
+    album: 'bosque-decenas',
   },
   {
     id: 'problemus-corteza',
@@ -203,6 +230,60 @@ export const CREATURES: readonly CreatureDefinition[] = [
     sprite: 'creature-problemus-corteza',
     look: { ramp: 'marron', body: 'drop', top: 'antenna', eyes: 'big', cheeks: true, sign: '±' },
     provisional: false,
+    album: 'bosque-decenas',
+  },
+  // Invitadas de los eventos de temporada (events.ts). Nombres pendientes de aprobar por Luis.
+  {
+    id: 'problemus-castana',
+    family: 'problemus',
+    skill: 'word-problems-within-10',
+    name: { es: 'Problemus Castaña', ca: 'Problemus Castanya' },
+    description: { es: 'Llega con el otoño, calentita y con pinchos suaves.', ca: 'Arriba amb la tardor, calentona i amb punxes suaus.' },
+    hp: 30,
+    sprite: 'creature-problemus-castana',
+    look: { ramp: 'marron', body: 'round', top: 'horns', eyes: 'big', cheeks: true, spots: true, sign: '±' },
+    provisional: true,
+    album: EVENTS_ALBUM,
+    guest: 'castanyada',
+  },
+  {
+    id: 'problemus-copito',
+    family: 'problemus',
+    skill: 'word-problems-within-10',
+    name: { es: 'Problemus Copito', ca: 'Problemus Floquet' },
+    description: { es: 'Cae con la primera nieve y nunca tiene frío.', ca: 'Cau amb la primera neu i mai no té fred.' },
+    hp: 30,
+    sprite: 'creature-problemus-copito',
+    look: { ramp: 'gris', body: 'round', top: 'puff', eyes: 'big', cheeks: true, sign: '±' },
+    provisional: true,
+    album: EVENTS_ALBUM,
+    guest: 'navidad',
+  },
+  {
+    id: 'problemus-roseta',
+    family: 'problemus',
+    skill: 'word-problems-within-10',
+    name: { es: 'Problemus Roseta', ca: 'Problemus Roseta' },
+    description: { es: 'Huele a rosa y siempre lleva un cuento.', ca: 'Fa olor de rosa i sempre porta un conte.' },
+    hp: 30,
+    sprite: 'creature-problemus-roseta',
+    look: { ramp: 'rosa', body: 'pear', top: 'sprout', eyes: 'big', cheeks: true, sign: '±' },
+    provisional: true,
+    album: EVENTS_ALBUM,
+    guest: 'sant-jordi',
+  },
+  {
+    id: 'problemus-solete',
+    family: 'problemus',
+    skill: 'word-problems-within-10',
+    name: { es: 'Problemus Solete', ca: 'Problemus Solet' },
+    description: { es: 'Sale cuando acaba el curso y se va de vacaciones contigo.', ca: 'Surt quan acaba el curs i se\'n va de vacances amb tu.' },
+    hp: 30,
+    sprite: 'creature-problemus-solete',
+    look: { ramp: 'amarillo', body: 'round', top: 'antenna', eyes: 'big', sign: '±' },
+    provisional: true,
+    album: EVENTS_ALBUM,
+    guest: 'fin-de-curso',
   },
 ];
 
@@ -251,11 +332,12 @@ export function validateCreatures(creatures: readonly CreatureDefinition[]): str
       errors.push(`${c.id}: el símbolo «${c.look.sign}» no es el de la familia ${c.family}`);
     }
     if (!Number.isInteger(c.hp) || c.hp <= 0) errors.push(`${c.id}: la vida tiene que ser un entero positivo`);
+    if ((c.guest !== undefined) !== (c.album === EVENTS_ALBUM)) errors.push(`${c.id}: solo las invitadas van en la página de eventos`);
   }
   return errors;
 }
 
-/** Las criaturas con las que se practica una habilidad (puede haber varias). */
+/** Las criaturas con las que se practica una habilidad (puede haber varias). Las invitadas nunca. */
 export function creaturesForSkill(skill: SkillId): CreatureDefinition[] {
-  return CREATURES.filter((c) => c.skill === skill);
+  return CREATURES.filter((c) => c.skill === skill && c.guest === undefined);
 }

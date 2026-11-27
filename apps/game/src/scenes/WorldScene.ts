@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { creaturesForSkill, dateKey, getCreature, surpriseAvailable, surpriseSpot, getZone, ITEMS, questTemplate, questText, regionStory, SCENES, storyIn, travel, type CharacterId, type SceneId, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
+import { creaturesForSkill, dateKey, getCreature, surpriseAvailable, surpriseSpot, GUEST_CHANCE, rollShiny, shinySprite, getZone, ITEMS, questTemplate, questText, regionStory, SCENES, storyIn, travel, type CharacterId, type SceneId, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
 import { currentSkill, challengeSkill, createRng, pickSkill, randomSeed, type Rng } from '@kalku/exercises';
 import {
   createWildlife,
@@ -19,6 +19,7 @@ import {
 } from '@kalku/world';
 import { playMusic, sfx } from '../audio/sound';
 import { tr } from '../i18n';
+import { currentEvent } from '../events';
 import { loadProgress, saveProgress } from '../progress';
 import { ARRIVAL_KEY, WORLD_STATE_KEY, BATTLE_RESULT_KEY, PENDING_OUTCOME_KEY, PENDING_QUEST_KEY, type BattleResult, type EncounterData, type WildData, type WorldState } from '../worldState';
 import { applyQuestEvent, applyStoryEvent, nickname, playScenes, type QuestOutcome } from '../storyFlow';
@@ -74,6 +75,9 @@ function idleScene(npc: CharacterId): SceneId {
   const id = `idle-${npc}`;
   return id in SCENES ? (id as SceneId) : 'idle-uni';
 }
+/** El evento ya anunciado en esta partida (registro de Phaser, solo en memoria). */
+const EVENT_GREETED_KEY = 'eventGreeted';
+
 const reducedMotionNow = (): boolean => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const near = (a: Point, b: Point): boolean => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= ZONE_NEAR;
 
@@ -171,12 +175,22 @@ export class WorldScene extends Phaser.Scene {
     // Después del final siempre hay un encargo en marcha.
     applyQuestEvent(undefined);
     this.story.refresh();
+    this.greetEvent();
     if (this.registry.get(ARRIVAL_KEY) === this.spec.id) {
       this.registry.remove(ARRIVAL_KEY);
       void this.arrive();
       return;
     }
     this.afterBattle();
+  }
+
+  /** Al entrar al mapa durante un evento de temporada, un cartel lo anuncia (una vez por partida). */
+  private greetEvent(): void {
+    const event = currentEvent();
+    if (!event || this.registry.get(EVENT_GREETED_KEY) === event.id) return;
+    this.registry.set(EVENT_GREETED_KEY, event.id);
+    const locale = loadProgress().locale;
+    this.time.delayedCall(800, () => banner(`${event.name[locale]} · ${event.greeting[locale]}`, 'win', 3200));
   }
 
   /** Gris de la región del mapa según sus capítulos terminados. */
@@ -672,8 +686,11 @@ export class WorldScene extends Phaser.Scene {
     const pick = inZone
       ? { skill: challengeSkill(profile) ?? currentSkill(profile), slot: 'challenge' as const }
       : pickSkill(profile, rng);
-    const creature = rng.pick(creaturesForSkill(pick.skill));
-    return { creature: creature.id, skill: pick.skill, slot: pick.slot };
+    // Durante un evento de temporada, a veces sale su invitada; los ejercicios siguen siendo los que tocan.
+    const event = currentEvent();
+    const creature = event && rng.chance(GUEST_CHANCE) ? getCreature(event.guest) : rng.pick(creaturesForSkill(pick.skill));
+    // Brillante de vez en cuando: solo cambia el color.
+    return { creature: creature.id, skill: pick.skill, slot: pick.slot, ...(rollShiny(rng) ? { shiny: true } : {}) };
   }
 
   /** Pone cada criatura en su casilla (con un pequeño paso animado) y quita las que ya no están. */
@@ -684,8 +701,13 @@ export class WorldScene extends Phaser.Scene {
       const { x, y } = this.centerOf(w.tile);
       const sprite = this.wild.get(w.id);
       if (!sprite) {
-        const texture = getCreature(w.data.creature).sprite;
-        this.wild.set(w.id, this.add.image(x, y, texture).setScale(WILD_SCALE).setDepth(1).setData('dest', `${x},${y}`));
+        const sprite = getCreature(w.data.creature).sprite;
+        const image = this.add.image(x, y, w.data.shiny ? shinySprite(sprite) : sprite).setScale(WILD_SCALE).setDepth(1).setData('dest', `${x},${y}`);
+        this.wild.set(w.id, image);
+        if (w.data.shiny && !reducedMotionNow()) {
+          // Un destello de vez en cuando, para que se note desde lejos.
+          this.tweens.add({ targets: image, alpha: 0.55, duration: 450, yoyo: true, repeat: -1, repeatDelay: 900 });
+        }
       } else if (sprite.getData('dest') !== `${x},${y}`) {
         // Un tween por cambio de casilla, no uno por frame.
         sprite.setData('dest', `${x},${y}`);

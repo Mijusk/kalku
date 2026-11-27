@@ -1,4 +1,4 @@
-import { CREATURES, outfitPieces, type Outfit } from '@kalku/content';
+import { CREATURES, outfitPieces, shinyLook, shinySprite, type Outfit } from '@kalku/content';
 import {
   CHARACTER_FRAMES,
   drawBuilding,
@@ -69,7 +69,11 @@ export function createArtTextures(scene: Phaser.Scene): void {
   addSheet(scene, CHEST_TEXTURES.open, toSheet([drawChest(true)]));
   addSheet(scene, SURPRISE_TEXTURES.closed, toSheet([drawChest(false, MATERIAL.runa)]));
   addSheet(scene, SURPRISE_TEXTURES.open, toSheet([drawChest(true, MATERIAL.runa)]));
-  for (const creature of CREATURES) addSheet(scene, creature.sprite, toSheet(drawCreature(creature.look)));
+  for (const creature of CREATURES) {
+    addSheet(scene, creature.sprite, toSheet(drawCreature(creature.look)));
+    // Versión brillante: las mismas piezas con otros colores.
+    addSheet(scene, shinySprite(creature.sprite), toSheet(drawCreature(shinyLook(creature.look))));
+  }
   for (const id of Object.keys(PORTRAITS) as PortraitId[]) addSheet(scene, portraitKey(id), toSheet([drawPortrait(id)]));
   for (const id of Object.keys(MAP_SPRITES) as MapSpriteId[]) addSheet(scene, mapSpriteKey(id), toSheet([drawMapSprite(id)]));
 }
