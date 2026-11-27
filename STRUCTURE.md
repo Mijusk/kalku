@@ -141,6 +141,9 @@ kalku/
             ├── storyFlow.ts    Avanzar la historia y guardarla, reproducir diálogos, ir a la escena que toca
             ├── syllabus.ts     Temarios de packages/content/temarios, ?temario=<id> y el acertijo que toca
             ├── missions.ts     Misiones de hoy en la partida: avanzar con cada evento y dar las Cifras
+            ├── dev/            Panel de desarrollo (botón DEV): solo en local y en vistas previas, nunca en la web publicada (__DEV_TOOLS__)
+            │   ├── devActions.ts Atajos sobre el progreso: pasar paso, terminar o saltar región, encargo, misiones, dominarlo todo
+            │   └── devTools.ts   El panel y «ganar de un toque» en combates y acertijos
             ├── audio/
             │   └── sound.ts    Sonido por código (Web Audio): efectos y melodías como notas, ajustes de sonido y música
             ├── art/

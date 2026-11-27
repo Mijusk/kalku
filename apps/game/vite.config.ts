@@ -1,7 +1,19 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
+/**
+ * Panel de desarrollo (src/dev): en local y en las vistas previas de
+ * Cloudflare (cualquier rama que no sea main). En la web publicada vale
+ * false y el código ni se incluye.
+ */
+function devTools(mode: string): boolean {
+  // loadEnv también lee las variables del entorno que empiezan por CF_PAGES (las pone Cloudflare al compilar).
+  const env = loadEnv(mode, '.', 'CF_PAGES');
+  return mode === 'development' || (env.CF_PAGES === '1' && env.CF_PAGES_BRANCH !== 'main');
+}
+
+export default defineConfig(({ mode }) => ({
+  define: { __DEV_TOOLS__: JSON.stringify(devTools(mode)) },
   server: { host: true },
   build: {
     // Phaser ocupa ~1 MB; es normal y se cachea con el service worker.
@@ -39,4 +51,4 @@ export default defineConfig({
       },
     }),
   ],
-});
+}));

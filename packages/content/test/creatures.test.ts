@@ -26,16 +26,8 @@ describe('criaturas de Pradera Uno', () => {
     }
   });
 
-  it('los nombres aprobados por Luis son los de Pradera Uno (menos Cuentín); los del bosque están pendientes', () => {
-    expect(CREATURES.filter((c) => c.provisional).map((c) => c.id)).toEqual([
-      'problemus-cuentin',
-      'sumus-pina',
-      'sumus-helecho',
-      'restus-musgo',
-      'sumus-bellota',
-      'restus-seta',
-      'problemus-corteza',
-    ]);
+  it('Luis ha aprobado todos los nombres menos el de Cuentín (los del bosque, el 2026-11-27)', () => {
+    expect(CREATURES.filter((c) => c.provisional).map((c) => c.id)).toEqual(['problemus-cuentin']);
   });
 });
 

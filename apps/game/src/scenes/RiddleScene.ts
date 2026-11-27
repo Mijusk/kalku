@@ -124,6 +124,11 @@ export class RiddleScene extends Phaser.Scene {
     });
   }
 
+  /** Solo para desarrollo (`src/dev`): resuelve el acertijo que hay en pantalla. */
+  devSolve(): void {
+    if (this.exercise && !this.busy) this.submit(String(this.exercise.answer));
+  }
+
   private submit(answer: string): void {
     const ex = this.exercise;
     if (!ex || this.busy) return;
