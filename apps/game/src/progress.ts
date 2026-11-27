@@ -1,4 +1,4 @@
-import { DEFAULT_OUTFIT, ownedOutfit, parseOwned, parseSurpriseDay, FIRST_REGION, GRADES, NEW_STORY, parseAt, parseMissions, parseQuest, type Band, type MissionsState, type Quest, parseCollection, parseOutfit, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type Outfit, type StoryState } from '@kalku/content';
+import { DEFAULT_OUTFIT, parseCompanion, type Companion, ownedOutfit, parseOwned, parseSurpriseDay, FIRST_REGION, GRADES, NEW_STORY, parseAt, parseMissions, parseQuest, type Band, type MissionsState, type Quest, parseCollection, parseOutfit, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type Outfit, type StoryState } from '@kalku/content';
 import { setAudioPrefs } from './audio/sound';
 import { createProfile, parseCoinDay, sanitizeXp, SKILL_IDS, type CoinDay, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
 
@@ -80,6 +80,8 @@ export interface PlayerProgress {
   surpriseDay: string | null;
   /** Cifras de habilidades ya dominadas que lleva hoy (límite diario, #13). */
   coinDay: CoinDay | null;
+  /** Criatura rescatada que le acompaña por el mapa y le anima en el combate (solo compañía). */
+  companion: Companion | null;
 }
 
 const STORAGE_KEY = 'kalku:progress';
@@ -108,6 +110,7 @@ export function defaultProgress(): PlayerProgress {
     owned: [],
     surpriseDay: null,
     coinDay: null,
+    companion: null,
   };
 }
 
@@ -129,11 +132,12 @@ export function parseProgress(raw: unknown): PlayerProgress {
   const storyFallback = placementDone ? { step: stepIndex('first-rescue'), count: 0, crystals: [] } : NEW_STORY;
   const story = parseStory(parsed.story, storyFallback);
   const owned = parseOwned(parsed.owned);
+  const collection = parseCollection(parsed.collection);
   const treasures = parseTreasures(parsed.treasures);
   const xp = sanitizeXp(parsed.xp);
   // Solo se lleva puesto lo que se tiene (un guardado tocado a mano no se pone lo que no ha ganado).
   const outfit = ownedOutfit(parseOutfit(parsed.outfit), { owned, treasures, gems, xp }, DEFAULT_OUTFIT);
-  return { ...defaultProgress(), ...parsed, locale, coins, xp, profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures, story, at: parseAt(parsed.at, story), outfit, grade: parseGrade(parsed.grade), band: parsed.band === 'older' ? 'older' : 'young', quest: parseQuest(parsed.quest), missions: parseMissions(parsed.missions), owned, surpriseDay: parseSurpriseDay(parsed.surpriseDay), coinDay: parseCoinDay(parsed.coinDay) };
+  return { ...defaultProgress(), ...parsed, locale, coins, xp, profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection, zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures, story, at: parseAt(parsed.at, story), outfit, grade: parseGrade(parsed.grade), band: parsed.band === 'older' ? 'older' : 'young', quest: parseQuest(parsed.quest), missions: parseMissions(parsed.missions), owned, surpriseDay: parseSurpriseDay(parsed.surpriseDay), coinDay: parseCoinDay(parsed.coinDay), companion: parseCompanion(parsed.companion, collection) };
 }
 
 function parseGrade(raw: unknown): number | null {
@@ -189,6 +193,7 @@ export interface ExtraData {
   owned: string[];
   surpriseDay: string | null;
   coinDay: CoinDay | null;
+  companion: Companion | null;
 }
 
 export interface ProgressRow {

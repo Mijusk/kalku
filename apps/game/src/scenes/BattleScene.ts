@@ -113,6 +113,8 @@ export class BattleScene extends Phaser.Scene {
   private panel!: ExercisePanel;
   private hud!: Hud;
   private player!: Fighter;
+  /** La criatura que le acompaña (Colección): anima, pero no hace nada en el combate salvo ayudar contra el jefe como cualquier amigo. */
+  private buddy: Phaser.GameObjects.Image | undefined;
   private enemy!: Fighter;
   private turn: Turn | undefined;
   private streak = 0;
@@ -166,6 +168,7 @@ export class BattleScene extends Phaser.Scene {
     this.grey = this.enemy.sprite.preFX?.addColorMatrix();
     this.animateEnemy();
     this.animateHeroIdle();
+    this.createBuddy();
     playMusic(this.boss ? 'boss' : 'battle');
     clearFx();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -472,6 +475,7 @@ export class BattleScene extends Phaser.Scene {
         });
       }
       sfx('correct');
+      this.buddyCheer();
       if (this.streak >= 3) banner(`${tr('streak', locale)} ×${this.streak}!`, 'streak', 1100);
     }
     // La gema se gana al cruzar el umbral jugando: lo que da la prueba de nivel no cuenta.
@@ -561,6 +565,30 @@ export class BattleScene extends Phaser.Scene {
   }
 
   /** El personaje da un saltito al lanzar el hechizo. */
+  /** El compañero, detrás del personaje y algo más pequeño. */
+  private createBuddy(): void {
+    this.buddy = undefined;
+    const chosen = this.progress.companion;
+    if (!chosen) return;
+    const def = ALL_CREATURES.find((c) => c.id === chosen.id);
+    if (!def) return;
+    const key = chosen.shiny ? shinySprite(def.sprite) : def.sprite;
+    if (!this.textures.exists(key)) return;
+    this.buddy = this.add.image(HERO_AT.x - 66, HERO_AT.y + 16, key, 0).setScale(1.6).setDepth(-0.5);
+    if (reducedMotion()) return;
+    let frame = 0;
+    const buddy = this.buddy;
+    this.time.addEvent({ delay: 340, loop: true, callback: () => buddy.setFrame((frame = (frame + 1) % 8)) });
+  }
+
+  /** Al acertar, el compañero da un salto de alegría. Solo es ánimo: no cambia el daño. */
+  private buddyCheer(): void {
+    const buddy = this.buddy;
+    if (!buddy || reducedMotion()) return;
+    const y = HERO_AT.y + 16;
+    this.tweens.add({ targets: buddy, y: y - 18, duration: 160, yoyo: true, repeat: 1, ease: 'Quad.easeOut', onComplete: () => buddy.setY(y) });
+  }
+
   private heroCast(): void {
     if (reducedMotion()) return;
     const hero = this.player.sprite;
@@ -705,19 +733,21 @@ export class BattleScene extends Phaser.Scene {
 
   /** Una criatura rescatada sale a ayudar: lanza una chispa sin ejercicio (se la ganó el niño al rescatarla). */
   private friendHelps(): Promise<void> {
-    const ids = this.progress.collection.map((c) => c.id);
+    // Si hay compañero, es él quien sale a ayudar (el mismo que ya está al lado, sin duplicarlo).
+    const ids = this.progress.companion ? [this.progress.companion.id] : this.progress.collection.map((c) => c.id);
     const friend = ALL_CREATURES.find((c) => c.id === ids[(this.bossPhase - 1) % Math.max(1, ids.length)]);
     if (!friend) return Promise.resolve();
     const locale = this.progress.locale;
     banner(`${friend.name[locale]} ${tr('friendHelps', locale)}`, 'info', 1600);
-    const sprite = this.add.image(this.player.home.x - 60, this.player.home.y + 10, friend.sprite, 0).setScale(2);
+    const own = this.buddy;
+    const sprite = own ?? this.add.image(this.player.home.x - 60, this.player.home.y + 10, friend.sprite, 0).setScale(2);
     return new Promise((resolve) => {
       this.time.delayedCall(600, () => {
         sfx('spark');
         castSpell(this, { x: sprite.x, y: sprite.y - 10 }, this.enemy.home, false, () => {
           this.hit(this.enemy, BATTLE.sparkDamage);
           this.time.delayedCall(500, () => {
-            sprite.destroy();
+            if (sprite !== own) sprite.destroy();
             resolve();
           });
         });

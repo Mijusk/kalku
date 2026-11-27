@@ -100,6 +100,7 @@ kalku/
 │       │   ├── outfit.ts       Piezas del personaje por capa (y cómo se consigue cada una) y lectura del guardado
 │       │   ├── wardrobe.ts     Armario y tienda: qué piezas se tienen, candados con motivo, comprar con Cifras (solo estética)
 │       │   ├── surprise.ts     Cofre sorpresa del día: sitio fijo por fecha y región, siguiente regalo de la lista (sin azar en el premio)
+│       │   ├── companion.ts    Compañero: una criatura rescatada que acompaña (solo compañía, sin ventaja)
 │       │   ├── syllabus.ts     Temario de un centro: parseSyllabus (errores claros en castellano), preguntas propias como ejercicio
 │       │   ├── quests.ts       Encargos de los personajes tras el final: plantillas, nextQuest con semilla, advanceQuest
 │       │   ├── missions.ts     Misiones del día y de la semana: iguales para todos según la fecha (Europe/Madrid)

@@ -230,6 +230,9 @@ const PIECES: readonly OutfitPiece[] = [
   ], { kind: 'shop', price: 350 }),
   hat('gorro-lana', 'Gorro de lana', 'Barret de llana', { g: '#4f9d3e', w: '#f6f1e3' }, ['.......ww.......', '....kggggggk....', '...kggggggggk...', '...kwwwwwwwwk...'], { kind: 'shop', price: 400, minLevel: 3 }),
   cape('capa-roja', 'Capa roja', 'Capa vermella', '#c0392b', { kind: 'shop', price: 450 }),
+  // Del Bosque de las Decenas (se venden en las dos tiendas).
+  hat('gorro-bellota', 'Gorro de bellota', "Barret d'aglà", { b: '#9a6a3c', d: '#6e4527' }, ['.......kk.......', '....kddddddk....', '...kbdbdbdbdk...', '...kbbbbbbbbk...'], { kind: 'shop', price: 500, minLevel: 6 }),
+  cape('capa-hojas', 'Capa de hojas', 'Capa de fulles', '#52b350', { kind: 'shop', price: 650, minLevel: 7 }, '#c3e66a'),
   cape('capa-estrellas', 'Capa de estrellas', "Capa d'estrelles", '#2b3a7a', { kind: 'shop', price: 800, minLevel: 6 }, '#ffd84d'),
   hat('sombrero-cifras', 'Sombrero de las cifras', 'Barret de les xifres', { p: '#6a3fa0', y: '#ffd84d' }, ['.......kk.......', '......kppk......', '.....kpyppk.....', '..kkkkkkkkkkkk..'], { kind: 'shop', price: 1000, minLevel: 8, gem: 'tens-units' }),
 

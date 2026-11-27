@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
-import { albumPages, collectionStatus, EVENTS_ALBUM, gemStatus, getEvent, regionStory, shinySprite, ZONES, type CreatureDefinition } from '@kalku/content';
+import { albumPages, chooseCompanion, collectionStatus, EVENTS_ALBUM, gemStatus, getEvent, regionStory, shinySprite, ZONES, type CreatureDefinition } from '@kalku/content';
 import { drawChest, gridToRgba, OBJECT_PX } from '@kalku/art';
 import type { Locale } from '@kalku/exercises';
 import { tr } from '../i18n';
-import { applySettings, loadProgress } from '../progress';
+import { applySettings, loadProgress, saveProgress } from '../progress';
+import { sfx } from '../audio/sound';
 import { gemCanvas } from '../ui/gemCanvas';
 
 /** Color de la silueta de las criaturas que faltan. */
@@ -39,7 +40,20 @@ export class CollectionScene extends Phaser.Scene {
     const title = document.createElement('p');
     title.className = 'panel-title';
     title.textContent = `${tr('collection', locale)} · ${rescued}/${status.length} ${tr('collectionCount', locale)}${shinies > 0 ? ` · ✨ ${shinies} ${tr('shinyCount', locale)}` : ''}`;
+    const note = document.createElement('p');
+    note.className = 'panel-note';
+    note.textContent = tr('companionNote', locale);
     root.append(title);
+    if (rescued > 0) root.append(note);
+    const companionButtons: { id: string; button: HTMLButtonElement }[] = [];
+    const refreshCompanion = (): void => {
+      const current = loadProgress().companion?.id;
+      for (const { id, button } of companionButtons) {
+        const on = id === current;
+        button.setAttribute('aria-pressed', String(on));
+        button.textContent = tr(on ? 'companionActive' : 'companionChoose', locale);
+      }
+    };
 
     // Álbum: una página por región (y la de los invitados de temporada), con su pegatina al completarla.
     for (const page of albumPages(progress.collection)) {
@@ -65,6 +79,21 @@ export class CollectionScene extends Phaser.Scene {
         const picture = this.drawCreature(creature, has, locale, shiny);
         if (!has) picture.setAttribute('aria-hidden', 'true');
         item.append(picture, name);
+        if (has) {
+          // Compañero: solo compañía por el mapa y en el combate, sin ventaja.
+          const pick = document.createElement('button');
+          pick.type = 'button';
+          pick.className = 'btn btn-small companion-button';
+          pick.addEventListener('click', () => {
+            const p = loadProgress();
+            p.companion = p.companion?.id === creature.id ? null : (chooseCompanion(p.collection, creature.id) ?? null);
+            saveProgress(p);
+            sfx(p.companion ? 'quest' : 'tap');
+            refreshCompanion();
+          });
+          companionButtons.push({ id: creature.id, button: pick });
+          item.append(pick);
+        }
         if (shiny) {
           const badge = document.createElement('span');
           badge.className = 'album-shiny';
@@ -145,6 +174,7 @@ export class CollectionScene extends Phaser.Scene {
 
     root.append(gemsTitle, gemGrid, treasuresTitle, treasureGrid, outfit, back);
     ui.append(root);
+    refreshCompanion();
   }
 
   /** Cofre dibujado por código: abierto si ya tienes el tesoro, cerrado si no. */

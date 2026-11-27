@@ -146,13 +146,13 @@ export const ZONA_PUENTE: PieceSpec = {
 export const ZONA_CUEVA: PieceSpec = zonePiece('zona-cueva');
 export const ZONA_PUERTA: PieceSpec = zonePiece('zona-puerta');
 
-/** Campamento de Olma en el Bosque de las Decenas: una cabaña y un claro. El camino entra por abajo. */
+/** Campamento de Olma en el Bosque de las Decenas: una cabaña, una tienda pequeña y un claro. El camino entra por abajo. */
 export const CAMPAMENTO_BOSQUE: PieceSpec = {
   id: 'campamento-bosque',
   rows: [
     '*.......*',
-    '.CCC.....',
-    '.CCC.....',
+    '.CCC..SS.',
+    '.CCC..SS.',
     '....#....',
     '*...#...*',
   ],
