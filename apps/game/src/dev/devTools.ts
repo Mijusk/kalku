@@ -2,6 +2,7 @@ import type Phaser from 'phaser';
 import { EVENTS, FURNITURE, giftPieces, REGION_STORIES, regionIndex, regionStory } from '@kalku/content';
 import type { Point } from '@kalku/world';
 import { DEV_EVENT_KEY } from '../events';
+import { DEV_DAYTIME_KEY, DEV_WEATHER_KEY } from '../sky';
 import { loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { applyQuestEvent } from '../storyFlow';
 import { banner } from '../ui/fx';
@@ -107,6 +108,18 @@ export function mountDevTools(game: Phaser.Game): void {
     add('Todos los regalos del cofre', () => apply((p) => void (p.owned = [...new Set([...p.owned, ...giftPieces().map((g) => g.id)])]), 'Regalos dados'));
     add('Todos los muebles', () => apply((p) => void (p.home = { ...p.home, owned: FURNITURE.filter((f) => f.get?.kind === 'shop').map((f) => f.id) }), 'Muebles dados'));
 
+    section('Tiempo y hora');
+    const weatherNow = readKey(DEV_WEATHER_KEY);
+    for (const [id, label] of [['sun', 'Sol'], ['clouds', 'Nubes'], ['rain', 'Lluvia'], ['snow', 'Nieve'], ['leaves', 'Hojas'], ['petals', 'Pétalos']] as const) {
+      add(`${weatherNow === id ? '✓ ' : ''}${label}`, () => forceKey(DEV_WEATHER_KEY, id, `Tiempo: ${label}`));
+    }
+    add(`${weatherNow === null ? '✓ ' : ''}Tiempo de verdad`, () => forceKey(DEV_WEATHER_KEY, null, 'Tiempo de verdad'));
+    const timeNow = readKey(DEV_DAYTIME_KEY);
+    for (const [id, label] of [['dawn', 'Amanecer'], ['day', 'Día'], ['dusk', 'Atardecer'], ['night', 'Noche']] as const) {
+      add(`${timeNow === id ? '✓ ' : ''}${label}`, () => forceKey(DEV_DAYTIME_KEY, id, `Hora: ${label}`));
+    }
+    add(`${timeNow === null ? '✓ ' : ''}Hora de verdad`, () => forceKey(DEV_DAYTIME_KEY, null, 'Hora de verdad'));
+
     section('Eventos y brillantes');
     const forced = readForcedEvent();
     for (const event of EVENTS) {
@@ -139,6 +152,25 @@ export function mountDevTools(game: Phaser.Game): void {
       window.location.reload();
     });
     reset.classList.add('dev-danger');
+  }
+
+  function readKey(key: string): string | null {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Fuerza el tiempo o la hora del mapa (o vuelve a los de verdad) y rehace el mapa. */
+  function forceKey(key: string, value: string | null, message: string): void {
+    try {
+      if (value === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, value);
+    } catch {
+      return void banner('No se puede guardar', 'info');
+    }
+    apply(() => undefined, message);
   }
 
   function readForcedEvent(): string | null {
