@@ -5,7 +5,8 @@ import type { ClassBackend } from '../classes';
 import { ClassPanel } from './ClassPanel';
 import type { ClassProgressBackend } from '../classProgress';
 import { ERROR_TEXT } from './teacherErrors';
-import { button, say, show, status, text } from './dom';
+import { box, button, checkRow, choiceCard, externalLink, say, show, status, text } from './dom';
+import { showEmailStep } from './mailStep';
 
 export interface TeacherCallbacks {
   /** `null` sin servidor: el panel solo avisa. */
@@ -88,72 +89,88 @@ export class TeacherPanel {
 
   private showLogin(backend: TeacherBackend): void {
     const { locale } = this;
-    const input = field(tr('teacherEmail', locale), 'email');
-    const feedback = status();
-    const send = button('btn btn-primary', tr('teacherSendLink', locale), () => {
-      const email = input.value.trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        say(feedback, tr('teacherEmailInvalid', locale), 'bad');
-        return;
-      }
-      void this.run(feedback, async () => {
-        await backend.sendLoginLink(email, `${window.location.origin}${window.location.pathname}`);
-        say(feedback, tr('teacherLinkSent', locale), 'good');
-      });
+    showEmailStep(this.root, locale, {
+      title: tr('teacherIntroTitle', locale),
+      benefits: [tr('teacherBenefit1', locale), tr('teacherBenefit2', locale), tr('teacherBenefit3', locale)],
+      note: tr('teacherNoPassword', locale),
+      label: tr('teacherEmail', locale),
+      sendLabel: tr('teacherSendLink', locale),
+      invalidText: tr('teacherEmailInvalid', locale),
+      send: (email) => backend.sendLoginLink(email, `${window.location.origin}${window.location.pathname}`),
+      errorText: (e) => this.errorText(e),
+      back: this.backButton(),
     });
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') send.click();
-    });
-    show(this.root, text('panel-title', tr('teacherTitle', locale)), text('panel-feedback', tr('teacherIntro', locale)), input, send, feedback, this.backButton());
   }
 
-  /** Adulto con sesión y sin centro: unirse con un código o dar de alta uno nuevo. */
-  private showNoSchool(backend: TeacherBackend): void {
+  /** Adulto con sesión y sin centro: tres caminos, cada uno en su pantalla. */
+  private showNoSchool(backend: TeacherBackend, message = ''): void {
     const { locale } = this;
-    const feedback = status(tr('teacherNoSchool', locale));
+    const nodes: HTMLElement[] = [text('panel-title', tr('teacherStartTitle', locale)), status(message, 'good')];
+    nodes.push(
+      choiceCard(tr('teacherStartJoin', locale), tr('teacherStartJoinText', locale), () => this.showJoin(backend)),
+      choiceCard(tr('teacherStartCreate', locale), tr('teacherStartCreateText', locale), () => this.showCreate(backend), 'blue'),
+    );
+    const { classBackend } = this.options;
+    if (classBackend) {
+      nodes.push(
+        choiceCard(tr('teacherStartTry', locale), tr('teacherStartTryText', locale), () =>
+          new ClassPanel(this.root, locale, { backend: classBackend, progressBackend: this.options.progressBackend ?? null, onClose: () => this.showNoSchool(backend) }), 'gold'),
+      );
+    }
+    nodes.push(this.signOutButton(backend), this.backButton());
+    show(this.root, ...nodes);
+  }
 
+  /** Unirse al centro con el código que da la dirección. */
+  private showJoin(backend: TeacherBackend): void {
+    const { locale } = this;
+    const feedback = status();
     const code = field(tr('teacherCodeInput', locale));
+    code.classList.add('code-input');
     code.maxLength = 12;
-    const join = button('btn btn-primary', tr('teacherJoin', locale), () =>
+    const join = button('btn btn-primary', tr('teacherJoin', locale), () => {
+      if (code.value.trim() === '') return;
       void this.run(feedback, async () => {
         const school = await backend.joinWithCode(code.value);
         this.showSchool(backend, { name: school.name, role: 'docente' }, `${tr('teacherJoined', locale)} ${school.name}`);
-      }),
-    );
+      });
+    });
     code.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') join.click();
     });
+    show(this.root, text('panel-title', tr('teacherJoinTitle', locale)), text('panel-note', tr('teacherJoinHelp', locale)), code, join, feedback, button('btn btn-small', tr('back', locale), () => this.showNoSchool(backend)));
+  }
 
+  /** Dar de alta el centro: nombre y aceptar el contrato (el botón solo se activa al marcarlo). */
+  private showCreate(backend: TeacherBackend): void {
+    const { locale } = this;
+    const feedback = status();
     const name = field(tr('teacherSchoolName', locale));
     name.maxLength = 80;
-    const accepts = document.createElement('input');
-    accepts.type = 'checkbox';
-    accepts.id = 'teacher-contract';
-    const label = document.createElement('label');
-    label.htmlFor = accepts.id;
-    label.className = 'panel-feedback';
-    label.textContent = tr('teacherContract', locale);
-    const link = document.createElement('a');
-    link.href = CONTRACT_URL[locale];
-    link.target = '_blank';
-    link.rel = 'noopener';
-    link.textContent = tr('teacherContractLink', locale);
-    const create = button('btn btn-small', tr('teacherCreate', locale), () =>
+    const { row, input: accepts } = checkRow('teacher-contract', tr('teacherContract', locale));
+    const create = button('btn btn-primary', tr('teacherCreate', locale), () =>
       void this.run(feedback, async () => {
         const created = await registerSchool(backend, name.value, accepts.checked);
         this.showSchool(backend, { name: created.name, role: 'director' }, tr('teacherCreated', locale), created.code);
       }),
     );
-
-    const joinBox = document.createElement('div');
-    joinBox.className = 'column';
-    joinBox.append(text('panel-title', tr('teacherJoinTitle', locale)), text('panel-feedback', tr('teacherJoinHelp', locale)), code, join);
-    const createBox = document.createElement('div');
-    createBox.className = 'column';
-    createBox.append(text('panel-title', tr('teacherCreateTitle', locale)), name, accepts, label, link, create);
-
-    const classes = this.classesButton(() => this.showNoSchool(backend));
-    show(this.root, text('panel-title', tr('teacherTitle', locale)), feedback, ...(classes ? [classes] : []), joinBox, createBox, this.signOutButton(backend), this.backButton());
+    const refresh = (): void => {
+      create.disabled = !accepts.checked || name.value.trim() === '';
+    };
+    accepts.addEventListener('change', refresh);
+    name.addEventListener('input', refresh);
+    refresh();
+    show(
+      this.root,
+      text('panel-title', tr('teacherCreateTitle', locale)),
+      text('panel-note', tr('teacherCreateHelp', locale)),
+      name,
+      externalLink(CONTRACT_URL[locale], tr('teacherContractLink', locale)),
+      row,
+      create,
+      feedback,
+      button('btn btn-small', tr('back', locale), () => this.showNoSchool(backend)),
+    );
   }
 
   /** Adulto con centro. `message` y `newCode` solo al llegar de unirse, dar de alta o renovar. */
@@ -162,20 +179,31 @@ export class TeacherPanel {
     const feedback = status(message ?? '', 'good');
     const nodes: HTMLElement[] = [
       text('panel-title', `${tr('teacherYourSchool', locale)} ${school.name}`),
-      text('panel-feedback', tr(school.role === 'director' ? 'teacherRoleDirector' : 'teacherRoleTeacher', locale)),
+      text('step-tag', tr(school.role === 'director' ? 'teacherRoleDirector' : 'teacherRoleTeacher', locale)),
+      feedback,
     ];
-    if (newCode) {
-      nodes.push(text('panel-title', formatSchoolCode(newCode)), text('panel-feedback', tr('teacherCodeOnce', locale)));
-    }
-    nodes.push(feedback);
+    if (newCode) nodes.push(box(text('big-code', formatSchoolCode(newCode)), text('panel-note', tr('teacherCodeOnce', locale))));
+    const classes = this.classesButton(() => this.showSchool(backend, school));
+    if (classes) nodes.push(classes);
+    nodes.push(button('btn btn-small', tr('teacherMore', locale), () => this.showSchoolOptions(backend, school)), this.backButton());
+    show(this.root, ...nodes);
+  }
+
+  /** Lo que se usa poco: renovar el código (dirección), dejar el centro (docente) y cerrar sesión. */
+  private showSchoolOptions(backend: TeacherBackend, school: SchoolInfo): void {
+    const { locale } = this;
+    const feedback = status();
+    const nodes: HTMLElement[] = [text('panel-title', tr('teacherMore', locale)), feedback];
     if (school.role === 'director') {
       nodes.push(
-        text('panel-feedback', tr('teacherRotateHelp', locale)),
-        button('btn btn-small', tr('teacherRotate', locale), () =>
-          void this.run(feedback, async () => {
-            const code = await backend.rotateCode();
-            this.showSchool(backend, school, tr('teacherNewCode', locale), code);
-          }),
+        box(
+          text('panel-note', tr('teacherRotateHelp', locale)),
+          button('btn btn-small', tr('teacherRotate', locale), () =>
+            void this.run(feedback, async () => {
+              const code = await backend.rotateCode();
+              this.showSchool(backend, school, tr('teacherNewCode', locale), code);
+            }),
+          ),
         ),
       );
     } else {
@@ -183,16 +211,12 @@ export class TeacherPanel {
         button('btn btn-small', tr('teacherLeave', locale), () =>
           void this.run(feedback, async () => {
             await backend.leaveSchool();
-            this.showNoSchool(backend);
-            const line = this.root.querySelector<HTMLElement>('[role="status"]');
-            if (line) say(line, tr('teacherLeft', locale), 'good');
+            this.showNoSchool(backend, tr('teacherLeft', locale));
           }),
         ),
       );
     }
-    const classes = this.classesButton(() => this.showSchool(backend, school));
-    if (classes) nodes.push(classes);
-    nodes.push(this.signOutButton(backend), this.backButton());
+    nodes.push(this.signOutButton(backend), button('btn btn-small', tr('back', locale), () => this.showSchool(backend, school)));
     show(this.root, ...nodes);
   }
 }

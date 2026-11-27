@@ -1,8 +1,8 @@
 import type { Locale } from '@kalku/exercises';
-import { tr } from '../i18n';
-import { appBackend, deleteChildData, exportChildData } from '../sync';
+import { tr as t, trf } from '../i18n';
+import { appBackend, deleteChildData, exportChildData, NICKNAME_KEY } from '../sync';
 import { appFamilyBackend } from '../family';
-import { button, showAdultGate, show, text } from './dom';
+import { box, button, choiceCard, showAdultGate, show, text } from './dom';
 import { FamilyPanel } from './FamilyPanel';
 
 export interface AdultsCallbacks {
@@ -13,8 +13,10 @@ export interface AdultsCallbacks {
 }
 
 /**
- * «Para adultos» (#50): descargar los datos del niño en JSON y borrarlos.
- * Va tras una cuenta que un niño no resuelva de cabeza (solo evita accidentes).
+ * Zona de adultos: un solo sitio para familias, docentes, los datos de este
+ * aparato (#50: descargar en JSON y borrar) y la privacidad. Se llega desde la
+ * pantalla de inicio y desde Ajustes, tras una cuenta que un niño no resuelva
+ * de cabeza (solo evita accidentes).
  */
 export class AdultsPanel {
   private busy = false;
@@ -31,21 +33,37 @@ export class AdultsPanel {
     showAdultGate(this.root, this.locale, () => this.showMenu(), () => this.callbacks.onClose());
   }
 
-  private showMenu(message = '', kind = 'info'): void {
+  private showMenu(): void {
+    const { locale } = this;
+    const nickname = localStorage.getItem(NICKNAME_KEY);
+    const nodes: HTMLElement[] = [
+      text('panel-title', t('adultsHubTitle', locale)),
+      text('panel-feedback', t('adultsHubIntro', locale)),
+      choiceCard(t('adultsFamilyCard', locale), t('adultsFamilyCardText', locale), () => this.showFamily()),
+      choiceCard(t('adultsTeacherCard', locale), t('adultsTeacherCardText', locale), () => window.location.assign(`/docentes.html?lang=${locale}`), 'blue'),
+    ];
+    if (nickname) nodes.push(choiceCard(t('adultsDataCard', locale), t('adultsDataCardText', locale), () => this.showData(nickname), 'gold'));
+    nodes.push(
+      choiceCard(t('adultsPrivacyCard', locale), t('adultsPrivacyCardText', locale), () => window.open(`/privacidad.html?lang=${locale}`, '_blank', 'noopener'), 'grey'),
+      button('btn btn-small', t('back', locale), () => this.callbacks.onClose()),
+    );
+    this.show(...nodes);
+  }
+
+  /** Datos de este aparato: descargar o borrar la partida, con lo que pasa si nadie da permiso. */
+  private showData(nickname: string, message = '', kind = 'info'): void {
     const { locale } = this;
     const feedback = text('panel-feedback', message);
     feedback.setAttribute('role', 'status');
     feedback.dataset.kind = kind;
-    const download = button('btn btn-primary', tr('adultsDownload', locale), () => void this.download(feedback));
-    const family = button('btn btn-primary', tr('familyTitle', locale), () => this.showFamily());
-    const del = button('btn btn-small', tr('adultsDelete', locale), () => this.showConfirm());
-    const back = button('btn btn-small', tr('back', locale), () => this.callbacks.onClose());
-    this.show(text('panel-title', tr('adults', locale)), text('panel-feedback', tr('adultsExpiry', locale)), family, download, del, feedback, back);
+    const download = button('btn btn-primary', t('adultsDownload', locale), () => void this.download(feedback));
+    const del = button('btn btn-small btn-danger', t('adultsDelete', locale), () => this.showConfirm());
+    const back = button('btn btn-small', t('back', locale), () => this.showMenu());
+    this.show(text('panel-title', t('adultsDataCard', locale)), text('panel-feedback', trf('adultsDataIntro', locale, { name: nickname })), box(text('panel-note', t('adultsExpiry', locale))), download, del, feedback, back);
   }
 
   private showFamily(): void {
     new FamilyPanel(this.root, this.locale, {
-      hasChildHere: true,
       backend: appFamilyBackend(),
       onClose: () => this.showMenu(),
       // Entró como otro niño: se recarga el juego con su sesión y su progreso.
@@ -58,10 +76,10 @@ export class AdultsPanel {
     const feedback = text('panel-feedback', message);
     feedback.setAttribute('role', 'alert');
     feedback.dataset.kind = 'bad';
-    const yes = button('btn btn-small', tr('adultsConfirmYes', locale), () => void this.remove(yes, feedback));
-    const no = button('btn btn-primary', tr('adultsConfirmNo', locale), () => this.showMenu());
+    const yes = button('btn btn-small btn-danger', t('adultsConfirmYes', locale), () => void this.remove(yes, feedback));
+    const no = button('btn btn-primary', t('adultsConfirmNo', locale), () => this.showData(localStorage.getItem(NICKNAME_KEY) ?? ''));
     // Lo seguro (volver) es lo que recibe el foco.
-    this.root.replaceChildren(text('panel-title', tr('adultsConfirmTitle', locale)), text('panel-feedback', tr('adultsConfirmText', locale)), feedback, yes, no);
+    this.root.replaceChildren(text('panel-title', t('adultsConfirmTitle', locale)), text('panel-feedback', t('adultsConfirmText', locale)), feedback, yes, no);
     no.focus();
   }
 
@@ -77,10 +95,10 @@ export class AdultsPanel {
       a.download = 'kalku-datos.json';
       a.click();
       URL.revokeObjectURL(url);
-      feedback.textContent = tr('adultsDownloaded', this.locale);
+      feedback.textContent = t('adultsDownloaded', this.locale);
       feedback.dataset.kind = 'good';
     } catch {
-      feedback.textContent = tr('adultsDownloadFailed', this.locale);
+      feedback.textContent = t('adultsDownloadFailed', this.locale);
       feedback.dataset.kind = 'bad';
     } finally {
       this.busy = false;
@@ -91,7 +109,7 @@ export class AdultsPanel {
     if (this.busy) return;
     this.busy = true;
     yes.disabled = true;
-    feedback.textContent = tr('adultsDeleting', this.locale);
+    feedback.textContent = t('adultsDeleting', this.locale);
     try {
       const b = appBackend();
       if (b) await deleteChildData(b, localStorage);
@@ -100,7 +118,7 @@ export class AdultsPanel {
     } catch {
       // El servidor no confirmó: no se toca nada y se dice.
       this.busy = false;
-      this.showConfirm(tr('adultsDeleteFailed', this.locale));
+      this.showConfirm(t('adultsDeleteFailed', this.locale));
     }
   }
 }

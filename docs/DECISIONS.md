@@ -2,6 +2,16 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-27 · Pantalla de inicio y flujos guiados
+
+- **Contexto:** Luis no entendía la pantalla de familia (código del niño sin explicar, casilla de consentimiento suelta, un error rojo antes de hacer nada, botones sin orden) y el juego empezaba directamente en «¿En qué curso estás?». Modo autónomo: decide Claude.
+- **Pantalla de inicio (`TitleScene`):** siempre se entra por ella (salvo un alumno de clase ya dentro en la pestaña, `?clase` y `?combate`). Solo tres caminos: «Empezar a jugar» / «Seguir jugando» (con «¡Hola de nuevo, apodo!» y el nivel), «Entro con mi clase» y, arriba y pequeño, el idioma y «Familias y docentes». Lo de adultos sale de las pantallas del niño (el apodo ya no lleva botones de clase ni de familia).
+- **Fondo por código, no con Phaser:** el atardecer de Pradera Uno se dibuja con `@kalku/art` (`title.ts`, con tests) en un `<canvas>` propio que cubre la pantalla con píxeles enteros, para que en un móvil vertical no salga una franja con bordes negros. Lo que se mueve (nubes, estrellas, criaturas, números que suben) se anima encima a 30 fps y se queda quieto con «reducir movimiento». El nombre «Kalku» va en letra redonda y gorda, no en fuente pixel; las cifras pixeladas que suben son adorno.
+- **Una sola zona de adultos:** desde la portada y desde Ajustes, tras la cuenta, tarjetas grandes: «Soy madre, padre o tutor», «Soy docente», «Datos de este aparato» y «Privacidad».
+- **Familia por pasos:** para qué sirve y correo → «Mira tu correo» con 3 pasos → tu familia → «Añadir un hijo»: ¿dónde juega? (este aparato / otro aparato con los pasos para sacar el código) → permiso explicado (qué guardamos, qué no, prueba y cómo retirarlo). «Siguiente» solo se activa con las 8 letras del código y «Dar permiso y añadir» solo al marcar la casilla: así no hay errores antes de hacer nada. Se dice «permiso» en vez de «consentimiento» en la interfaz (el texto legal sigue igual).
+- **Docentes por pasos:** qué ofrece Kalku y correo → «¿Tu centro ya usa Kalku?» con tres tarjetas (tengo el código / darlo de alta / solo probar con mi clase), cada una en su pantalla. Renovar el código, dejar el centro y cerrar sesión pasan a «Más opciones».
+- **Niño nuevo:** «Paso 1 de 3» (curso), «Paso 2 de 3» (apodo) y «Paso 3 de 3» (personaje).
+
 ## 2026-11-26 · Combate con gracia y sonido por código (#84, #85)
 
 - **Contexto:** Luis vio la versión de piloto y le pareció que no había juego: todo lo hecho era invisible. Se abre el hito 3 (historia de Pradera Uno, guion en [HISTORIA.md](HISTORIA.md)) centrado en lo que ve y siente el niño. Modo autónomo: decide Claude.

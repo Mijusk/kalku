@@ -1,12 +1,10 @@
 import Phaser from 'phaser';
-import { tr } from '../i18n';
+import { tr, trf } from '../i18n';
 import { NICKNAME_MAX, NICKNAMES, checkNickname } from '../nickname';
 import { applySettings, loadProgress, type PlayerProgress } from '../progress';
-import { appFamilyBackend } from '../family';
 import { createAccount, startSyncWithTimeout } from '../sync';
 import { goToStory } from '../storyFlow';
-import { button, showAdultGate } from '../ui/dom';
-import { FamilyPanel } from '../ui/FamilyPanel';
+import { stepTag } from '../ui/dom';
 
 /**
  * Pantalla de apodo (#45): la única cosa que escribe el niño para tener cuenta.
@@ -96,24 +94,8 @@ export class NicknameScene extends Phaser.Scene {
       choices.append(b);
     }
 
-    // Un adulto con cuenta de familia entra como su hijo (tras la cuenta de «Para adultos»).
-    const family = button('btn btn-small', tr('familyAlready', locale), () =>
-      showAdultGate(
-        root,
-        locale,
-        () =>
-          new FamilyPanel(root, locale, {
-            hasChildHere: false,
-            backend: appFamilyBackend(),
-            onClose: () => this.render(root, progress),
-            onEntered: () => window.location.reload(),
-          }),
-        () => this.render(root, progress),
-      ),
-    );
-    // Un alumno de clase entra con la tarjeta: la página se recarga como aparato de clase (sesión solo en esta pestaña).
-    const classroom = button('btn btn-small', tr('classLoginMine', locale), () => window.location.assign(`${window.location.pathname}?clase`));
-    root.replaceChildren(text('panel-title', tr('nicknameTitle', locale)), text('panel-feedback', tr('nicknameHint', locale)), choices, input, warning, go, classroom, family);
+    // Entrar con la clase o como hijo de una familia se hace desde la pantalla de inicio: aquí solo el apodo.
+    root.replaceChildren(stepTag(trf('setupStep', locale, { n: 2, total: 3 })), text('panel-title', tr('nicknameTitle', locale)), text('panel-feedback', tr('nicknameHint', locale)), choices, input, warning, go);
     refresh();
   }
 }

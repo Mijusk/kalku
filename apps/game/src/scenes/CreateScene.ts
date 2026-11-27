@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { OUTFIT_LAYERS, piecesForLayer, setPiece, type OutfitLayer } from '@kalku/content';
 import { playMusic, sfx } from '../audio/sound';
 import { createHeroTexture, HERO_KEY } from '../art/textures';
-import { tr, type StringKey } from '../i18n';
+import { tr, trf, type StringKey } from '../i18n';
+import { stepTag } from '../ui/dom';
 import { applySettings, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { applyStoryEvent, goToStory, playScenes } from '../storyFlow';
 import { reducedMotion } from '../ui/fx';
@@ -59,6 +60,7 @@ export class CreateScene extends Phaser.Scene {
     const title = document.createElement('p');
     title.className = 'panel-title';
     title.textContent = tr('createTitle', locale);
+    if (!this.fromSettings) root.append(stepTag(trf('setupStep', locale, { n: 3, total: 3 })));
     root.append(title);
     for (const layer of OUTFIT_LAYERS) {
       const pieces = piecesForLayer(layer);

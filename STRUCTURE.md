@@ -80,7 +80,8 @@ kalku/
 │   │   │   ├── objects.ts      drawGate (puerta de piedra de una zona) y drawChest (cofre cerrado y abierto)
 │   │   │   ├── character.ts    El personaje del niño por capas (piel, pelo, ropa, accesorio)
 │   │   │   ├── portraits.ts    Retratos de 16 px de los personajes de la historia (diálogos)
-│   │   │   └── npcs.ts         Personajes y objetos de la historia en el mapa: Tecla, Bruno, Lina, Pedrolo, Uni, el Gran Borrón, cristales, tablones y puente
+│   │   │   ├── npcs.ts         Personajes y objetos de la historia en el mapa: Tecla, Bruno, Lina, Pedrolo, Uni, el Gran Borrón, cristales, tablones y puente
+│   │   │   └── title.ts        Portada: atardecer de Pradera Uno para cualquier tamaño (cielo con tramado, sol, montañas, lago, colinas), nubes, isla flotante y cifras de adorno
 │   │   └── test/             Tests con vitest
 │   └── content/              @kalku/content: contenido del juego como datos, TypeScript puro
 │       ├── src/
@@ -149,13 +150,14 @@ kalku/
             ├── art/
             │   └── textures.ts Pasa los dibujos de @kalku/art a texturas de Phaser: tilesets, criaturas, edificios, personaje, retratos y personajes del mapa
             ├── scenes/         Escenas de Phaser
-            │   ├── BootScene.ts    Genera las texturas y va a la escena de la historia que toca (o combate con ?combate)
-            │   ├── GradeScene.ts   «¿En qué curso estás?» (y el idioma) al empezar: elige el tono de la historia
+            │   ├── BootScene.ts    Genera las texturas y va a la pantalla de inicio (o a la clase con ?clase, o combate con ?combate)
+            │   ├── TitleScene.ts   Pantalla de inicio: fondo animado, «Empezar/Seguir jugando», «Entro con mi clase», idioma y «Familias y docentes»
+            │   ├── GradeScene.ts   «¿En qué curso estás?» (paso 1 de 3 del niño nuevo): elige el tono de la historia
             │   ├── PrologueScene.ts Prólogo: cuatro viñetas dibujadas por código con el Gran Borrón
             │   ├── CreateScene.ts  Crea tu personaje (también desde la Colección: «Cambiar mi personaje»)
             │   ├── RiddleScene.ts  Acertijos de Pedrolo (capítulo 4): problemas sin vida ni tiempo; salen del temario del centro si lo hay
             │   ├── ClassLoginScene.ts Entrada a la clase del QR: apodo, animal o código de la tarjeta
-            │   ├── NicknameScene.ts Pantalla de apodo (lista o escrito) antes de la prueba de nivel, solo si no hay cuenta
+            │   ├── NicknameScene.ts Pantalla de apodo (paso 2 de 3; lista o escrito), solo si no hay cuenta
             │   ├── PlacementScene.ts Prueba de nivel de la primera vez («¡Vamos a ver qué sabes!»), con «Ahora no»
             │   ├── WorldScene.ts   Mapa de Pradera Uno: tilemap con agua animada, edificios, personaje, criaturas visibles, teclado y toque, cámara; color según capítulos
             │   ├── worldStory.ts   La historia en el mapa: personajes, Uni, marca «!», flecha, tarjeta de misión, cristales y jefe
@@ -167,11 +169,13 @@ kalku/
                 ├── Hud.ts            Cifras, gemas y dominio
                 ├── fx.ts             Efectos en HTML sobre el canvas: números que saltan, carteles y confeti
                 ├── DialogBox.ts      Diálogos con retrato, texto que se escribe solo, voz y «Saltar»
-                ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz, historia y «Para adultos»
+                ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz, historia, «Familias y docentes» y volver al inicio
                 ├── MissionsPanel.ts  Misiones del día y de la semana, con lo que lleva cada una
-                ├── dom.ts            Ayudas de HTML (texto, botón, estado) y la cuenta de «Para adultos»
-                ├── FamilyPanel.ts    Familia: entrar con correo, lista de hijos, unir, entrar como, quitar
-                ├── AdultsPanel.ts    Para adultos (con «Familia»): cuenta de entrada, descargar los datos en JSON y borrarlos (con confirmación)
+                ├── dom.ts            Ayudas de HTML (texto, botón, estado, tarjetas de elección, pasos numerados, casillas) y la cuenta de la zona de adultos
+                ├── TitleBackdrop.ts  Fondo animado de la portada en un canvas que cubre la pantalla: nubes, estrellas, criaturas y números que suben
+                ├── mailStep.ts       Entrar con el correo en dos pantallas (para qué sirve → «Mira tu correo»), para familias y docentes
+                ├── FamilyPanel.ts    Cuenta de familia por pasos: entrar con correo, tus hijos, añadir (¿dónde juega? → código → permiso), jugar como, opciones, resumen semanal
+                ├── AdultsPanel.ts    Zona de adultos: cuenta de entrada y tarjetas Familia, Docentes, Datos de este aparato (descargar en JSON y borrar) y Privacidad
                 └── styles.css
 ```
 
