@@ -100,6 +100,8 @@ kalku/
 │       │   ├── syllabus.ts     Temario de un centro: parseSyllabus (errores claros en castellano), preguntas propias como ejercicio
 │       │   ├── quests.ts       Encargos de los personajes tras el final: plantillas, nextQuest con semilla, advanceQuest
 │       │   ├── missions.ts     Misiones del día y de la semana: iguales para todos según la fecha (Europe/Madrid)
+│       │   ├── events.ts       Eventos de temporada como datos: fechas, criatura invitada y misión propia
+│       │   ├── shiny.ts        Criaturas brillantes: misma criatura con otra escala de color
 │       │   └── story/          La historia (docs/HISTORIA.md) como datos, por regiones (docs/JUEGO-SIN-FIN.md)
 │       │       ├── story.ts    Motor: advanceStory (nunca retrocede), objetivo de la tarjeta, zonas que abre, viajar entre regiones (travel, storyIn), validateStory
 │       │       ├── regions.ts  RegionStory: capítulos, pasos, personajes, luces, jefe, guardián y caminos de cada región; REGION_STORIES
@@ -142,6 +144,7 @@ kalku/
             ├── storyFlow.ts    Avanzar la historia y guardarla, reproducir diálogos, ir a la escena que toca
             ├── syllabus.ts     Temarios de packages/content/temarios, ?temario=<id> y el acertijo que toca
             ├── missions.ts     Misiones de hoy en la partida: avanzar con cada evento y dar las Cifras
+            ├── events.ts       El evento de temporada de hoy (el panel DEV puede forzar uno en local y vistas previas)
             ├── dev/            Panel de desarrollo (botón DEV): solo en local y en vistas previas, nunca en la web publicada (__DEV_TOOLS__)
             │   ├── devActions.ts Atajos sobre el progreso: pasar paso, terminar o saltar región, encargo, misiones, dominarlo todo
             │   └── devTools.ts   El panel y «ganar de un toque» en combates y acertijos

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { collectionStatus, gemStatus, ZONES, type CreatureDefinition } from '@kalku/content';
+import { albumPages, collectionStatus, EVENTS_ALBUM, gemStatus, getEvent, regionStory, shinySprite, ZONES, type CreatureDefinition } from '@kalku/content';
 import { drawChest, gridToRgba, OBJECT_PX } from '@kalku/art';
 import type { Locale } from '@kalku/exercises';
 import { tr } from '../i18n';
@@ -10,8 +10,9 @@ import { gemCanvas } from '../ui/gemCanvas';
 const SILHOUETTE = '#1b2a1f';
 
 /**
- * Colección de criaturas rescatadas: las que ya tienes con su dibujo y su
- * nombre, y las que faltan en silueta y sin nombre. Solo se mira; no da
+ * Colección de criaturas rescatadas, como un álbum con una página por región
+ * (y otra para los invitados de temporada): las que ya tienes con su dibujo y
+ * su nombre (brillantes, con su pegatina), y las que faltan en silueta. Solo se mira; no da
  * ventaja en el combate. Todo es HTML, como el resto de textos.
  */
 export class CollectionScene extends Phaser.Scene {
@@ -31,26 +32,55 @@ export class CollectionScene extends Phaser.Scene {
 
     const status = collectionStatus(progress.collection);
     const rescued = status.filter((s) => s.rescued).length;
+    const shinies = status.filter((s) => s.shiny).length;
 
     const root = document.createElement('div');
     root.className = 'collection';
     const title = document.createElement('p');
     title.className = 'panel-title';
-    title.textContent = `${tr('collection', locale)} · ${rescued}/${status.length} ${tr('collectionCount', locale)}`;
+    title.textContent = `${tr('collection', locale)} · ${rescued}/${status.length} ${tr('collectionCount', locale)}${shinies > 0 ? ` · ✨ ${shinies} ${tr('shinyCount', locale)}` : ''}`;
+    root.append(title);
 
-    const grid = document.createElement('ul');
-    grid.className = 'collection-grid';
-    for (const { creature, rescued: has } of status) {
-      const item = document.createElement('li');
-      item.className = 'collection-item';
-      item.dataset.rescued = String(has);
-      const name = document.createElement('span');
-      name.className = 'collection-name';
-      name.textContent = has ? creature.name[locale] : '?';
-      const picture = this.drawCreature(creature, has, locale);
-      if (!has) picture.setAttribute('aria-hidden', 'true');
-      item.append(picture, name);
-      grid.append(item);
+    // Álbum: una página por región (y la de los invitados de temporada), con su pegatina al completarla.
+    for (const page of albumPages(progress.collection)) {
+      const heading = document.createElement('p');
+      heading.className = 'album-heading';
+      const pageName = page.id === EVENTS_ALBUM ? tr('albumEvents', locale) : regionStory(page.id).name[locale];
+      heading.textContent = `${pageName} · ${page.entries.filter((e) => e.rescued).length}/${page.entries.length}`;
+      if (page.complete) {
+        const sticker = document.createElement('span');
+        sticker.className = 'album-sticker';
+        sticker.textContent = `⭐ ${tr('albumComplete', locale)}`;
+        heading.append(' ', sticker);
+      }
+      const grid = document.createElement('ul');
+      grid.className = 'collection-grid';
+      for (const { creature, rescued: has, shiny } of page.entries) {
+        const item = document.createElement('li');
+        item.className = 'collection-item';
+        item.dataset.rescued = String(has);
+        const name = document.createElement('span');
+        name.className = 'collection-name';
+        name.textContent = has ? creature.name[locale] : '?';
+        const picture = this.drawCreature(creature, has, locale, shiny);
+        if (!has) picture.setAttribute('aria-hidden', 'true');
+        item.append(picture, name);
+        if (shiny) {
+          const badge = document.createElement('span');
+          badge.className = 'album-shiny';
+          badge.textContent = `✨ ${tr('shinyTag', locale)}`;
+          item.append(badge);
+        }
+        const event = creature.guest === undefined ? undefined : getEvent(creature.guest);
+        if (!has && event) {
+          const hint = document.createElement('span');
+          hint.className = 'gem-hint';
+          hint.textContent = `${tr('guestHint', locale)}: ${event.name[locale]}`;
+          item.append(hint);
+        }
+        grid.append(item);
+      }
+      root.append(heading, grid);
     }
 
     const back = document.createElement('button');
@@ -113,7 +143,7 @@ export class CollectionScene extends Phaser.Scene {
       treasureGrid.append(item);
     }
 
-    root.append(title, grid, gemsTitle, gemGrid, treasuresTitle, treasureGrid, outfit, back);
+    root.append(gemsTitle, gemGrid, treasuresTitle, treasureGrid, outfit, back);
     ui.append(root);
   }
 
@@ -134,8 +164,8 @@ export class CollectionScene extends Phaser.Scene {
   }
 
   /** Primer fotograma de la criatura en un canvas HTML; en silueta si no está rescatada. */
-  private drawCreature(creature: CreatureDefinition, rescued: boolean, locale: Locale): HTMLCanvasElement {
-    const frame = this.textures.getFrame(creature.sprite, 0);
+  private drawCreature(creature: CreatureDefinition, rescued: boolean, locale: Locale, shiny = false): HTMLCanvasElement {
+    const frame = this.textures.getFrame(rescued && shiny ? shinySprite(creature.sprite) : creature.sprite, 0);
     const canvas = document.createElement('canvas');
     canvas.className = 'collection-sprite';
     canvas.width = frame.cutWidth;
