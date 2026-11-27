@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { creaturesForSkill, dateKey, getCreature, surpriseAvailable, surpriseSpot, GUEST_CHANCE, rollShiny, shinySprite, getZone, ITEMS, questTemplate, questText, regionStory, SCENES, storyIn, travel, type CharacterId, type SceneId, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
+import { creaturesForSkill, dateKey, FIRST_REGION, getCreature, surpriseAvailable, surpriseSpot, GUEST_CHANCE, rollShiny, shinySprite, getZone, ITEMS, questTemplate, questText, regionStory, SCENES, storyIn, travel, type CharacterId, type SceneId, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
 import { currentSkill, challengeSkill, createRng, pickSkill, randomSeed, type Rng } from '@kalku/exercises';
 import {
   createWildlife,
@@ -30,6 +30,8 @@ import { burst, ensureFxTextures } from './battleFx';
 
 /** Clave del registro: día en que ya se avisó del cofre sorpresa (para no repetirlo tras cada combate). */
 const SURPRISE_HINT_KEY = 'surpriseHinted';
+/** Para decir solo una vez por partida «Esta es tu casa» al pasar cerca. */
+const HOME_HINT_KEY = 'homeHinted';
 import { greyFor, WorldStory, type MapNpc, type StoryAction } from './worldStory';
 import { CREATURE_FRAMES, findBuildings, tilemapData } from '@kalku/art';
 import { activeClassId } from '../classDevice';
@@ -117,6 +119,8 @@ export class WorldScene extends Phaser.Scene {
   private storyBusy = false;
   /** Casillas delante de la puerta de cada tienda: al pararse ahí, se entra. */
   private shopDoors: Point[] = [];
+  /** Puerta de su casa (la primera casa de Pradera Uno). */
+  private homeDoor: Point | undefined;
   /** La criatura que le acompaña (elegida en la Colección), un paso por detrás. */
   private companion: Phaser.GameObjects.Image | undefined;
   /** El cofre sorpresa de hoy en este mapa, si aún no se ha abierto. */
@@ -467,7 +471,13 @@ export class WorldScene extends Phaser.Scene {
     wardrobe.textContent = tr('wardrobe', loadProgress().locale);
     wardrobe.addEventListener('pointerdown', (e) => e.stopPropagation());
     wardrobe.addEventListener('click', () => this.openItems('wardrobe'));
-    ui.replaceChildren(button, missions, wardrobe);
+    const home = document.createElement('button');
+    home.type = 'button';
+    home.className = 'btn btn-small world-button world-button-home';
+    home.textContent = tr('homeButton', loadProgress().locale);
+    home.addEventListener('pointerdown', (e) => e.stopPropagation());
+    home.addEventListener('click', () => this.enterHome());
+    ui.replaceChildren(button, missions, wardrobe, home);
     // En un aparato de clase (#53), «Salir» deja el aparato limpio para el siguiente alumno.
     if (activeClassId(sessionStorage) !== null) {
       const leave = document.createElement('button');
@@ -584,6 +594,15 @@ export class WorldScene extends Phaser.Scene {
       this.scene.start('surprise');
       return true;
     }
+    const door = this.homeDoor;
+    if (door && this.route.length === 0 && door.x === this.tile.x && door.y === this.tile.y) {
+      this.enterHome();
+      return true;
+    }
+    if (door && !this.registry.get(HOME_HINT_KEY) && Math.abs(door.x - this.tile.x) + Math.abs(door.y - this.tile.y) <= 3) {
+      this.registry.set(HOME_HINT_KEY, true);
+      this.showMessage(tr('homeHint', loadProgress().locale));
+    }
     if (this.route.length > 0) return false;
     if (this.shopDoors.some((d) => d.x === this.tile.x && d.y === this.tile.y)) {
       this.openItems('shop');
@@ -617,11 +636,24 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
+  /** Entra en su casa (desde la puerta o el botón). Al salir vuelve al mismo sitio del mapa. */
+  private enterHome(): void {
+    if (this.storyBusy || this.encounterStarted || dialogOpen()) return;
+    this.state.tile = { ...this.tile };
+    this.registry.set(WORLD_STATE_KEY, this.state);
+    this.encounterStarted = true;
+    this.route = [];
+    sfx('door');
+    this.scene.start('home');
+  }
+
   /** Casas y tienda: cada edificio entero encima del suelo (el suelo de debajo es hierba). */
   private createBuildings(): void {
     this.shopDoors = findBuildings(this.region)
       .filter((b) => b.kind === 'shop')
       .map((b) => ({ x: b.x + Math.floor(b.width / 2), y: b.y + b.height }));
+    const house = this.spec.id === FIRST_REGION ? findBuildings(this.region).find((b) => b.kind === 'house') : undefined;
+    this.homeDoor = house ? { x: house.x + Math.floor(house.width / 2), y: house.y + house.height } : undefined;
     for (const building of findBuildings(this.region)) {
       this.add
         .image(building.x * TILE_SIZE, building.y * TILE_SIZE, buildingTexture(this, building))

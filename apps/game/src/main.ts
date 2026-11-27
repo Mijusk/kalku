@@ -11,6 +11,7 @@ import { CreateScene } from './scenes/CreateScene';
 import { GradeScene } from './scenes/GradeScene';
 import { RiddleScene } from './scenes/RiddleScene';
 import { SurpriseScene } from './scenes/SurpriseScene';
+import { HomeScene } from './scenes/HomeScene';
 import { TitleScene } from './scenes/TitleScene';
 import { WorldScene } from './scenes/WorldScene';
 import { readSyllabusParam } from './syllabus';
@@ -44,7 +45,7 @@ const game = new Phaser.Game({
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, TitleScene, GradeScene, PrologueScene, CreateScene, ClassLoginScene, NicknameScene, PlacementScene, WorldScene, BattleScene, RiddleScene, SurpriseScene, CollectionScene],
+  scene: [BootScene, TitleScene, GradeScene, PrologueScene, CreateScene, ClassLoginScene, NicknameScene, PlacementScene, WorldScene, BattleScene, RiddleScene, SurpriseScene, HomeScene, CollectionScene],
 });
 // Para probar la historia entera con Playwright (en local y en la web con ?prueba). No da ventajas:
 // las respuestas que cuentan las vuelve a comprobar el servidor.

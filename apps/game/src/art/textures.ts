@@ -1,7 +1,9 @@
-import { CREATURES, outfitPieces, shinyLook, shinySprite, type Outfit } from '@kalku/content';
+import { CREATURES, outfitPieces, shinyLook, shinySprite, type FurniturePiece, type Outfit } from '@kalku/content';
 import {
   CHARACTER_FRAMES,
   drawBuilding,
+  drawFurniture,
+  drawRoom,
   drawCharacter,
   drawChest,
   MATERIAL,
@@ -89,5 +91,19 @@ export function buildingTexture(scene: Phaser.Scene, b: Pick<Building, 'kind' | 
   if (!scene.textures.exists(key)) {
     addSheet(scene, key, toSheet([drawBuilding(b.kind, b.width, b.height)]));
   }
+  return key;
+}
+
+/** Textura de un mueble de la casa (la crea la primera vez que se pide) y su clave. */
+export function furnitureTexture(scene: Phaser.Scene, piece: Pick<FurniturePiece, 'id' | 'art' | 'color' | 'width'>): string {
+  const key = `furniture-${piece.id}`;
+  if (!scene.textures.exists(key)) addSheet(scene, key, toSheet([drawFurniture(piece.art, piece.color, piece.width)]));
+  return key;
+}
+
+/** Textura de la habitación vacía (pared, ventana y suelo). */
+export function roomTexture(scene: Phaser.Scene, floorW: number, floorH: number, wallRows: number): string {
+  const key = `room-${floorW}x${floorH}-${wallRows}`;
+  if (!scene.textures.exists(key)) addSheet(scene, key, toSheet([drawRoom(floorW, floorH, wallRows)]));
   return key;
 }
