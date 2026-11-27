@@ -419,4 +419,12 @@ Luis pidió una historia para 5–8 años y otra para 8–12. Mismas mates y mis
 - **Las regiones no limitan las cuentas**: en el bosque cada niño sigue con las de su nivel (regla 4). La región cambia el mapa, la historia y los personajes.
 - **Se viaja por carteles**: el del bosque aparece al terminar la historia de Pradera Uno (nunca con Cifras) y hay que pararse en él (pasar por encima no cuenta). Se puede volver a la pradera. `story` guarda la región más avanzada y `at` dónde está el niño; una región anterior se ve terminada (`storyIn`).
 - **Encargos por región**: los da quien vive en la región donde está el niño. Un encargo ya aceptado no se pierde al cambiar de región.
-- Nombres nuevos (Olma, Cuco, Gran Enredo/Gran Embolic, Ovillo/Cabdell y las seis criaturas) **pendientes de aprobar por Luis**.
+- Nombres nuevos (Olma, Cuco, Gran Enredo/Gran Embolic, Ovillo/Cabdell y las seis criaturas): **aprobados por Luis el 2026-11-27**.
+
+## Panel de desarrollo (2026-11-27)
+
+- Luis pidió poder pasar todo rápido para probar: un botón **DEV** abajo a la izquierda abre atajos (ganar un combate o un acertijo de un toque, pasar un paso de la historia, terminar la región, ir a cualquier región, completar el encargo y las misiones, dominarlo todo, +1000 Cifras y borrar la partida). Código en `apps/game/src/dev/`.
+- **Nunca lo ve un niño:** solo existe con `npm run dev` y en las vistas previas de Cloudflare (ramas que no son `main`). La constante `__DEV_TOOLS__` se decide al compilar (`vite.config.ts`, con `CF_PAGES_BRANCH`); en la web publicada vale `false` y el código ni se incluye en el paquete. No hay clave secreta: en un repositorio público no habría forma de esconderla.
+- Es una herramienta de adulto y va solo en castellano (no es interfaz del juego).
+- Lo que se gana con los atajos no pasa por el servidor como respuestas; solo cambia el progreso guardado de quien lo usa.
+

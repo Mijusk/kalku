@@ -137,7 +137,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     look: { ramp: 'naranja', body: 'round', top: 'antenna', eyes: 'big', cheeks: true, sign: '±' },
     provisional: true,
   },
-  // Bosque de las Decenas (números hasta 100). Nombres pendientes de aprobar por Luis.
+  // Bosque de las Decenas (números hasta 100).
   {
     id: 'sumus-pina',
     family: 'sumus',
@@ -147,7 +147,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     hp: 30,
     sprite: 'creature-sumus-pina',
     look: { ramp: 'marron', body: 'pear', top: 'sprout', eyes: 'big', spots: true, sign: '+' },
-    provisional: true,
+    provisional: false,
   },
   {
     id: 'sumus-helecho',
@@ -158,7 +158,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     hp: 40,
     sprite: 'creature-sumus-helecho',
     look: { ramp: 'verde', body: 'round', top: 'ears', eyes: 'big', cheeks: true, sign: '+' },
-    provisional: true,
+    provisional: false,
   },
   {
     id: 'restus-musgo',
@@ -169,7 +169,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     hp: 40,
     sprite: 'creature-restus-musgo',
     look: { ramp: 'verde', body: 'bean', top: 'puff', eyes: 'sleepy', sign: '-' },
-    provisional: true,
+    provisional: false,
   },
   {
     id: 'sumus-bellota',
@@ -180,7 +180,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     hp: 50,
     sprite: 'creature-sumus-bellota',
     look: { ramp: 'naranja', body: 'bean', top: 'antenna', eyes: 'small', spots: true, sign: '+' },
-    provisional: true,
+    provisional: false,
   },
   {
     id: 'restus-seta',
@@ -191,7 +191,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     hp: 50,
     sprite: 'creature-restus-seta',
     look: { ramp: 'rosa', body: 'round', top: 'horns', eyes: 'small', spots: true, sign: '-' },
-    provisional: true,
+    provisional: false,
   },
   {
     id: 'problemus-corteza',
@@ -202,7 +202,7 @@ export const CREATURES: readonly CreatureDefinition[] = [
     hp: 35,
     sprite: 'creature-problemus-corteza',
     look: { ramp: 'marron', body: 'drop', top: 'antenna', eyes: 'big', cheeks: true, sign: '±' },
-    provisional: true,
+    provisional: false,
   },
 ];
 

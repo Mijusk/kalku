@@ -599,6 +599,16 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
+  /** Solo para desarrollo (`src/dev`): gana el combate de un toque, sin contar respuestas. */
+  devWin(): void {
+    if (this.busy || this.enemy.hp <= 0) return;
+    this.busy = true;
+    this.turn = undefined;
+    if (this.boss) this.bossPhase = BOSS.scales.length - 1;
+    this.hit(this.enemy, this.enemy.hp);
+    this.time.delayedCall(400, () => this.endBattle(true));
+  }
+
   private endBattle(won: boolean): void {
     const locale = this.progress.locale;
     this.won = won;

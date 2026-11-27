@@ -48,5 +48,8 @@ const game = new Phaser.Game({
 // las respuestas que cuentan las vuelve a comprobar el servidor.
 if (import.meta.env.DEV || new URLSearchParams(window.location.search).has('prueba')) Object.assign(window, { kalkuGame: game });
 
+// Panel de desarrollo para Luis: solo en local y en las vistas previas, nunca en la web publicada.
+if (__DEV_TOOLS__) void import('./dev/devTools').then((m) => m.mountDevTools(game));
+
 // Web instalable: el service worker guarda el juego para jugar sin conexión.
 registerSW({ immediate: true });
