@@ -1103,3 +1103,489 @@ a.btn {
   font-size: 0.9rem;
   opacity: 0.8;
 }
+
+/* ── Pantalla de inicio y flujos guiados (menú inicial, zona de adultos, familia y docentes) ── */
+
+.title-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  background: #1d1a4a;
+}
+
+.title-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.title-content {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: max(16px, 5vh) 16px max(16px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+
+/* El nombre en letra redonda y gorda (nunca fuente pixel), con borde oscuro como los dibujos. */
+.title-logo {
+  margin: 0;
+  font-size: clamp(3.75rem, 15vw, 7.5rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: transparent;
+  background: linear-gradient(180deg, #fff8d2 0%, #ffe470 40%, #f3c435 62%, #f29233 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(3px 0 0 #1c2430) drop-shadow(-3px 0 0 #1c2430) drop-shadow(0 3px 0 #1c2430) drop-shadow(0 -3px 0 #1c2430)
+    drop-shadow(0 6px 0 #6b2442);
+  animation: title-float 3.2s ease-in-out infinite;
+}
+
+.title-tagline {
+  margin: 0;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: rgb(29 26 74 / 0.6);
+  color: #fff;
+  font-size: clamp(1rem, 3.5vw, 1.375rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+.title-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: min(380px, 100%);
+  margin: auto 0;
+}
+
+.title-hello {
+  margin: 0;
+  padding: 4px 14px;
+  border-radius: var(--radius);
+  background: rgb(29 26 74 / 0.6);
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.title-level {
+  color: #ffe470;
+}
+
+.btn-play {
+  width: 100%;
+  min-height: 72px;
+  font-size: clamp(1.5rem, 5vw, 1.875rem);
+  background: #ffd84d;
+  color: var(--ink);
+  box-shadow: 0 6px 0 var(--ink);
+  animation: title-pulse 2.4s ease-in-out infinite;
+}
+
+.btn-play:active {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.btn-title {
+  width: 100%;
+  background: rgb(255 255 255 / 0.94);
+}
+
+/* Idioma y zona de adultos arriba, pequeños: no tapan a las criaturas ni distraen al niño. */
+.title-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: calc(-1 * max(16px, 5vh) + 8px);
+}
+
+.title-footer .btn-title {
+  width: auto;
+  background: rgb(255 255 255 / 0.85);
+}
+
+.title-screen .settings {
+  z-index: 30;
+}
+
+@keyframes title-float {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes title-pulse {
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-logo,
+  .btn-play {
+    animation: none;
+  }
+}
+
+/* Etiqueta «Paso 1 de 3» encima del título. */
+.step-tag {
+  margin: 0;
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: #dcebd3;
+  color: var(--primary);
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.panel-subtitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.panel-note {
+  margin: 0;
+  max-width: 480px;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.panel-link {
+  color: var(--info);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.panel-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(480px, 100%);
+  padding: 14px;
+  border: 2px solid #e3dcc6;
+  border-radius: var(--radius);
+  background: #fffdf6;
+}
+
+/* Tarjeta de elección: se toca entera; el color de la izquierda dice de qué va. */
+.choice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: min(480px, 100%);
+  min-height: 72px;
+  padding: 12px 18px;
+  border: 3px solid var(--ink);
+  border-left-width: 12px;
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--ink);
+  touch-action: manipulation;
+}
+
+.choice-card:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.choice-card:focus-visible,
+.check-row:focus-within {
+  outline: 3px solid var(--info);
+  outline-offset: 2px;
+}
+
+.choice-green {
+  border-left-color: var(--primary);
+}
+
+.choice-blue {
+  border-left-color: var(--info);
+}
+
+.choice-gold {
+  border-left-color: #f3c435;
+}
+
+.choice-grey {
+  border-left-color: #a6afbc;
+}
+
+.choice-title {
+  font-size: 1.1875rem;
+  font-weight: 800;
+}
+
+.choice-text {
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+/* Pasos numerados con círculos grandes. */
+.step-list {
+  width: min(480px, 100%);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+  text-align: left;
+}
+
+.step-list li {
+  position: relative;
+  min-height: 34px;
+  margin: 0 0 10px;
+  padding: 4px 0 0 46px;
+  font-size: 1.0625rem;
+  line-height: 1.4;
+  counter-increment: step;
+}
+
+.step-list li::before {
+  content: counter(step);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 800;
+  line-height: 34px;
+  text-align: center;
+}
+
+.bullet-list {
+  width: min(480px, 100%);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.bullet-list li {
+  position: relative;
+  margin: 0 0 6px;
+  padding-left: 32px;
+  font-size: 1.0625rem;
+  line-height: 1.4;
+}
+
+.bullet-list li::before {
+  position: absolute;
+  left: 4px;
+  font-weight: 900;
+}
+
+.bullet-yes li::before {
+  content: '✓';
+  color: var(--good);
+}
+
+.bullet-no li::before {
+  content: '✗';
+  color: var(--bad);
+}
+
+.bullet-dot li::before {
+  content: '•';
+}
+
+/* Casilla grande: toda la fila se puede tocar. */
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(480px, 100%);
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  background: #fff;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.check-row:has(input:checked) {
+  background: #e6f4e3;
+}
+
+.check-row input {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  accent-color: var(--primary);
+}
+
+.select-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.panel-select {
+  min-height: 48px;
+  padding: 0 10px;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  background: #fff;
+  font: inherit;
+  font-size: 1rem;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-compact {
+  min-height: 48px;
+  padding: 0 14px;
+  font-size: 1rem;
+}
+
+.btn-quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+  text-decoration: underline;
+}
+
+.mail-icon {
+  margin: 0;
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.big-code {
+  margin: 0;
+  padding: 8px 22px;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  background: #fff;
+  font-size: clamp(2rem, 8vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+.code-input {
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Hijos de la familia. */
+.child-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(520px, 100%);
+}
+
+.child-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 12px;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.child-card > .row {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.child-badge {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: #ffd84d;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.child-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.child-name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.child-stats {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.child-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #e6e0cf;
+  overflow: hidden;
+}
+
+.child-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--good);
+}
+
+.child-here {
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #dcebd3;
+  color: var(--primary);
+  font-weight: 800;
+}
+
+/* En pantallas bajas el panel hace scroll: que ninguna parte se aplaste (cortaba la frase de la casilla). */
+.settings > * {
+  flex-shrink: 0;
+}

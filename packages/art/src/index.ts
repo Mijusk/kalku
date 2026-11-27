@@ -10,3 +10,4 @@ export * from './objects.js';
 export * from './portraits.js';
 export * from './character.js';
 export * from './npcs.js';
+export * from './title.js';

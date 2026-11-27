@@ -38,7 +38,11 @@ export class BootScene extends Phaser.Scene {
       this.scene.start('battle');
       return;
     }
-    // La historia decide: prólogo, apodo, crear personaje, entrenamiento o mapa.
-    await goToStory(this);
+    // Un alumno que ya está dentro en esta pestaña sigue jugando; si no, la pantalla de inicio.
+    if (activeClassId(sessionStorage) !== null) {
+      await goToStory(this);
+      return;
+    }
+    this.scene.start('title');
   }
 }

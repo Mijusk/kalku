@@ -15,6 +15,14 @@ import { getAdultSupabase, getSupabase } from './supabase';
 
 export const MAX_CHILDREN = 4;
 
+/** Letras y cifras del código para unir a un niño (lo genera el servidor, vale 10 minutos). */
+export const LINK_CODE_LENGTH = 8;
+
+/** El código como lo compara el servidor: mayúsculas, sin espacios ni guiones («k7pm 4xq2» → «K7PM4XQ2»). */
+export function normalizeLinkCode(raw: string): string {
+  return raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
 /** Errores que el servidor dice con su mensaje y que la interfaz sabe explicar. */
 export type FamilyErrorCode = 'invalid-code' | 'child-in-family' | 'family-full' | 'not-adult' | 'not-in-family' | 'no-child' | 'email-not-confirmed' | 'consent-required' | 'network';
 

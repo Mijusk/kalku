@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { bandForGrade, GRADES } from '@kalku/content';
 import type { Locale } from '@kalku/exercises';
-import { tr } from '../i18n';
+import { tr, trf } from '../i18n';
+import { button, stepTag } from '../ui/dom';
 import { applySettings, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { goToStory } from '../storyFlow';
 
@@ -14,7 +15,7 @@ export const GRADE_NAMES: Readonly<Record<Locale, readonly string[]>> = {
 /**
  * Primera pantalla de un niño nuevo: «¿En qué curso estás?». El curso elige
  * el tono de la historia (docs/JUEGO-SIN-FIN.md §1). No se pregunta la edad.
- * También deja elegir el idioma antes de que empiece a hablar nadie.
+ * Es el paso 1 de 3 del niño nuevo (curso → apodo → personaje).
  */
 export class GradeScene extends Phaser.Scene {
   constructor() {
@@ -54,22 +55,9 @@ export class GradeScene extends Phaser.Scene {
       grid.append(b);
     }
 
-    const languages = document.createElement('div');
-    languages.className = 'row';
-    for (const [code, label] of [['es', 'Castellano'], ['ca', 'Català']] as const) {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'btn btn-small';
-      b.textContent = label;
-      b.setAttribute('aria-pressed', String(locale === code));
-      b.addEventListener('click', () => {
-        progress.locale = code;
-        saveProgress(progress);
-        this.render(root, progress);
-      });
-      languages.append(b);
-    }
-    root.replaceChildren(title, hint, grid, languages);
+    // El idioma ya se eligió en la pantalla de inicio; aquí solo se puede volver a ella.
+    const back = button('btn btn-small', tr('back', locale), () => this.scene.start('title'));
+    root.replaceChildren(stepTag(trf('setupStep', locale, { n: 1, total: 3 })), title, hint, grid, back);
     grid.querySelector('button')?.focus();
   }
 

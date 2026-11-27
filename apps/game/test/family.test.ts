@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { enterAsChildHere, FamilyError, forgetOtherChild, guardianConsent, joinThisDevice, summarize, toFamilyError, type FamilyBackend } from '../src/family';
+import { enterAsChildHere, FamilyError, forgetOtherChild, guardianConsent, joinThisDevice, LINK_CODE_LENGTH, normalizeLinkCode, summarize, toFamilyError, type FamilyBackend } from '../src/family';
 import { PRIVACY_VERSION } from '@kalku/content';
 import { defaultProgress } from '../src/progress';
 import { LOCAL_KEYS, NICKNAME_KEY, OWNER_KEY, type KeyValueStore } from '../src/sync';
@@ -167,5 +167,15 @@ describe('consentimiento', () => {
       },
     });
     await expect(joinThisDevice(f, guardianConsent(false))).rejects.toMatchObject({ code: 'consent-required' });
+  });
+});
+
+describe('código para unir a un niño', () => {
+  it('se escribe como sea y se compara limpio, con 8 letras y cifras', () => {
+    expect(normalizeLinkCode('k7pm 4xq2')).toBe('K7PM4XQ2');
+    expect(normalizeLinkCode(' K7PM-4XQ2 ')).toHaveLength(LINK_CODE_LENGTH);
+    // Vacío o a medias no deja pasar al paso del permiso (y no enseña ningún error).
+    expect(normalizeLinkCode('')).toHaveLength(0);
+    expect(normalizeLinkCode('K7P').length).toBeLessThan(LINK_CODE_LENGTH);
   });
 });

@@ -54,7 +54,7 @@ export class SettingsPanel {
     const adultsButton = document.createElement('button');
     adultsButton.type = 'button';
     adultsButton.className = 'btn btn-small';
-    adultsButton.textContent = tr('adults', locale);
+    adultsButton.textContent = tr('titleAdults', locale);
     adultsButton.addEventListener('click', () => {
       new AdultsPanel(this.root, locale, {
         onClose: () => this.render(),
@@ -98,9 +98,20 @@ export class SettingsPanel {
       ]),
       privacyLink(tr('privacy', locale)),
       adultsButton,
+      homeButton(tr('titleHome', locale)),
       close,
     );
   }
+}
+
+/** Vuelve a la pantalla de inicio (recarga el juego: todo está guardado). */
+function homeButton(label: string): HTMLButtonElement {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'btn btn-small';
+  b.textContent = label;
+  b.addEventListener('click', () => window.location.assign(window.location.pathname));
+  return b;
 }
 
 /** Enlace a la política de privacidad (página aparte, sin Phaser). */
