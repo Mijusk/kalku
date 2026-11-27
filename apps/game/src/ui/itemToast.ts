@@ -1,7 +1,7 @@
-import { setPiece, type OutfitPiece } from '@kalku/content';
+import { setPiece } from '@kalku/content';
 import { sfx } from '../audio/sound';
 import { tr } from '../i18n';
-import { heroCanvas } from '../items';
+import { furnitureCanvas, heroCanvas, type NewItem } from '../items';
 import type { PlayerProgress } from '../progress';
 import './items.css';
 
@@ -13,7 +13,7 @@ const SHOW_MS = 3600;
  * puesta y «¡Nuevo objeto! Capa del bosque · Póntelo en el Armario».
  * Si hay varios, salen uno detrás de otro.
  */
-export function showNewItems(pieces: readonly OutfitPiece[], progress: PlayerProgress): void {
+export function showNewItems(pieces: readonly NewItem[], progress: PlayerProgress): void {
   const ui = document.getElementById('ui');
   if (!ui || pieces.length === 0) return;
   const [first, ...rest] = pieces;
@@ -24,8 +24,11 @@ export function showNewItems(pieces: readonly OutfitPiece[], progress: PlayerPro
   root.setAttribute('role', 'status');
   const text = document.createElement('p');
   text.className = 'item-toast-text';
-  text.textContent = `${tr('wardrobeNew', progress.locale)} ${first.name[progress.locale]} · ${tr('wardrobeTry', progress.locale)}`;
-  root.append(heroCanvas(setPiece(progress.outfit, first.layer, first.id), ''), text);
+  const furniture = !('layer' in first);
+  const locale = progress.locale;
+  text.textContent = `${tr(furniture ? 'homeNew' : 'wardrobeNew', locale)} ${first.name[locale]} · ${tr(furniture ? 'homeTry' : 'wardrobeTry', locale)}`;
+  const art = 'layer' in first ? heroCanvas(setPiece(progress.outfit, first.layer, first.id), '') : furnitureCanvas(first, `item-toast-furniture item-toast-furniture-${first.width}`);
+  root.append(art, text);
   ui.append(root);
   sfx('quest');
   setTimeout(() => {

@@ -122,3 +122,15 @@ describe('leer la casa guardada', () => {
     expect(home.placed).toEqual([{ id: 'silla', x: 1, y: 1 }]);
   });
 });
+
+describe('muebles ganados', () => {
+  it('avisa de la copa al ganar la gema y del telescopio al nivel 8, nunca de lo de la tienda', async () => {
+    const { newlyEarnedFurniture } = await import('../src/index.js');
+    const after: WardrobeState = { ...fresh, gems: ['add-within-10'], owned: ['silla'], xp: 1e9 };
+    const ids = newlyEarnedFurniture(fresh, after).map((p) => p.id);
+    expect(ids).toContain('trofeo-suma');
+    expect(ids).toContain('telescopio');
+    expect(ids).not.toContain('silla');
+    expect(newlyEarnedFurniture(after, after)).toEqual([]);
+  });
+});

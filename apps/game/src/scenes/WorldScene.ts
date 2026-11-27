@@ -36,7 +36,7 @@ import { greyFor, WorldStory, type MapNpc, type StoryAction } from './worldStory
 import { CREATURE_FRAMES, findBuildings, tilemapData } from '@kalku/art';
 import { activeClassId } from '../classDevice';
 import { appClassLoginBackend, leaveSharedDevice } from '../classLogin';
-import { ANIMATION_MS, buildingTexture, CHEST_TEXTURES, createHeroTexture, GATE_TEXTURE, HERO_KEY, mapSpriteKey, SURPRISE_TEXTURES, TILE_SIZE, TILESET_KEYS } from '../art/textures';
+import { ANIMATION_MS, HOME_MARK_TEXTURE, buildingTexture, CHEST_TEXTURES, createHeroTexture, GATE_TEXTURE, HERO_KEY, mapSpriteKey, SURPRISE_TEXTURES, TILE_SIZE, TILESET_KEYS } from '../art/textures';
 import { earnedSince, wardrobeOf } from '../items';
 import { showNewItems } from '../ui/itemToast';
 import { openWardrobe } from '../ui/WardrobePanel';
@@ -654,6 +654,11 @@ export class WorldScene extends Phaser.Scene {
       .map((b) => ({ x: b.x + Math.floor(b.width / 2), y: b.y + b.height }));
     const house = this.spec.id === FIRST_REGION ? findBuildings(this.region).find((b) => b.kind === 'house') : undefined;
     this.homeDoor = house ? { x: house.x + Math.floor(house.width / 2), y: house.y + house.height } : undefined;
+    if (house) {
+      // Un corazón encima del tejado: esta es su casa.
+      const mark = this.add.image((house.x + house.width / 2) * TILE_SIZE, house.y * TILE_SIZE - 4, HOME_MARK_TEXTURE).setDepth(1.5);
+      if (!reducedMotionNow()) this.tweens.add({ targets: mark, y: mark.y - 3, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
     for (const building of findBuildings(this.region)) {
       this.add
         .image(building.x * TILE_SIZE, building.y * TILE_SIZE, buildingTexture(this, building))

@@ -1,5 +1,5 @@
-import { CHARACTER_PX, drawCharacter, gridToRgba } from '@kalku/art';
-import { dateKey, newlyEarned, outfitPieces, type LockReason, type Outfit, type OutfitPiece, type WardrobeState } from '@kalku/content';
+import { CHARACTER_PX, drawCharacter, drawFurniture, gridToRgba } from '@kalku/art';
+import { dateKey, newlyEarned, newlyEarnedFurniture, type FurniturePiece, outfitPieces, type LockReason, type Outfit, type OutfitPiece, type WardrobeState } from '@kalku/content';
 import { capCoins, SKILLS, type CapResult, type Locale, type SkillProgress, type Slot } from '@kalku/exercises';
 import { tr, trf } from './i18n';
 import type { PlayerProgress } from './progress';
@@ -58,7 +58,28 @@ export function heroCanvas(outfit: Outfit, className: string, frame = 0): HTMLCa
   return canvas;
 }
 
-/** Piezas que se acaban de ganar entre dos momentos (subir de nivel, gema, tesoro). */
-export function earnedSince(before: WardrobeState, after: PlayerProgress): OutfitPiece[] {
-  return newlyEarned(before, wardrobeOf(after));
+/** Algo nuevo para el niño: una pieza de ropa o un mueble para su casa. */
+export type NewItem = OutfitPiece | FurniturePiece;
+
+/** Piezas y muebles que se acaban de ganar entre dos momentos (subir de nivel, gema, tesoro). */
+export function earnedSince(before: WardrobeState, after: PlayerProgress): NewItem[] {
+  const now = wardrobeOf(after);
+  return [...newlyEarned(before, now), ...newlyEarnedFurniture(before, now)];
+}
+
+/** Un mueble como canvas HTML (en pixel art, escalado por CSS). */
+export function furnitureCanvas(piece: FurniturePiece, className: string): HTMLCanvasElement {
+  const grid = drawFurniture(piece.art, piece.color, piece.width);
+  const canvas = document.createElement('canvas');
+  canvas.className = className;
+  canvas.width = grid.width;
+  canvas.height = grid.height;
+  canvas.setAttribute('aria-hidden', 'true');
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const image = ctx.createImageData(grid.width, grid.height);
+    image.data.set(gridToRgba(grid));
+    ctx.putImageData(image, 0, 0);
+  }
+  return canvas;
 }

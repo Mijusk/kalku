@@ -255,3 +255,12 @@
 .world-button.world-button-home {
   top: 176px;
 }
+
+/* Aviso de mueble nuevo: el dibujo mide 16 o 32 × 24 px. */
+.item-toast canvas.item-toast-furniture-1 {
+  width: 32px;
+}
+
+.item-toast canvas.item-toast-furniture-2 {
+  width: 64px;
+}
