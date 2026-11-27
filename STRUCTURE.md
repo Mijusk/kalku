@@ -79,6 +79,7 @@ kalku/
 │   │   │   ├── creatures.ts    CreatureLook (piezas como datos) y drawCreature: 8 fotogramas de 32 px
 │   │   │   ├── gems.ts         drawGem: gema de 16 px por operación, encendida o apagada
 │   │   │   ├── objects.ts      drawGate (puerta de piedra de una zona) y drawChest (cofre cerrado y abierto)
+│   │   │   ├── furniture.ts    Muebles de la casa (drawFurniture) y la habitación vacía (drawRoom)
 │   │   │   ├── character.ts    El personaje del niño por capas (espalda, piel, pelo, ropa, accesorio, sombrero)
 │   │   │   ├── portraits.ts    Retratos de 16 px de los personajes de la historia (diálogos)
 │   │   │   ├── npcs.ts         Personajes y objetos de la historia en el mapa: Tecla, Bruno, Lina, Pedrolo, Uni, el Gran Borrón, cristales, tablones y puente
@@ -101,6 +102,7 @@ kalku/
 │       │   ├── wardrobe.ts     Armario y tienda: qué piezas se tienen, candados con motivo, comprar con Cifras (solo estética)
 │       │   ├── surprise.ts     Cofre sorpresa del día: sitio fijo por fecha y región, siguiente regalo de la lista (sin azar en el premio)
 │       │   ├── companion.ts    Compañero: una criatura rescatada que acompaña (solo compañía, sin ventaja)
+│       │   ├── home.ts         Casa del niño: muebles como datos, comprar, colocar y leer lo guardado
 │       │   ├── syllabus.ts     Temario de un centro: parseSyllabus (errores claros en castellano), preguntas propias como ejercicio
 │       │   ├── quests.ts       Encargos de los personajes tras el final: plantillas, nextQuest con semilla, advanceQuest
 │       │   ├── missions.ts     Misiones del día y de la semana: iguales para todos según la fecha (Europe/Madrid)
@@ -164,6 +166,7 @@ kalku/
             │   ├── PrologueScene.ts Prólogo: cuatro viñetas dibujadas por código con el Gran Borrón
             │   ├── CreateScene.ts  Crea tu personaje (también desde la Colección: «Cambiar mi personaje»)
             │   ├── SurpriseScene.ts Cofre sorpresa: una cuenta y se abre con su regalo
+            │   ├── HomeScene.ts    Casa del niño: decorar la habitación con muebles
             │   ├── RiddleScene.ts  Acertijos de Pedrolo (capítulo 4): problemas sin vida ni tiempo; salen del temario del centro si lo hay
             │   ├── ClassLoginScene.ts Entrada a la clase del QR: apodo, animal o código de la tarjeta
             │   ├── NicknameScene.ts Pantalla de apodo (paso 2 de 3; lista o escrito), solo si no hay cuenta

@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import { EVENTS, giftPieces, REGION_STORIES, regionIndex, regionStory } from '@kalku/content';
+import { EVENTS, FURNITURE, giftPieces, REGION_STORIES, regionIndex, regionStory } from '@kalku/content';
 import type { Point } from '@kalku/world';
 import { DEV_EVENT_KEY } from '../events';
 import { loadProgress, saveProgress, type PlayerProgress } from '../progress';
@@ -105,6 +105,7 @@ export function mountDevTools(game: Phaser.Game): void {
     section('Objetos');
     add('Cofre sorpresa otra vez', () => apply((p) => void (p.surpriseDay = null), 'Hay cofre sorpresa'));
     add('Todos los regalos del cofre', () => apply((p) => void (p.owned = [...new Set([...p.owned, ...giftPieces().map((g) => g.id)])]), 'Regalos dados'));
+    add('Todos los muebles', () => apply((p) => void (p.home = { ...p.home, owned: FURNITURE.filter((f) => f.get?.kind === 'shop').map((f) => f.id) }), 'Muebles dados'));
 
     section('Eventos y brillantes');
     const forced = readForcedEvent();

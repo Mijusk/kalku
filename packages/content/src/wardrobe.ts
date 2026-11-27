@@ -28,8 +28,11 @@ export type LockReason =
   /** Se puede comprar ya: solo falta pagarla. */
   | { readonly kind: 'price'; readonly price: number };
 
+/** Lo que hace falta de una pieza (de ropa o un mueble) para saber si se tiene. */
+export type Ownable = Pick<OutfitPiece, 'id' | 'get'>;
+
 /** ¿Tiene ya esta pieza? Las del principio, siempre; las demás según cómo se consiguen. */
-export function ownsPiece(piece: OutfitPiece, state: WardrobeState): boolean {
+export function ownsPiece(piece: Ownable, state: WardrobeState): boolean {
   const get = piece.get;
   if (!get) return true;
   switch (get.kind) {
@@ -46,7 +49,7 @@ export function ownsPiece(piece: OutfitPiece, state: WardrobeState): boolean {
 }
 
 /** Lo que falta para tener la pieza (o `undefined` si ya se tiene). En la tienda, primero el nivel y la gema. */
-export function lockReason(piece: OutfitPiece, state: WardrobeState): LockReason | undefined {
+export function lockReason(piece: Ownable, state: WardrobeState): LockReason | undefined {
   if (ownsPiece(piece, state)) return undefined;
   const get = piece.get;
   if (!get) return undefined;

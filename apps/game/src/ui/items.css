@@ -182,3 +182,76 @@
   font-size: 0.875rem;
   line-height: 1.1;
 }
+
+/* Casa del niño: panel de muebles debajo de la habitación. */
+.home-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 14px;
+  background: var(--panel);
+  border-top: 4px solid var(--ink);
+}
+
+.home-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 16px;
+}
+
+.home-head .panel-title {
+  margin: 0;
+}
+
+.home-grid {
+  display: flex;
+  gap: 8px;
+  width: min(720px, 100%);
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  scroll-snap-type: x proximity;
+}
+
+.home-card {
+  flex: 0 0 104px;
+  min-height: 112px;
+  scroll-snap-align: start;
+}
+
+.home-card-art {
+  height: 48px;
+  image-rendering: pixelated;
+}
+
+.home-card-art-1 {
+  width: 32px;
+}
+
+.home-card-art-2 {
+  width: 64px;
+}
+
+.wardrobe-card[data-locked='true'] .home-card-art {
+  opacity: 0.55;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.home-panel .panel-feedback {
+  margin: 0;
+  min-height: 1.3em;
+  text-align: center;
+}
+
+/* Botón «Mi casa» del mapa, debajo de «Armario». */
+.world-button.world-button-home {
+  top: 176px;
+}

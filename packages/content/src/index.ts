@@ -18,3 +18,4 @@ export * from './surprise.js';
 export * from './events.js';
 export * from './shiny.js';
 export * from './companion.js';
+export * from './home.js';
