@@ -51,7 +51,8 @@ kalku/
 │   │   │   ├── validate.ts     Validación en el servidor: regenera el ejercicio desde la semilla, corrige y aplica el dominio (respuesta y prueba de nivel)
 │   │   │   ├── levels.ts       Nivel del personaje: curva de XP en datos, XP por acierto (sin rapidez ni racha) y nivel calculado solo desde la XP
 │   │   │   ├── speech.ts       Texto para leer el ejercicio en voz alta («cinco más tres son…»), es/ca
-│   │   │   └── scoring.ts      Puntos (Cifras): dificultad, racha, rapidez sin penalizar
+│   │   │   ├── scoring.ts      Puntos (Cifras): dificultad, racha, rapidez sin penalizar
+│   │   │   └── coinCap.ts      Límite diario de Cifras en lo ya dominado y extra por esfuerzo (nunca resta)
 │   │   └── test/             Tests con vitest
 │   ├── world/                @kalku/world: mundo generado por código con semilla, TypeScript puro
 │   │   ├── src/
@@ -78,7 +79,7 @@ kalku/
 │   │   │   ├── creatures.ts    CreatureLook (piezas como datos) y drawCreature: 8 fotogramas de 32 px
 │   │   │   ├── gems.ts         drawGem: gema de 16 px por operación, encendida o apagada
 │   │   │   ├── objects.ts      drawGate (puerta de piedra de una zona) y drawChest (cofre cerrado y abierto)
-│   │   │   ├── character.ts    El personaje del niño por capas (piel, pelo, ropa, accesorio)
+│   │   │   ├── character.ts    El personaje del niño por capas (espalda, piel, pelo, ropa, accesorio, sombrero)
 │   │   │   ├── portraits.ts    Retratos de 16 px de los personajes de la historia (diálogos)
 │   │   │   ├── npcs.ts         Personajes y objetos de la historia en el mapa: Tecla, Bruno, Lina, Pedrolo, Uni, el Gran Borrón, cristales, tablones y puente
 │   │   │   └── title.ts        Portada: atardecer de Pradera Uno para cualquier tamaño (cielo con tramado, sol, montañas, lago, colinas), nubes, isla flotante y cifras de adorno
@@ -96,7 +97,9 @@ kalku/
 │       │   ├── summaryToken.ts Token firmado (HMAC) del enlace de baja del resumen
 │       │   ├── legal.ts        Textos legales como datos: política es/ca, versión para niños, datos del servidor, subencargados, LEGAL_DRAFT
 │       │   ├── weakness.ts     Debilidad por operación inversa (damageMultiplier; los problemus no tienen) y contador de encuentros para el cartel
-│       │   ├── outfit.ts       Piezas del personaje por capa y lectura del guardado
+│       │   ├── outfit.ts       Piezas del personaje por capa (y cómo se consigue cada una) y lectura del guardado
+│       │   ├── wardrobe.ts     Armario y tienda: qué piezas se tienen, candados con motivo, comprar con Cifras (solo estética)
+│       │   ├── surprise.ts     Cofre sorpresa del día: sitio fijo por fecha y región, siguiente regalo de la lista (sin azar en el premio)
 │       │   ├── syllabus.ts     Temario de un centro: parseSyllabus (errores claros en castellano), preguntas propias como ejercicio
 │       │   ├── quests.ts       Encargos de los personajes tras el final: plantillas, nextQuest con semilla, advanceQuest
 │       │   ├── missions.ts     Misiones del día y de la semana: iguales para todos según la fecha (Europe/Madrid)
@@ -142,6 +145,7 @@ kalku/
             ├── storyFlow.ts    Avanzar la historia y guardarla, reproducir diálogos, ir a la escena que toca
             ├── syllabus.ts     Temarios de packages/content/temarios, ?temario=<id> y el acertijo que toca
             ├── missions.ts     Misiones de hoy en la partida: avanzar con cada evento y dar las Cifras
+            ├── items.ts        Objetos en la partida: Cifras con límite diario, texto del candado, personaje como canvas
             ├── dev/            Panel de desarrollo (botón DEV): solo en local y en vistas previas, nunca en la web publicada (__DEV_TOOLS__)
             │   ├── devActions.ts Atajos sobre el progreso: pasar paso, terminar o saltar región, encargo, misiones, dominarlo todo
             │   └── devTools.ts   El panel y «ganar de un toque» en combates y acertijos
@@ -155,6 +159,7 @@ kalku/
             │   ├── GradeScene.ts   «¿En qué curso estás?» (paso 1 de 3 del niño nuevo): elige el tono de la historia
             │   ├── PrologueScene.ts Prólogo: cuatro viñetas dibujadas por código con el Gran Borrón
             │   ├── CreateScene.ts  Crea tu personaje (también desde la Colección: «Cambiar mi personaje»)
+            │   ├── SurpriseScene.ts Cofre sorpresa: una cuenta y se abre con su regalo
             │   ├── RiddleScene.ts  Acertijos de Pedrolo (capítulo 4): problemas sin vida ni tiempo; salen del temario del centro si lo hay
             │   ├── ClassLoginScene.ts Entrada a la clase del QR: apodo, animal o código de la tarjeta
             │   ├── NicknameScene.ts Pantalla de apodo (paso 2 de 3; lista o escrito), solo si no hay cuenta
@@ -171,6 +176,9 @@ kalku/
                 ├── DialogBox.ts      Diálogos con retrato, texto que se escribe solo, voz y «Saltar»
                 ├── SettingsPanel.ts  Ajustes: idioma, tiempo, texto, voz, historia, «Familias y docentes» y volver al inicio
                 ├── MissionsPanel.ts  Misiones del día y de la semana, con lo que lleva cada una
+                ├── WardrobePanel.ts  Armario y tienda del pueblo: tarjetas con el personaje puesto, candados y comprar
+                ├── itemToast.ts  Aviso de objeto nuevo (nivel, gema, tesoro)
+                ├── items.css     Estilos del armario, la tienda y el aviso
                 ├── dom.ts            Ayudas de HTML (texto, botón, estado, tarjetas de elección, pasos numerados, casillas) y la cuenta de la zona de adultos
                 ├── TitleBackdrop.ts  Fondo animado de la portada en un canvas que cubre la pantalla: nubes, estrellas, criaturas y números que suben
                 ├── mailStep.ts       Entrar con el correo en dos pantallas (para qué sirve → «Mira tu correo»), para familias y docentes

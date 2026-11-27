@@ -34,7 +34,7 @@ import {
 } from '@kalku/content';
 import { endEncounter, regionSpec } from '@kalku/world';
 import { ANIMATION_MS } from '../art/textures';
-import { tr } from '../i18n';
+import { tr, trf } from '../i18n';
 import { applyServerSkills, applySettings, loadProgress, saveProgress, type PlayerProgress } from '../progress';
 import { exerciseView, sendAnswer } from '../sync';
 import { playMusic, sfx } from '../audio/sound';
@@ -44,6 +44,8 @@ import { banner, clearFx, confetti, floatText, reducedMotion } from '../ui/fx';
 import { burst, castSpell, drawBattleBackground, drawPlatform, ensureFxTextures } from './battleFx';
 import { Hud } from '../ui/Hud';
 import { showLevelUp } from '../ui/LevelUp';
+import { showNewItems } from '../ui/itemToast';
+import { addAnswerCoins, earnedSince, wardrobeOf } from '../items';
 import { SettingsPanel } from '../ui/SettingsPanel';
 import { BATTLE_RESULT_KEY, WORLD_STATE_KEY, type BattleResult, type EncounterData, type StoryBattle, type WorldState } from '../worldState';
 import { characterName, CREATURES as ALL_CREATURES, regionStory, type BossInfo } from '@kalku/content';
@@ -114,6 +116,8 @@ export class BattleScene extends Phaser.Scene {
   private enemy!: Fighter;
   private turn: Turn | undefined;
   private streak = 0;
+  /** El aviso del límite diario de Cifras sale una vez por combate. */
+  private capNoticeShown = false;
   private busy = false;
   /** Con datos, el combate viene del mapa: vuelve a él al terminar. Sin datos es el combate de prueba. */
   private encounter: EncounterData | undefined;
@@ -138,6 +142,7 @@ export class BattleScene extends Phaser.Scene {
     this.creature = this.encounter && !this.boss ? getCreature(this.encounter.data.creature) : undefined;
     this.turn = undefined;
     this.streak = 0;
+    this.capNoticeShown = false;
     this.rescuedNow = undefined;
     this.revealed = undefined;
     this.settingsOpen = false;
@@ -413,7 +418,9 @@ export class BattleScene extends Phaser.Scene {
     const helped = turn.tries > 0 || turn.hintLevel > 0;
     const skill = turn.exercise.skill;
 
-    const wasMastered = isMastered(this.progress.profile[skill]);
+    const skillBefore = this.progress.profile[skill];
+    const wasMastered = isMastered(skillBefore);
+    const wardrobeBefore = wardrobeOf(this.progress);
     this.progress.profile = applyAnswer(this.progress.profile, skill, { correct, helped, slot: turn.slot });
     const score = scoreAnswer({
       correct,
@@ -424,7 +431,12 @@ export class BattleScene extends Phaser.Scene {
       elapsedMs: this.progress.settings.timed ? performance.now() - turn.startedAt : undefined,
     });
     this.streak = correct ? this.streak + 1 : 0;
-    this.progress.coins += score.total;
+    // Límite diario: lo ya dominado da Cifras hasta un tope; lo que cuesta, un extra (#13).
+    const earned = addAnswerCoins(this.progress, score.total, skillBefore, turn.slot);
+    if (earned.capped && !this.capNoticeShown) {
+      this.capNoticeShown = true;
+      banner(tr('coinCapReached', this.progress.locale), 'info', 2600);
+    }
     // Misiones del día: acertar (fallar no cuenta ni resta).
     const missionsDone = applyMissionEvent(this.progress, { type: 'answer', correct, operator: turn.exercise.operator === '-' ? '-' : '+', strong: turn.strong });
     for (const m of missionsDone) banner(`${tr('missionDone', this.progress.locale)} +${m.reward} ${tr('coins', this.progress.locale)}`, 'win', 2200);
@@ -440,7 +452,7 @@ export class BattleScene extends Phaser.Scene {
       const damage = Math.round(BATTLE.sparkDamage * (turn.strong ? BATTLE.strongMultiplier : 1) * weak);
       const weakNote = weak > 1 && this.showWeakness ? ` · ${tr(operator === '+' ? 'weakHitAdd' : 'weakHitSub', locale)}` : '';
       // Sin teclado, para que el hechizo se vea grande.
-      this.panel.showCasting(`${tr('correct', locale)} +${score.total} ${tr('coins', locale)}${weakNote}`);
+      this.panel.showCasting(`${tr('correct', locale)} +${earned.coins} ${tr('coins', locale)}${earned.bonus > 0 ? ` (${trf('coinEffortBonus', locale, { n: earned.bonus })})` : ''}${weakNote}`);
       if (turn.rescue && this.creature) {
         // Rescatar no hace daño ni da ventaja: solo guarda la criatura (sin duplicar) y termina el combate.
         const had = this.progress.collection.some((e) => e.id === this.creature?.id);
@@ -467,6 +479,7 @@ export class BattleScene extends Phaser.Scene {
     }
     saveProgress(this.progress);
     this.refreshHud();
+    showNewItems(earnedSince(wardrobeBefore, this.progress), this.progress);
     if (levelAfter > levelBefore) {
       const ui = document.getElementById('ui');
       if (ui) showLevelUp(ui, levelAfter, locale, this.progress.settings.autoVoice);

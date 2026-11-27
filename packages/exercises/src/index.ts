@@ -11,3 +11,4 @@ export * from './placement.js';
 export * from './speech.js';
 export * from './validate.js';
 export * from './levels.js';
+export * from './coinCap.js';

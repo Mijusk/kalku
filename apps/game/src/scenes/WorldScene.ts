@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { creaturesForSkill, getCreature, getZone, ITEMS, questTemplate, questText, regionStory, SCENES, storyIn, travel, type CharacterId, type SceneId, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
+import { creaturesForSkill, dateKey, getCreature, surpriseAvailable, surpriseSpot, getZone, ITEMS, questTemplate, questText, regionStory, SCENES, storyIn, travel, type CharacterId, type SceneId, type StoryOutcome, type ZoneDefinition } from '@kalku/content';
 import { currentSkill, challengeSkill, createRng, pickSkill, randomSeed, type Rng } from '@kalku/exercises';
 import {
   createWildlife,
@@ -25,12 +25,18 @@ import { applyQuestEvent, applyStoryEvent, nickname, playScenes, type QuestOutco
 import { dialogOpen, playDialog } from '../ui/DialogBox';
 import { openMissionsPanel } from '../ui/MissionsPanel';
 import { banner, confetti } from '../ui/fx';
-import { ensureFxTextures } from './battleFx';
+import { burst, ensureFxTextures } from './battleFx';
+
+/** Clave del registro: día en que ya se avisó del cofre sorpresa (para no repetirlo tras cada combate). */
+const SURPRISE_HINT_KEY = 'surpriseHinted';
 import { greyFor, WorldStory, type MapNpc, type StoryAction } from './worldStory';
 import { findBuildings, tilemapData } from '@kalku/art';
 import { activeClassId } from '../classDevice';
 import { appClassLoginBackend, leaveSharedDevice } from '../classLogin';
-import { ANIMATION_MS, buildingTexture, CHEST_TEXTURES, GATE_TEXTURE, mapSpriteKey, TILE_SIZE, TILESET_KEYS } from '../art/textures';
+import { ANIMATION_MS, buildingTexture, CHEST_TEXTURES, createHeroTexture, GATE_TEXTURE, HERO_KEY, mapSpriteKey, SURPRISE_TEXTURES, TILE_SIZE, TILESET_KEYS } from '../art/textures';
+import { earnedSince, wardrobeOf } from '../items';
+import { showNewItems } from '../ui/itemToast';
+import { openWardrobe } from '../ui/WardrobePanel';
 
 /**
  * Tamaño de las criaturas en el mapa: se dibujan a 32 px para el combate y
@@ -102,6 +108,10 @@ export class WorldScene extends Phaser.Scene {
   private greyLevel = 0;
   /** Mientras se cuenta algo de la historia, el personaje no se mueve. */
   private storyBusy = false;
+  /** Casillas delante de la puerta de cada tienda: al pararse ahí, se entra. */
+  private shopDoors: Point[] = [];
+  /** El cofre sorpresa de hoy en este mapa, si aún no se ha abierto. */
+  private surprise: { tile: Point; sprite: Phaser.GameObjects.Image } | undefined;
 
   constructor() {
     super('world');
@@ -119,6 +129,7 @@ export class WorldScene extends Phaser.Scene {
     this.createGround();
     this.createBuildings();
     this.createZones();
+    this.createSurprise();
 
     this.encounterStarted = false;
     this.wild = new Map();
@@ -430,7 +441,13 @@ export class WorldScene extends Phaser.Scene {
       if (this.encounterStarted || this.storyBusy) return;
       void this.tell(() => openMissionsPanel(ui, loadProgress()));
     });
-    ui.replaceChildren(button, missions);
+    const wardrobe = document.createElement('button');
+    wardrobe.type = 'button';
+    wardrobe.className = 'btn btn-small world-button world-button-wardrobe';
+    wardrobe.textContent = tr('wardrobe', loadProgress().locale);
+    wardrobe.addEventListener('pointerdown', (e) => e.stopPropagation());
+    wardrobe.addEventListener('click', () => this.openItems('wardrobe'));
+    ui.replaceChildren(button, missions, wardrobe);
     // En un aparato de clase (#53), «Salir» deja el aparato limpio para el siguiente alumno.
     if (activeClassId(sessionStorage) !== null) {
       const leave = document.createElement('button');
@@ -488,8 +505,73 @@ export class WorldScene extends Phaser.Scene {
     });
   }
 
+  /** Armario o tienda, encima del mapa. El personaje no se mueve mientras está abierto. */
+  private openItems(mode: 'wardrobe' | 'shop'): void {
+    const ui = document.getElementById('ui');
+    if (!ui || this.encounterStarted || this.storyBusy) return;
+    if (mode === 'shop') sfx('door');
+    void this.tell(() =>
+      openWardrobe(ui, {
+        mode,
+        onOutfit: (outfit) => {
+          createHeroTexture(this, outfit);
+          this.hero.setTexture(HERO_KEY, 0);
+        },
+      }),
+    );
+  }
+
+  /** La tienda (al pararse delante de su puerta) y el cofre sorpresa (al pisarlo). */
+  private checkPlaces(): boolean {
+    if (this.storyBusy || this.encounterStarted) return false;
+    const surprise = this.surprise;
+    if (surprise && surprise.tile.x === this.tile.x && surprise.tile.y === this.tile.y) {
+      this.state.tile = { ...this.tile };
+      this.registry.set(WORLD_STATE_KEY, this.state);
+      this.encounterStarted = true;
+      this.route = [];
+      sfx('chest');
+      this.scene.start('surprise');
+      return true;
+    }
+    if (this.route.length > 0) return false;
+    if (this.shopDoors.some((d) => d.x === this.tile.x && d.y === this.tile.y)) {
+      this.openItems('shop');
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Cofre sorpresa del día: uno al día, en una casilla fija para esa fecha.
+   * Morado, se balancea y suelta chispas para que se vea desde lejos.
+   */
+  private createSurprise(): void {
+    this.surprise = undefined;
+    const progress = loadProgress();
+    const today = dateKey(new Date());
+    if (!surpriseAvailable(progress.surpriseDay, today)) return;
+    const tile = surpriseSpot(this.region, this.spec.id, today);
+    if (!tile) return;
+    const sprite = this.add.image(this.centerOf(tile).x, this.centerOf(tile).y, SURPRISE_TEXTURES.closed).setDepth(1);
+    this.surprise = { tile, sprite };
+    if (!reducedMotionNow()) {
+      this.tweens.add({ targets: sprite, y: sprite.y - 2, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      this.time.addEvent({ delay: 2400, loop: true, callback: () => burst(this, sprite.x, sprite.y - 4, 'star', 6) });
+    }
+    if (this.registry.get(SURPRISE_HINT_KEY) !== today) {
+      this.registry.set(SURPRISE_HINT_KEY, today);
+      this.time.delayedCall(1500, () => {
+        if (!this.storyBusy) this.showMessage(tr('surpriseHint', progress.locale));
+      });
+    }
+  }
+
   /** Casas y tienda: cada edificio entero encima del suelo (el suelo de debajo es hierba). */
   private createBuildings(): void {
+    this.shopDoors = findBuildings(this.region)
+      .filter((b) => b.kind === 'shop')
+      .map((b) => ({ x: b.x + Math.floor(b.width / 2), y: b.y + b.height }));
     for (const building of findBuildings(this.region)) {
       this.add
         .image(building.x * TILE_SIZE, building.y * TILE_SIZE, buildingTexture(this, building))
@@ -572,7 +654,7 @@ export class WorldScene extends Phaser.Scene {
         this.moving = false;
         this.hero.setFrame(0);
         this.refreshZones();
-        if (!this.handleStory()) this.checkEncounter();
+        if (!this.handleStory() && !this.checkPlaces()) this.checkEncounter();
       },
     });
   }
@@ -664,8 +746,10 @@ export class WorldScene extends Phaser.Scene {
     for (const zone of this.zones) {
       if (!zone.opened || this.tile.x !== zone.chest.x || this.tile.y !== zone.chest.y) continue;
       if (progress.treasures.includes(zone.def.treasure.id)) continue;
+      const before = wardrobeOf(progress);
       progress.treasures = [...progress.treasures, zone.def.treasure.id];
       saveProgress(progress);
+      showNewItems(earnedSince(before, progress), progress);
       zone.chestSprite.setTexture(CHEST_TEXTURES.open);
       sfx('chest');
       confetti(30);

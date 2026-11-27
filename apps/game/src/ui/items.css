@@ -1,0 +1,176 @@
+/* Armario, tienda y cofre sorpresa (objetos). Letra clara; el dibujo, en pixel art. */
+
+.wardrobe {
+  gap: 10px;
+}
+
+.wardrobe-stage {
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 70%, #a8e284 0 40%, #8fd3f5 41%);
+}
+
+.wardrobe-hero {
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated;
+}
+
+.wardrobe-hero-pop {
+  animation: wardrobe-pop 0.25s ease-out;
+}
+
+@keyframes wardrobe-pop {
+  from {
+    transform: scale(0.85);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.wardrobe-coins {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.wardrobe-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  width: min(560px, 100%);
+}
+
+.wardrobe-tab[aria-selected='true'] {
+  background: var(--primary);
+  color: #fff;
+}
+
+.wardrobe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px;
+  width: min(560px, 100%);
+}
+
+.wardrobe-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 132px;
+  padding: 6px 4px;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.wardrobe-card:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.wardrobe-card:focus-visible {
+  outline: 3px solid var(--info);
+  outline-offset: 2px;
+}
+
+.wardrobe-card[data-locked='true'] {
+  background: #e9e4d6;
+}
+
+.wardrobe-card[data-locked='true'] .wardrobe-card-art {
+  opacity: 0.55;
+}
+
+.wardrobe-card[data-wearing='true'] {
+  border-color: var(--primary);
+  background: #e3f4dc;
+}
+
+.wardrobe-card[data-trying='true'] {
+  border-color: var(--info);
+  background: #e2ecfa;
+}
+
+.wardrobe-card-art {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+}
+
+.wardrobe-card-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.wardrobe-card-status {
+  min-height: 1.2em;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.wardrobe-card[data-wearing='true'] .wardrobe-card-status {
+  color: var(--good);
+  font-weight: 700;
+}
+
+.wardrobe-buy[hidden] {
+  display: none;
+}
+
+.wardrobe-buy:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Botón «Armario» del mapa, debajo de «Misiones». */
+.world-button.world-button-wardrobe {
+  top: 120px;
+}
+
+/* Aviso de objeto nuevo (al subir de nivel, gema o tesoro). */
+.item-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: min(480px, calc(100% - 32px));
+  padding: 8px 14px;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: 0 4px 0 var(--ink);
+  transform: translateX(-50%);
+  font-weight: 700;
+}
+
+.item-toast canvas {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+}
+
+.item-toast-text {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.25;
+}

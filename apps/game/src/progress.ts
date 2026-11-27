@@ -1,6 +1,6 @@
-import { DEFAULT_OUTFIT, FIRST_REGION, GRADES, NEW_STORY, parseAt, parseMissions, parseQuest, type Band, type MissionsState, type Quest, parseCollection, parseOutfit, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type Outfit, type StoryState } from '@kalku/content';
+import { DEFAULT_OUTFIT, ownedOutfit, parseOwned, parseSurpriseDay, FIRST_REGION, GRADES, NEW_STORY, parseAt, parseMissions, parseQuest, type Band, type MissionsState, type Quest, parseCollection, parseOutfit, parseEncounters, parseStory, parseTreasures, parseZonesOpened, stepIndex, type Collection, type EncounterCounts, type Outfit, type StoryState } from '@kalku/content';
 import { setAudioPrefs } from './audio/sound';
-import { createProfile, sanitizeXp, SKILL_IDS, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
+import { createProfile, parseCoinDay, sanitizeXp, SKILL_IDS, type CoinDay, type Locale, type MasteryProfile, type SkillId, type SkillProgress } from '@kalku/exercises';
 
 /**
  * Progreso del jugador.
@@ -74,6 +74,12 @@ export interface PlayerProgress {
   quest: Quest | null;
   /** Misiones del día y de la semana: cuánto lleva y cuáles ya dieron su premio. */
   missions: MissionsState | null;
+  /** Piezas compradas en la tienda o sacadas del cofre sorpresa (ids). Solo estética. */
+  owned: string[];
+  /** Día (AAAA-MM-DD, Madrid) del último cofre sorpresa abierto, o `null`. */
+  surpriseDay: string | null;
+  /** Cifras de habilidades ya dominadas que lleva hoy (límite diario, #13). */
+  coinDay: CoinDay | null;
 }
 
 const STORAGE_KEY = 'kalku:progress';
@@ -99,6 +105,9 @@ export function defaultProgress(): PlayerProgress {
     band: 'young',
     quest: null,
     missions: null,
+    owned: [],
+    surpriseDay: null,
+    coinDay: null,
   };
 }
 
@@ -119,7 +128,12 @@ export function parseProgress(raw: unknown): PlayerProgress {
   // Quien ya jugaba antes de la historia empieza en su primer combate guiado, sin prólogo a la fuerza.
   const storyFallback = placementDone ? { step: stepIndex('first-rescue'), count: 0, crystals: [] } : NEW_STORY;
   const story = parseStory(parsed.story, storyFallback);
-  return { ...defaultProgress(), ...parsed, locale, coins, xp: sanitizeXp(parsed.xp), profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures: parseTreasures(parsed.treasures), story, at: parseAt(parsed.at, story), outfit: parseOutfit(parsed.outfit), grade: parseGrade(parsed.grade), band: parsed.band === 'older' ? 'older' : 'young', quest: parseQuest(parsed.quest), missions: parseMissions(parsed.missions) };
+  const owned = parseOwned(parsed.owned);
+  const treasures = parseTreasures(parsed.treasures);
+  const xp = sanitizeXp(parsed.xp);
+  // Solo se lleva puesto lo que se tiene (un guardado tocado a mano no se pone lo que no ha ganado).
+  const outfit = ownedOutfit(parseOutfit(parsed.outfit), { owned, treasures, gems, xp }, DEFAULT_OUTFIT);
+  return { ...defaultProgress(), ...parsed, locale, coins, xp, profile, gems, settings: parseSettings(parsed.settings), placementDone, encounters: parseEncounters(parsed.encounters), collection: parseCollection(parsed.collection), zonesOpened: parseZonesOpened(parsed.zonesOpened), treasures, story, at: parseAt(parsed.at, story), outfit, grade: parseGrade(parsed.grade), band: parsed.band === 'older' ? 'older' : 'young', quest: parseQuest(parsed.quest), missions: parseMissions(parsed.missions), owned, surpriseDay: parseSurpriseDay(parsed.surpriseDay), coinDay: parseCoinDay(parsed.coinDay) };
 }
 
 function parseGrade(raw: unknown): number | null {
@@ -172,6 +186,9 @@ export interface ExtraData {
   band: Band;
   quest: Quest | null;
   missions: MissionsState | null;
+  owned: string[];
+  surpriseDay: string | null;
+  coinDay: CoinDay | null;
 }
 
 export interface ProgressRow {

@@ -15,14 +15,19 @@ describe('piezas', () => {
   it('son válidas: ids únicos, capa válida, nombres es/ca y dibujos que caben', () => {
     expect(validateOutfitPieces()).toEqual([]);
   });
-  it('hay 4 tonos de piel distintos, 3 peinados, 2 ropas y 2 accesorios (uno es «ninguno»)', () => {
-    const body = piecesForLayer('body');
+  it('al empezar: 4 tonos de piel distintos, 3 peinados, 2 ropas y «nada» en accesorio, espalda y sombrero', () => {
+    const start = (layer: Parameters<typeof piecesForLayer>[0]) => piecesForLayer(layer).filter((p) => p.get === undefined);
+    const body = start('body');
     expect(body).toHaveLength(4);
     expect(new Set(body.map((p) => p.art.colors.s)).size).toBe(4);
-    expect(piecesForLayer('hair')).toHaveLength(3);
-    expect(piecesForLayer('clothes')).toHaveLength(2);
-    expect(piecesForLayer('accessory')).toHaveLength(2);
-    expect(piecesForLayer('accessory').some((p) => p.id === 'nada' && p.art.rows.length === 0)).toBe(true);
+    expect(start('hair')).toHaveLength(3);
+    expect(start('clothes')).toHaveLength(2);
+    expect(start('accessory').some((p) => p.id === 'nada' && p.art.rows.length === 0)).toBe(true);
+    expect(start('back').map((p) => p.id)).toEqual(['sin-capa']);
+    expect(start('hat').map((p) => p.id)).toEqual(['sin-sombrero']);
+  });
+  it('el cuerpo, el pelo y la piel nunca se compran: cada niño se ve como quiera desde el principio', () => {
+    for (const layer of ['body', 'hair'] as const) expect(piecesForLayer(layer).every((p) => p.get === undefined)).toBe(true);
   });
   it('validateOutfitPieces avisa de ids repetidos', () => {
     const first = OUTFIT_PIECES[0];

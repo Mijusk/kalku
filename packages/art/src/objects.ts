@@ -1,4 +1,4 @@
-import { newGrid, setPx, shape, tone, light, type Grid } from './grid.js';
+import { newGrid, setPx, shape, tone, light, type Grid, type Ramp } from './grid.js';
 import { GOLD, MATERIAL, OUTLINE } from './palette.js';
 
 /** Lado de la puerta y del cofre, en píxeles (una casilla). */
@@ -34,10 +34,12 @@ export function drawGate(): Grid {
   return g;
 }
 
-/** Cofre de madera con herrajes dorados, cerrado o abierto (con el brillo del tesoro). */
-export function drawChest(open: boolean): Grid {
+/**
+ * Cofre de madera con herrajes dorados, cerrado o abierto (con el brillo del tesoro).
+ * `wood` cambia el material: el cofre sorpresa del día es morado (`MATERIAL.runa`).
+ */
+export function drawChest(open: boolean, wood: Ramp = MATERIAL.tierra): Grid {
   const g = newGrid(OBJECT_PX, OBJECT_PX);
-  const wood = MATERIAL.tierra;
   shape(
     g, 0, 0, OBJECT_PX, OBJECT_PX,
     (x, y) => x >= 2 && x <= 14 && y >= (open ? 9 : 6) && y <= 14,

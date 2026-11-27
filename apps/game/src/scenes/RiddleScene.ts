@@ -24,6 +24,8 @@ import { riddleExercise } from '../syllabus';
 import { ExercisePanel } from '../ui/ExercisePanel';
 import { banner, clearFx, reducedMotion } from '../ui/fx';
 import { showLevelUp } from '../ui/LevelUp';
+import { showNewItems } from '../ui/itemToast';
+import { addAnswerCoins, earnedSince, wardrobeOf } from '../items';
 import { PENDING_OUTCOME_KEY, PENDING_QUEST_KEY } from '../worldState';
 import { burst, drawBattleBackground, ensureFxTextures } from './battleFx';
 import { GAME_HEIGHT, GAME_WIDTH } from './BattleScene';
@@ -188,7 +190,11 @@ export class RiddleScene extends Phaser.Scene {
     const locale = this.progress.locale;
     const helped = this.tries > 0 || this.hintLevel > 0;
     const score = scoreAnswer({ correct: true, difficulty: ex.difficulty, streak: 0, helped, elapsedMs: undefined });
-    this.progress.coins += score.total;
+    const wardrobeBefore = wardrobeOf(this.progress);
+    // Las preguntas propias del centro no tienen dominio: no cuentan para el límite diario.
+    let earnedCoins = score.total;
+    if (ex.custom) this.progress.coins += score.total;
+    else earnedCoins = addAnswerCoins(this.progress, score.total, this.progress.profile[ex.skill], 'current').coins;
     for (const m of applyMissionEvent(this.progress, { type: 'answer', correct: true, operator: ex.operator === '-' ? '-' : '+', strong: false })) {
       banner(`${tr('missionDone', locale)} +${m.reward} ${tr('coins', locale)}`, 'win', 2200);
     }
@@ -196,12 +202,13 @@ export class RiddleScene extends Phaser.Scene {
     this.progress.xp += xpForAnswer({ correct: true, difficulty: ex.difficulty, helped });
     this.record(ex, true, given);
     saveProgress(this.progress);
+    showNewItems(earnedSince(wardrobeBefore, this.progress), this.progress);
     if (levelForXp(this.progress.xp) > before) {
       const ui = document.getElementById('ui');
       if (ui) showLevelUp(ui, levelForXp(this.progress.xp), locale, this.progress.settings.autoVoice);
     }
     sfx('correct');
-    this.panel.showCasting(`${tr('correct', locale)} +${score.total} ${tr('coins', locale)}`);
+    this.panel.showCasting(`${tr('correct', locale)} +${earnedCoins} ${tr('coins', locale)}`);
     this.lightRune(this.runes[this.solved], true);
     this.solved += 1;
     if (this.forQuest) {

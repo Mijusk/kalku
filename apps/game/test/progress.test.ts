@@ -122,7 +122,7 @@ describe('ida y vuelta con el servidor', () => {
 
   it('el extra no lleva el dominio ni datos personales', () => {
     const { extra } = toServerRows(defaultProgress());
-    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings', 'zonesOpened', 'treasures', 'story', 'at', 'outfit', 'grade', 'band', 'quest', 'missions'].sort());
+    expect(Object.keys(extra).sort()).toEqual(['collection', 'coins', 'xp', 'encounters', 'gems', 'locale', 'placementDone', 'settings', 'zonesOpened', 'treasures', 'story', 'at', 'outfit', 'grade', 'band', 'quest', 'missions', 'owned', 'surpriseDay', 'coinDay'].sort());
   });
 
   it('el dominio nunca baja de 0 ni sube de 100, y los aciertos no superan los intentos', () => {
@@ -192,5 +192,25 @@ describe('región donde está el niño (`at`)', () => {
     expect(parseProgress({ version: 1, story: forest, at: 'bosque-decenas' }).at).toBe('bosque-decenas');
     expect(parseProgress({ version: 1, story: forest, at: 'pradera-uno' }).at).toBe('pradera-uno');
     expect(parseProgress({ version: 1, story: forest }).at).toBe('bosque-decenas');
+  });
+});
+
+describe('objetos en el guardado', () => {
+  it('guarda lo comprado, el día del cofre y el contador de Cifras', () => {
+    const p = { ...defaultProgress(), owned: ['gorra-azul'], surpriseDay: '2026-11-27', coinDay: { day: '2026-11-27', mastered: 40 } };
+    const back = parseProgress(JSON.parse(JSON.stringify(p)));
+    expect(back.owned).toEqual(['gorra-azul']);
+    expect(back.surpriseDay).toBe('2026-11-27');
+    expect(back.coinDay).toEqual({ day: '2026-11-27', mastered: 40 });
+  });
+  it('no deja llevar puesto lo que no se tiene (guardado tocado a mano)', () => {
+    const p = { ...defaultProgress(), outfit: { ...defaultProgress().outfit, hat: 'gorra-azul', back: 'capa-dorada' } };
+    const back = parseProgress(JSON.parse(JSON.stringify(p)));
+    expect(back.outfit.hat).toBe('sin-sombrero');
+    expect(back.outfit.back).toBe('sin-capa');
+  });
+  it('los tesoros recogidos antes de esta versión ya se pueden poner', () => {
+    const p = { ...defaultProgress(), treasures: ['tesoro-puerta'], outfit: { ...defaultProgress().outfit, hat: 'corona-piedra' } };
+    expect(parseProgress(JSON.parse(JSON.stringify(p))).outfit.hat).toBe('corona-piedra');
   });
 });
