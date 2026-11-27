@@ -2,6 +2,17 @@
 
 Registro de decisiones del proyecto: qué se decidió, por qué y qué alternativas se descartaron. La más reciente arriba. Antes de cambiar algo de esta lista, habla con Luis y añade una entrada nueva en vez de borrar la vieja.
 
+## 2026-11-27 · Objetos: tienda, armario, cofre sorpresa y límite de Cifras (#12, #13, #72)
+
+- **Contexto:** Luis pidió «tema items y cosas random». Las Cifras no servían para nada y los tesoros de las zonas eran solo un nombre. Modo autónomo: decide Claude, pensando en cómo lo vería un colegio.
+- **Objetos = piezas del personaje, como datos (`outfit.ts`):** dos capas nuevas, **espalda** (capas, detrás del cuerpo) y **sombrero** (encima de todo). Cada pieza dice cómo se consigue (`get`): sin campo, desde el principio; `shop` (Cifras, con nivel o gema opcional); `treasure` (cofre de una zona); `level`; `gem`; `gift` (cofre sorpresa). Ninguna pieza tiene datos de combate (test): son solo dibujo y nombre (regla 1). La piel y el pelo nunca se compran.
+- **Tienda del pueblo (#12):** se entra parándose delante de la puerta de la tienda de Pradera Uno. 9 objetos de 120 a 1000 Cifras. Tocar uno lo prueba en el personaje (gratis); «Comprar» solo sale si se puede comprar ya y se activa con Cifras suficientes. Lo que pide nivel o gema **no se puede comprar antes** (más claro para un niño de 6 años que comprar algo que no se puede poner).
+- **Armario:** botón en el mapa, pestañas por capa (Sombrero, Capa, Ropa, Accesorio, Pelo, Piel) y tarjetas grandes con el personaje puesto. Lo que no se tiene sale con candado y el motivo en letra clara («Desde el nivel 6», «En el cofre de: Cueva», «En un cofre sorpresa»). Un guardado con piezas que no se tienen vuelve a la de por defecto.
+- **Premios por aprender (#72):** los 5 tesoros de zona se llevan puestos (los recogidos antes cuentan solos), capa al nivel 3, diadema al 5, capa dorada al 10 e insignias con las gemas de sumar y restar hasta 10. Al ganarlas sale un aviso abajo («¡Nuevo objeto! … Póntelo en el Armario»).
+- **Cofre sorpresa del día, pensado para que no parezca una apuesta:** uno al día, en una casilla fija para esa fecha y región (igual para todos, hora de Madrid), morado para distinguirlo. Se abre **resolviendo una cuenta** de su nivel (fallar da pista y otra cuenta, no quita nada). Dentro está **siempre el siguiente regalo de una lista fija** que aún no tiene: sin rarezas, sin probabilidades, sin repetidos y sin nada que comprar para tener más cofres. Cuando los tiene todos, da 30 Cifras. No se acumulan días ni se pierde nada por no entrar. Lo «sorpresa» es qué regalo toca hoy, no si toca.
+- **Límite diario de Cifras (#13):** las habilidades ya dominadas dan como mucho **150 Cifras al día** (unas 10–15 respuestas); pasado el tope siguen dando dominio y experiencia, pero 0 Cifras, con un aviso amable («Esto ya lo dominas… ¡Prueba algo nuevo!»). Los ejercicios de reto y los de habilidades con menos de 40 de dominio dan un **25 % extra**. Nunca se quitan Cifras. Las preguntas propias de un temario no cuentan para el tope. Lógica pura en `@kalku/exercises` (`coinCap.ts`), con tests.
+- **Descartado:** cajas de botín con rarezas, objetos que den vida o daño, comprar cofres, rachas de días que se pierden.
+
 ## 2026-11-27 · Pantalla de inicio y flujos guiados
 
 - **Contexto:** Luis no entendía la pantalla de familia (código del niño sin explicar, casilla de consentimiento suelta, un error rojo antes de hacer nada, botones sin orden) y el juego empezaba directamente en «¿En qué curso estás?». Modo autónomo: decide Claude.

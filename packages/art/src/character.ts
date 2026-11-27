@@ -6,8 +6,11 @@ export const CHARACTER_PX = 16;
 /** Fotogramas: parado, paso izquierdo, parado, paso derecho. */
 export const CHARACTER_FRAMES = 4;
 
-/** Capas del personaje, de la de abajo a la de arriba. */
-export const CHARACTER_LAYERS = ['body', 'hair', 'clothes', 'accessory'] as const;
+/**
+ * Capas del personaje, de la de abajo a la de arriba: la espalda (capas)
+ * va detrás del cuerpo y el sombrero encima de todo.
+ */
+export const CHARACTER_LAYERS = ['back', 'body', 'hair', 'clothes', 'accessory', 'hat'] as const;
 export type CharacterLayer = (typeof CHARACTER_LAYERS)[number];
 
 /**

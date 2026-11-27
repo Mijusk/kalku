@@ -1,4 +1,5 @@
 import { CHARACTER_LAYERS, hex, OUTLINE, validatePiece, type CharacterLayer, type PieceArt } from '@kalku/art';
+import type { SkillId } from '@kalku/exercises';
 
 /** Las capas del personaje, de abajo a arriba. */
 export const OUTFIT_LAYERS = CHARACTER_LAYERS;
@@ -14,7 +15,25 @@ export interface OutfitPiece {
   readonly layer: OutfitLayer;
   readonly name: { readonly es: string; readonly ca: string };
   readonly art: PieceArt;
+  /** Cómo se consigue (sin campo: se tiene desde el principio). Ver `wardrobe.ts`. */
+  readonly get?: PieceSource;
 }
+
+/**
+ * De dónde sale una pieza. Todas son solo estética: ninguna cambia el combate.
+ * - `shop`: se compra con Cifras en la tienda del pueblo; con `minLevel` o `gem`,
+ *   solo cuando se cumple (las Cifras se ganan aprendiendo, nunca con dinero).
+ * - `treasure`: está en el cofre de una zona (id del tesoro de `zones.ts`).
+ * - `level`: se gana al llegar a ese nivel.
+ * - `gem`: se gana con la gema de dominio de esa habilidad.
+ * - `gift`: sale en el cofre sorpresa del día, en el orden de la lista.
+ */
+export type PieceSource =
+  | { readonly kind: 'shop'; readonly price: number; readonly minLevel?: number; readonly gem?: SkillId }
+  | { readonly kind: 'treasure'; readonly treasure: string }
+  | { readonly kind: 'level'; readonly level: number }
+  | { readonly kind: 'gem'; readonly gem: SkillId }
+  | { readonly kind: 'gift' };
 
 /** Qué pieza lleva el personaje en cada capa (por id). */
 export type Outfit = Readonly<Record<OutfitLayer, string>>;
@@ -57,6 +76,52 @@ const hair = (id: string, es: string, ca: string, color: string, rows: readonly 
 });
 
 const BLANK = '................';
+
+/** Color del contorno en hexadecimal, para las piezas que lo usan como color propio. */
+const OUTLINE_HEX = '#1b1b24';
+
+/** Convierte `{ letra: '#rrggbb' }` en colores de pieza; `k` es siempre el contorno. */
+function colorsOf(colors: Readonly<Record<string, string>>): Record<string, number> {
+  const out: Record<string, number> = { k: OUTLINE };
+  for (const [ch, c] of Object.entries(colors)) out[ch] = c === OUTLINE_HEX ? OUTLINE : hex(c);
+  return out;
+}
+
+type Colors = Readonly<Record<string, string>>;
+
+const piece = (layer: OutfitLayer) => (id: string, es: string, ca: string, colors: Colors, rows: readonly string[], get?: PieceSource): OutfitPiece => ({
+  id,
+  layer,
+  name: { es, ca },
+  art: { rows, colors: colorsOf(colors) },
+  ...(get ? { get } : {}),
+});
+const hat = piece('hat');
+const accessory = piece('accessory');
+/** Ropa: las 8 primeras filas (la cabeza) van vacías. */
+const clothes = (id: string, es: string, ca: string, colors: Colors, rows: readonly string[], get?: PieceSource): OutfitPiece =>
+  piece('clothes')(id, es, ca, colors, [...Array<string>(8).fill(BLANK), ...rows], get);
+
+/**
+ * Capa: va detrás del cuerpo y asoma por los hombros, los lados y entre las
+ * piernas. Con `sparkle`, lleva unos puntitos de ese color.
+ */
+function cape(id: string, es: string, ca: string, color: string, get: PieceSource, sparkle?: string): OutfitPiece {
+  const rows = [
+    ...Array<string>(6).fill(BLANK),
+    '...kkkkkkkkkk...',
+    '..kcccccccccck..',
+    sparkle ? '.ksccccccccccck.' : '.kcccccccccccck.',
+    '.kcccccccccccck.',
+    '.kcccccccccccck.',
+    '.kcccccccccccck.',
+    sparkle ? '.kcccccccccccsk.' : '.kcccccccccccck.',
+    sparkle ? '.kccccccsccccck.' : '.kcccccccccccck.',
+    '.kcccccccccccck.',
+    '..kkkkkkkkkkkk..',
+  ];
+  return piece('back')(id, es, ca, sparkle ? { c: color, s: sparkle } : { c: color }, rows, get);
+}
 
 const PIECES: readonly OutfitPiece[] = [
   skin('piel-1', 'Piel clara', 'Pell clara', '#f8d9bd'),
@@ -130,16 +195,85 @@ const PIECES: readonly OutfitPiece[] = [
       colors: { g: hex('#3b4250'), e: OUTLINE },
     },
   },
+
+  // Nada en la espalda ni en la cabeza: lo que lleva todo el mundo al empezar.
+  { id: 'sin-capa', layer: 'back', name: { es: 'Nada', ca: 'Res' }, art: { rows: [], colors: {} } },
+  { id: 'sin-sombrero', layer: 'hat', name: { es: 'Nada', ca: 'Res' }, art: { rows: [], colors: {} } },
+
+  // Tienda del pueblo (Cifras). Solo estética.
+  hat('gorra-azul', 'Gorra azul', 'Gorra blava', { b: '#3b6fb6', w: '#ffffff' }, ['....kkkkkkkk....', '...kbbbbbbbbk...', '...kbbwbbbbbk...', '...kkkkkkkkkbbk.'], { kind: 'shop', price: 120 }),
+  clothes('ropa-impermeable', 'Chubasquero amarillo', 'Impermeable groc', { y: '#f2c14e', k: OUTLINE_HEX, b: '#3b6fb6' }, [
+    '....yyyyyyyy....',
+    '..yyyyyyyyyyyy..',
+    '..yyyykyykyyyy..',
+    '...yyyyyyyyyy...',
+    '....yyyy.yyyy...',
+    '.....bb...bb....',
+    '.....bb...bb....',
+  ], { kind: 'shop', price: 200 }),
+  accessory('bufanda', 'Bufanda de rayas', 'Bufanda de ratlles', { r: '#d9534f', w: '#f6f1e3' }, [
+    ...Array<string>(7).fill(BLANK),
+    '....rwrwrwrw....',
+    '....wrwrwrwr....',
+    '..........rw....',
+    '..........wr....',
+  ], { kind: 'shop', price: 250 }),
+  hat('sombrero-paja', 'Sombrero de paja', 'Barret de palla', { y: '#e8c66a', r: '#d9534f' }, ['....kyyyyyyk....', '....krrrrrrk....', '.kyyyyyyyyyyyyk.', '..kkkkkkkkkkkk..'], { kind: 'shop', price: 300 }),
+  clothes('ropa-rayas', 'Jersey de rayas', 'Jersei de ratlles', { w: '#f6f1e3', n: '#2b4c8c', b: '#3b6fb6' }, [
+    '....wwwwwwww....',
+    '...nnnnnnnnnn...',
+    '....wwwwwwww....',
+    '....nnnnnnnn....',
+    '.....bb...bb....',
+    '.....bb...bb....',
+    '.....bb...bb....',
+  ], { kind: 'shop', price: 350 }),
+  hat('gorro-lana', 'Gorro de lana', 'Barret de llana', { g: '#4f9d3e', w: '#f6f1e3' }, ['.......ww.......', '....kggggggk....', '...kggggggggk...', '...kwwwwwwwwk...'], { kind: 'shop', price: 400, minLevel: 3 }),
+  cape('capa-roja', 'Capa roja', 'Capa vermella', '#c0392b', { kind: 'shop', price: 450 }),
+  cape('capa-estrellas', 'Capa de estrellas', "Capa d'estrelles", '#2b3a7a', { kind: 'shop', price: 800, minLevel: 6 }, '#ffd84d'),
+  hat('sombrero-cifras', 'Sombrero de las cifras', 'Barret de les xifres', { p: '#6a3fa0', y: '#ffd84d' }, ['.......kk.......', '......kppk......', '.....kpyppk.....', '..kkkkkkkkkkkk..'], { kind: 'shop', price: 1000, minLevel: 8, gem: 'tens-units' }),
+
+  // Tesoros de los cofres de las zonas: se llevan puestos.
+  accessory('farol', 'Farol del puente', 'Fanal del pont', { y: '#ffd84d' }, [...Array<string>(8).fill(BLANK), '.............k..', '............kyk.', '............kyk.', '............kkk.'], { kind: 'treasure', treasure: 'tesoro-puente' }),
+  accessory('colgante-cristal', 'Cristal de la cueva', 'Cristall de la cova', { c: '#8fe8ff' }, [...Array<string>(8).fill(BLANK), '.....k....k.....', '......k..k......', '.......cc.......'], { kind: 'treasure', treasure: 'tesoro-cueva' }),
+  hat('corona-piedra', 'Corona de piedra', 'Corona de pedra', { p: '#a9a39a', g: '#8fe8ff' }, ['....k...k...k...', '...kpk.kpk.kpk..', '...kpppppppppk..', '...kpgpppppgpk..'], { kind: 'treasure', treasure: 'tesoro-puerta' }),
+  accessory('farolillo', 'Farolillo de bolsillo', 'Fanalet de butxaca', { o: '#ff9a3c' }, [...Array<string>(8).fill(BLANK), '.k..............', 'kok.............', 'kok.............', 'kkk.............'], { kind: 'treasure', treasure: 'tesoro-farolillos' }),
+  hat('sombrero-pluma', 'Sombrero con pluma de búho', 'Barret amb ploma de mussol', { b: '#6e4527', f: '#d7d0b8' }, ['..........ff....', '....kbbbbbkf....', '....kbbbbbbk....', '..kkkkkkkkkkkk..'], { kind: 'treasure', treasure: 'tesoro-arbol' }),
+
+  // Premios por aprender: subir de nivel y ganar gemas.
+  cape('capa-bosque', 'Capa del bosque', 'Capa del bosc', '#2f6b2a', { kind: 'level', level: 3 }),
+  hat('diadema-estrella', 'Diadema de estrella', "Diadema d'estrella", { y: '#ffd84d' }, ['.......y........', '......yyy.......', '...kkkkykkkkk...'], { kind: 'level', level: 5 }),
+  cape('capa-dorada', 'Capa dorada', 'Capa daurada', '#d9a520', { kind: 'level', level: 10 }, '#fff3b0'),
+  accessory('insignia-suma', 'Insignia de sumar', 'Insígnia de sumar', { y: '#ffd84d' }, [...Array<string>(8).fill(BLANK), '.......y........', '......yyy.......', '.......y........'], { kind: 'gem', gem: 'add-within-10' }),
+  accessory('insignia-resta', 'Insignia de restar', 'Insígnia de restar', { c: '#8fe8ff' }, [...Array<string>(9).fill(BLANK), '......ccc.......'], { kind: 'gem', gem: 'sub-within-10' }),
+
+  // Cofre sorpresa del día, en este orden (siempre algo que no se tiene).
+  accessory('gafas-sol', 'Gafas de sol', 'Ulleres de sol', { d: '#1b1b2a', w: '#ffffff' }, [...Array<string>(4).fill(BLANK), '....dwdddwdd....'], { kind: 'gift' }),
+  hat('lazo', 'Lazo', 'Llaç', { r: '#ff6fa8' }, [BLANK, '.........rr.rr..', '.........rrkrr..', '.........rr.rr..'], { kind: 'gift' }),
+  hat('gorro-fiesta', 'Gorro de fiesta', 'Barret de festa', { w: '#ffffff', y: '#ffd84d', p: '#ff6fa8' }, ['.......w........', '......kyk.......', '.....kypyk......', '....kpypypk.....'], { kind: 'gift' }),
+  clothes('ropa-pijama', 'Pijama de lunares', 'Pijama de pics', { p: '#9fc7f0', w: '#ffffff' }, [
+    '....pppppppp....',
+    '...ppwppppwpp...',
+    '....pppppwpp....',
+    '....pwpppppp....',
+    '.....pp...pp....',
+    '.....pw...pp....',
+    '.....pp...wp....',
+  ], { kind: 'gift' }),
+  hat('antenas', 'Antenas de bicho', "Antenes d'insecte", { y: '#ffd84d' }, ['....y......y....', '.....k....k.....', '......k..k......'], { kind: 'gift' }),
+  cape('capa-morada', 'Capa morada', 'Capa morada', '#7d4bb3', { kind: 'gift' }, '#ff9ed2'),
 ];
 
 export const OUTFIT_PIECES: readonly OutfitPiece[] = PIECES;
 
 /** Atuendo con el que empieza cualquier niño: una pieza por capa. */
 export const DEFAULT_OUTFIT: Outfit = {
+  back: 'sin-capa',
   body: 'piel-2',
   hair: 'pelo-corto',
   clothes: 'ropa-roja',
   accessory: 'nada',
+  hat: 'sin-sombrero',
 };
 
 export function getPiece(id: string): OutfitPiece | undefined {
@@ -173,7 +307,7 @@ export function parseOutfit(raw: unknown): Outfit {
     const id = r[layer];
     return typeof id === 'string' && getPiece(id)?.layer === layer ? id : DEFAULT_OUTFIT[layer];
   };
-  return { body: pick('body'), hair: pick('hair'), clothes: pick('clothes'), accessory: pick('accessory') };
+  return Object.fromEntries(OUTFIT_LAYERS.map((layer) => [layer, pick(layer)])) as Record<OutfitLayer, string>;
 }
 
 /** Comprueba las piezas: ids únicos y dibujos válidos. Devuelve los errores (vacío si todo bien). */

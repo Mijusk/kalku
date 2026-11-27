@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import { EVENTS, REGION_STORIES, regionIndex, regionStory } from '@kalku/content';
+import { EVENTS, giftPieces, REGION_STORIES, regionIndex, regionStory } from '@kalku/content';
 import type { Point } from '@kalku/world';
 import { DEV_EVENT_KEY } from '../events';
 import { loadProgress, saveProgress, type PlayerProgress } from '../progress';
@@ -80,8 +80,10 @@ export function mountDevTools(game: Phaser.Game): void {
     add('Ganar de un toque', () => {
       const battle = active('battle') as (Phaser.Scene & { devWin?: () => void }) | undefined;
       const riddle = active('riddle') as (Phaser.Scene & { devSolve?: () => void }) | undefined;
+      const surprise = active('surprise') as (Phaser.Scene & { devSolve?: () => void }) | undefined;
       if (battle?.devWin) battle.devWin();
       else if (riddle?.devSolve) riddle.devSolve();
+      else if (surprise?.devSolve) surprise.devSolve();
       else banner('No hay combate ni acertijo', 'info');
     });
 
@@ -99,6 +101,10 @@ export function mountDevTools(game: Phaser.Game): void {
     section('Encargos y misiones');
     add('Completar el encargo', () => apply(completeQuest, 'Encargo completado'));
     add('Completar las misiones', () => apply((p) => completeMissions(p) > 0, 'Misiones completadas'));
+
+    section('Objetos');
+    add('Cofre sorpresa otra vez', () => apply((p) => void (p.surpriseDay = null), 'Hay cofre sorpresa'));
+    add('Todos los regalos del cofre', () => apply((p) => void (p.owned = [...new Set([...p.owned, ...giftPieces().map((g) => g.id)])]), 'Regalos dados'));
 
     section('Eventos y brillantes');
     const forced = readForcedEvent();

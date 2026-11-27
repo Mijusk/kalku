@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { OUTFIT_LAYERS, piecesForLayer, setPiece, type OutfitLayer } from '@kalku/content';
+import { OUTFIT_LAYERS, ownsPiece, piecesForLayer, setPiece, type OutfitLayer } from '@kalku/content';
+import { wardrobeOf } from '../items';
 import { playMusic, sfx } from '../audio/sound';
 import { createHeroTexture, HERO_KEY } from '../art/textures';
 import { tr, trf, type StringKey } from '../i18n';
@@ -10,10 +11,12 @@ import { reducedMotion } from '../ui/fx';
 import { GAME_WIDTH } from './BattleScene';
 
 const LAYER_LABEL: Record<OutfitLayer, StringKey> = {
+  back: 'outfitBack',
   body: 'outfitBody',
   hair: 'outfitHair',
   clothes: 'outfitClothes',
   accessory: 'outfitAccessory',
+  hat: 'outfitHat',
 };
 
 /**
@@ -62,8 +65,11 @@ export class CreateScene extends Phaser.Scene {
     title.textContent = tr('createTitle', locale);
     if (!this.fromSettings) root.append(stepTag(trf('setupStep', locale, { n: 3, total: 3 })));
     root.append(title);
+    const state = wardrobeOf(this.progress);
     for (const layer of OUTFIT_LAYERS) {
-      const pieces = piecesForLayer(layer);
+      // Solo lo que ya tiene; las capas con una sola opción («nada») no salen.
+      const pieces = piecesForLayer(layer).filter((p) => ownsPiece(p, state));
+      if (pieces.length < 2) continue;
       const row = document.createElement('div');
       row.className = 'create-row';
       const label = document.createElement('span');

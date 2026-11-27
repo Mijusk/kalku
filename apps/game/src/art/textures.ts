@@ -4,6 +4,7 @@ import {
   drawBuilding,
   drawCharacter,
   drawChest,
+  MATERIAL,
   drawCreature,
   drawMapSprite,
   drawPortrait,
@@ -30,6 +31,8 @@ export const TILESET_KEYS: readonly string[] = Array.from({ length: WATER_FRAMES
 /** Texturas de la puerta de las zonas y del cofre (cerrado y abierto). */
 export const GATE_TEXTURE = 'zone-gate';
 export const CHEST_TEXTURES = { closed: 'zone-chest-closed', open: 'zone-chest-open' } as const;
+/** El cofre sorpresa del día: morado, para que no se confunda con los de las zonas. */
+export const SURPRISE_TEXTURES = { closed: 'surprise-chest-closed', open: 'surprise-chest-open' } as const;
 
 /** Cuánto dura cada fotograma de las animaciones (ms). */
 export const ANIMATION_MS = 170;
@@ -64,6 +67,8 @@ export function createArtTextures(scene: Phaser.Scene): void {
   addSheet(scene, GATE_TEXTURE, toSheet([drawGate()]));
   addSheet(scene, CHEST_TEXTURES.closed, toSheet([drawChest(false)]));
   addSheet(scene, CHEST_TEXTURES.open, toSheet([drawChest(true)]));
+  addSheet(scene, SURPRISE_TEXTURES.closed, toSheet([drawChest(false, MATERIAL.runa)]));
+  addSheet(scene, SURPRISE_TEXTURES.open, toSheet([drawChest(true, MATERIAL.runa)]));
   for (const creature of CREATURES) {
     addSheet(scene, creature.sprite, toSheet(drawCreature(creature.look)));
     // Versión brillante: las mismas piezas con otros colores.

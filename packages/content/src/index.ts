@@ -13,5 +13,7 @@ export * from './outfit.js';
 export * from './syllabus.js';
 export * from './quests.js';
 export * from './missions.js';
+export * from './wardrobe.js';
+export * from './surprise.js';
 export * from './events.js';
 export * from './shiny.js';
