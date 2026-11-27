@@ -116,6 +116,7 @@ export const SCENES: Readonly<Record<SceneId, readonly DialogLine[]>> = {
   ],
   'first-battle-tip': [
     l('uni', '¡Está gris: ha perdido su chispa! Toca «Chispa» y resuelve la cuenta.', 'Està gris: ha perdut la seva espurna! Toca «Espurna» i resol el compte.'),
+    l('uni', 'Si fallas, te dará un golpecito y perderás un corazón. ¡No pasa nada: siempre te doy una pista!', 'Si falles, et farà un copet i perdràs un cor. No passa res: sempre et dono una pista!'),
   ],
   'first-battle-hit': [
     l('uni', '¡Mira, ya recupera el color! Sigue así.', 'Mira, ja recupera el color! Continua així.'),
@@ -171,7 +172,7 @@ export const SCENES: Readonly<Record<SceneId, readonly DialogLine[]>> = {
     l('tecla', 'Gracias, Calculista. Pero al otro lado del río está el Bosque de las Decenas… Continuará.', "Gràcies, Calculista. Però a l'altra banda del riu hi ha el Bosc de les Desenes… Continuarà."),
   ],
   defeat: [
-    l('uni', '¡Uf! Vamos a descansar un poco. No has perdido nada: todo lo que tenías sigue aquí.', 'Uf! Descansem una mica. No has perdut res: tot el que tenies continua aquí.'),
+    l('uni', '¡Uf, se ha escapado! Vamos a descansar un poco y lo volvemos a intentar. No has perdido nada: todo lo que tenías sigue aquí.', "Uf, s'ha escapat! Descansem una mica i ho tornem a provar. No has perdut res: tot el que tenies continua aquí."),
   ],
   'idle-uni': [l('uni', '¿Seguimos? Mira la tarjeta de arriba: ahí pone qué toca.', 'Continuem? Mira la targeta de dalt: hi diu què toca.')],
   'idle-tecla': [l('tecla', 'Cada cuenta bien hecha es una chispa, {apodo}. ¡Ánimo!', 'Cada compte ben fet és una espurna, {apodo}. Ànim!')],

@@ -47,6 +47,7 @@ export const SCENES_OLDER: Readonly<Record<SceneId, readonly DialogLine[]>> = {
   ],
   'first-battle-tip': [
     l('uni', 'Sin chispa ni te reconoce. Lanza una «Chispa» y resuelve la cuenta. Tranqui, no muerde. Mucho.', 'Sense espurna ni et reconeix. Llança una «Espurna» i resol el compte. Tranqui, no mossega. Gaire.'),
+    l('uni', 'Cada fallo, un golpe: pierdes un corazón. Tres aciertos seguidos y ganas un escudo. Sin corazones, se escapa.', 'Cada error, un cop: perds un cor. Tres encerts seguits i guanyes un escut. Sense cors, s’escapa.'),
   ],
   'first-battle-hit': [l('uni', 'Recupera color. Buena señal: los testigos con color hablan más.', 'Recupera color. Bon senyal: els testimonis amb color parlen més.')],
   'first-battle-rescue': [
@@ -100,7 +101,7 @@ export const SCENES_OLDER: Readonly<Record<SceneId, readonly DialogLine[]>> = {
     l('tecla', 'Pero el caso no está cerrado. Al otro lado del río, en el Bosque de las Decenas, también faltan números… Continuará.', 'Però el cas no està tancat. A l’altra banda del riu, al Bosc de les Desenes, també hi falten números… Continuarà.'),
   ],
   defeat: [
-    l('uni', 'Retirada táctica. Descansamos y volvemos. No has perdido nada: tu placa y tus cosas siguen aquí.', 'Retirada tàctica. Descansem i tornem. No has perdut res: la teva placa i les teves coses continuen aquí.'),
+    l('uni', 'Se nos ha escapado. Retirada táctica: descansamos y volvemos. No has perdido nada: tu placa y tus cosas siguen aquí.', 'Se’ns ha escapat. Retirada tàctica: descansem i tornem. No has perdut res: la teva placa i les teves coses continuen aquí.'),
   ],
   'idle-uni': [l('uni', 'La tarjeta de arriba es tu expediente: ahí pone el siguiente paso.', 'La targeta de dalt és el teu expedient: hi diu el pròxim pas.')],
   'idle-tecla': [l('tecla', 'Un buen agente comprueba sus cuentas dos veces, {apodo}.', 'Un bon agent comprova els comptes dues vegades, {apodo}.')],

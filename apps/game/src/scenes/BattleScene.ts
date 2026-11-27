@@ -28,7 +28,12 @@ import {
   CREATURES,
   damageMultiplier,
   getCreature,
+  outOfHearts,
+  scoreHit,
   shouldShowWeaknessHint,
+  startHearts,
+  takeHit,
+  type HeartsState,
   weakOperator,
   type CreatureDefinition,
 } from '@kalku/content';
@@ -57,9 +62,7 @@ export const GAME_HEIGHT = 270;
 
 /** Ajustes del combate de prueba. Se afinarán en el piloto. */
 const BATTLE = {
-  playerHp: 30,
   enemyHp: 40,
-  enemyDamage: 3,
   /**
    * Daño de una chispa. Es fijo (no sale de los puntos) para que un combate
    * dure 3–5 aciertos y para que la rapidez no cambie cuánto dura (regla 3).
@@ -83,6 +86,9 @@ interface Fighter {
 /** El Gran Borrón: tres fases, cada una más pequeño. */
 const BOSS = { phaseHp: 32, scales: [4, 3.2, 2.5] } as const;
 
+/** Combates perdidos seguidos (en esta sesión): con varios, el siguiente da un corazón más sin avisar. */
+const LOSS_STREAK_KEY = 'kalku:combates-perdidos';
+
 /** Posiciones del personaje y la criatura en el combate. */
 const HERO_AT = { x: 120, y: 196 };
 const ENEMY_AT = { x: 360, y: 148 };
@@ -105,7 +111,9 @@ interface Turn {
 /**
  * Combate por turnos del prototipo: el niño elige ataque, resuelve el
  * ejercicio y, si acierta, el ataque sale con fuerza según los puntos.
- * Fallar nunca quita monedas: da una pista y otra oportunidad.
+ * Fallar nunca quita monedas: da una pista y otra oportunidad. El primer
+ * fallo de cada cuenta sí cuesta un corazón (la criatura ataca); sin
+ * corazones, la criatura se escapa (ver `hearts.ts` en @kalku/content).
  */
 export class BattleScene extends Phaser.Scene {
   private progress!: PlayerProgress;
@@ -128,6 +136,11 @@ export class BattleScene extends Phaser.Scene {
   private showWeakness = false;
   private weaknessLabel: HTMLElement | undefined;
   private nameLabel: HTMLElement | undefined;
+  /** Corazones del niño en este combate (HTML, abajo a la izquierda). */
+  private hearts!: HeartsState;
+  private heartsLabel: HTMLElement | undefined;
+  /** Burbuja azul alrededor del personaje mientras tiene escudo. */
+  private shieldBubble: Phaser.GameObjects.Ellipse | undefined;
 
   constructor() {
     super('battle');
@@ -156,7 +169,9 @@ export class BattleScene extends Phaser.Scene {
     drawBattleBackground(this, GAME_WIDTH, GAME_HEIGHT, this.boss ? 'dusk' : this.storyBattle?.where === 'crystal' ? 'cave' : 'day');
     drawPlatform(this, HERO_AT.x, HERO_AT.y + 30, 96);
     drawPlatform(this, ENEMY_AT.x, ENEMY_AT.y + 62, 140);
-    this.player = this.createFighter('hero', HERO_AT.x, HERO_AT.y, 4, BATTLE.playerHp);
+    // El personaje no tiene barra: su vida son los corazones.
+    this.player = this.createFighter('hero', HERO_AT.x, HERO_AT.y, 4, 1, false);
+    this.shieldBubble = this.add.ellipse(HERO_AT.x, HERO_AT.y - 4, 92, 120, 0x7fc8ff, 0.22).setStrokeStyle(2, 0xbfe6ff, 0.9).setVisible(false).setDepth(3);
     this.enemy = this.createFighter(
       this.creatureTexture ?? CREATURES[0]?.sprite ?? 'hero',
       ENEMY_AT.x,
@@ -176,6 +191,7 @@ export class BattleScene extends Phaser.Scene {
       // Las etiquetas HTML del combate no deben quedarse en el mapa ni en los acertijos.
       this.nameLabel?.remove();
       this.weaknessLabel?.remove();
+      this.heartsLabel?.remove();
     });
 
     const ui = document.getElementById('ui');
@@ -191,9 +207,10 @@ export class BattleScene extends Phaser.Scene {
     });
     this.panel.setLocale(this.progress.locale);
     this.panel.setAutoVoice(this.progress.settings.autoVoice);
-    document.querySelectorAll('#game .creature-name, #game .creature-weakness').forEach((e) => e.remove());
+    document.querySelectorAll('#game .creature-name, #game .creature-weakness, #game .battle-hearts').forEach((e) => e.remove());
     this.nameLabel = this.createLabel('creature-name');
     this.weaknessLabel = this.createLabel('creature-weakness');
+    this.heartsLabel = this.createLabel('battle-hearts');
     this.startBattle();
   }
 
@@ -220,12 +237,32 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  private createFighter(texture: string, x: number, y: number, scale: number, hp: number): Fighter {
+  private createFighter(texture: string, x: number, y: number, scale: number, hp: number, withBar = true): Fighter {
     const sprite = this.add.image(x, y, texture, 0).setScale(scale);
     const bar = this.add.graphics().setDepth(5);
     const fighter = { sprite, hp, maxHp: hp, bar, home: { x, y } };
-    this.drawBar(fighter);
+    if (withBar) this.drawBar(fighter);
     return fighter;
+  }
+
+  /** Corazones (llenos y vacíos) y el escudo, en HTML para que se vean claros. */
+  private refreshHearts(): void {
+    const el = this.heartsLabel;
+    const h = this.hearts;
+    this.shieldBubble?.setVisible(h.shield);
+    if (!el) return;
+    const locale = this.progress.locale;
+    const icons = Array.from({ length: h.max }, (_, i) => `<span class="heart${i < h.hearts ? '' : ' heart-lost'}" aria-hidden="true">♥</span>`);
+    if (h.shield) icons.push('<span class="heart-shield" aria-hidden="true"></span>');
+    el.innerHTML = icons.join('');
+    el.setAttribute('role', 'img');
+    el.setAttribute('aria-label', `${trf('heartsLabel', locale, { n: h.hearts, max: h.max })}${h.shield ? `, ${tr('shieldLabel', locale)}` : ''}`);
+  }
+
+  /** El corazón que se acaba de perder late y se vacía. */
+  private pulseLostHeart(): void {
+    const lost = this.heartsLabel?.querySelectorAll('.heart')[this.hearts.hearts];
+    lost?.classList.add('heart-pop');
   }
 
   /** Filtro gris de la criatura (WebGL). Sin WebGL no hay filtro y la criatura se ve en color. */
@@ -277,7 +314,7 @@ export class BattleScene extends Phaser.Scene {
   /** Las barras de vida siguen a cada luchador cuando salta o se encoge. */
   override update(): void {
     if (this.enemy) this.drawBar(this.enemy);
-    if (this.player) this.drawBar(this.player);
+    if (this.shieldBubble?.visible && this.player) this.shieldBubble.setPosition(this.player.sprite.x, this.player.sprite.y - 4);
   }
 
   private drawBar(f: Fighter): void {
@@ -300,15 +337,15 @@ export class BattleScene extends Phaser.Scene {
       .setAngle(0)
       .setScale(this.boss ? BOSS.scales[0] ?? 4 : 4)
       .setPosition(this.enemy.home.x, this.enemy.home.y);
+    this.enemy.bar.setVisible(true);
     this.enemy.maxHp = this.boss ? BOSS.phaseHp : (this.creature?.hp ?? BATTLE.enemyHp);
     this.countEncounter();
     this.refreshCreatureLabels();
     this.enemy.hp = this.enemy.maxHp;
-    // Contra el jefe el combate es más largo: más energía para que dé tiempo.
-    this.player.maxHp = this.boss ? BATTLE.playerHp * 2 : BATTLE.playerHp;
-    this.player.hp = this.player.maxHp;
+    // Contra el jefe hay un corazón más; tras perder dos seguidos, otro (sin avisar).
+    this.hearts = startHearts(this.progress.band, this.boss, (this.registry.get(LOSS_STREAK_KEY) as number | undefined) ?? 0);
+    this.refreshHearts();
     this.drawBar(this.enemy);
-    this.drawBar(this.player);
     this.refreshGrey();
     this.turn = undefined;
     this.rescuedNow = undefined;
@@ -394,7 +431,15 @@ export class BattleScene extends Phaser.Scene {
 
     turn.tries += 1;
     this.panel.clearAnswer();
-    this.taunt();
+    // Solo el primer fallo de cada cuenta cuesta: luego llegan las pistas, como siempre.
+    if (turn.tries === 1) this.creatureStrikes();
+    else this.taunt();
+    if (outOfHearts(this.hearts)) {
+      // Sin corazones: se enseña la respuesta y la criatura se escapa al acabar el turno.
+      this.panel.showFeedback(`${tr('reveal', locale)} ${turn.exercise.answer}.`, 'info');
+      this.finishTurn(false);
+      return;
+    }
     if (turn.tries >= BATTLE.maxTries) {
       const reveal = `${tr('reveal', locale)} ${turn.exercise.answer}.`;
       this.panel.showFeedback(reveal, 'info');
@@ -436,6 +481,14 @@ export class BattleScene extends Phaser.Scene {
       elapsedMs: this.progress.settings.timed ? performance.now() - turn.startedAt : undefined,
     });
     this.streak = correct ? this.streak + 1 : 0;
+    if (correct) {
+      const scored = scoreHit(this.hearts);
+      this.hearts = scored.state;
+      if (scored.gotShield) {
+        this.time.delayedCall(900, () => banner(tr('shieldGot', this.progress.locale), 'streak', 1800));
+        this.refreshHearts();
+      }
+    }
     // Límite diario: lo ya dominado da Cifras hasta un tope; lo que cuesta, un extra (#13).
     const earned = addAnswerCoins(this.progress, score.total, skillBefore, turn.slot);
     if (earned.capped && !this.capNoticeShown) {
@@ -497,25 +550,14 @@ export class BattleScene extends Phaser.Scene {
     this.time.delayedCall(correct && !turn.rescue ? 1400 : 900, () => {
       if (this.boss && this.enemy.hp <= 0 && this.bossPhase < BOSS.scales.length - 1) return void this.nextBossPhase();
       if (this.rescuedNow || this.enemy.hp <= 0) return this.endBattle(true);
+      if (outOfHearts(this.hearts)) return this.endBattle(false);
       if (this.tutorial && !this.tutorial.hit && correct) {
         this.tutorial.hit = true;
         void playScenes(['first-battle-hit']);
       }
-      // Fallar un rescate no cuesta nada: el enemigo no contraataca, así la criatura no huye
-      // y se puede volver a intentar.
-      if (turn.rescue && !correct) {
-        this.busy = false;
-        this.turn = undefined;
-        this.showActions();
-        return;
-      }
-      this.enemyAttack();
-      this.time.delayedCall(900, () => {
-        if (this.player.hp <= 0) return this.endBattle(false);
-        this.busy = false;
-        this.turn = undefined;
-        this.showActions();
-      });
+      this.busy = false;
+      this.turn = undefined;
+      this.showActions();
     });
   }
 
@@ -603,24 +645,73 @@ export class BattleScene extends Phaser.Scene {
     this.tweens.add({ targets: enemy, y: this.enemy.home.y - 10, duration: 120, yoyo: true, repeat: 1, onComplete: () => enemy.setY(this.enemy.home.y) });
   }
 
-  /** La criatura lanza una bolita de borrón al personaje. */
-  private enemyAttack(): void {
+  /**
+   * Tras un fallo, la criatura se lanza contra el personaje: el escudo para el
+   * golpe; si no, se pierde un corazón. En el primer combate (el tutorial)
+   * nunca se baja de un corazón.
+   */
+  private creatureStrikes(): void {
+    const locale = this.progress.locale;
+    const before = this.hearts;
+    const { state, blocked } = takeHit(before);
+    this.hearts = this.tutorial && !blocked && state.hearts < 1 ? { ...state, hearts: 1 } : state;
+    const lost = this.hearts.hearts < before.hearts;
+    const land = (): void => {
+      burst(this, this.player.home.x, this.player.home.y, 'puff', 10);
+      if (blocked) {
+        sfx('hit');
+        floatText(this.player.home.x, this.player.home.y - 40, tr('shieldBlock', locale), 'info', GAME_WIDTH);
+      } else {
+        sfx('enemyHit');
+        if (lost) floatText(this.player.home.x, this.player.home.y - 40, '−♥', 'damage', GAME_WIDTH);
+        this.heroHurt();
+      }
+      this.refreshHearts();
+      if (lost) this.pulseLostHeart();
+      if (lost && this.hearts.hearts === 1) banner(tr('lastHeart', locale), 'info', 1600);
+    };
+    sfx('wrong');
     const enemy = this.enemy.sprite;
-    if (reducedMotion()) {
-      this.hit(this.player, BATTLE.enemyDamage);
-      return;
-    }
+    if (reducedMotion()) return land();
     this.tweens.add({
       targets: enemy,
-      x: this.enemy.home.x - 40,
-      duration: 160,
+      x: this.enemy.home.x - 70,
+      y: this.enemy.home.y + 20,
+      duration: 180,
       yoyo: true,
       ease: 'Quad.easeIn',
-      onYoyo: () => {
-        burst(this, this.player.home.x, this.player.home.y, 'puff', 10);
-        this.hit(this.player, BATTLE.enemyDamage);
-      },
-      onComplete: () => enemy.setX(this.enemy.home.x),
+      onYoyo: land,
+      onComplete: () => enemy.setPosition(this.enemy.home.x, this.enemy.home.y),
+    });
+  }
+
+  /** El personaje recibe el golpe: parpadea y se echa un poco atrás. */
+  private heroHurt(): void {
+    if (reducedMotion()) return;
+    const sprite = this.player.sprite;
+    sprite.setTintFill(0xffffff);
+    this.time.delayedCall(90, () => sprite.clearTint());
+    this.tweens.add({ targets: sprite, x: this.player.home.x - 8, duration: 60, yoyo: true, repeat: 2, onComplete: () => sprite.setX(this.player.home.x) });
+    this.cameras.main.shake(140, 0.006);
+  }
+
+  /** Sin corazones: la criatura se ríe, da un salto y se va corriendo. */
+  private creatureEscapes(): void {
+    sfx('wrong');
+    burst(this, this.enemy.home.x, this.enemy.home.y, 'puff', 14);
+    // Su barra no se va corriendo con ella.
+    this.enemy.bar.setVisible(false);
+    const enemy = this.enemy.sprite;
+    if (reducedMotion()) {
+      enemy.setAlpha(0);
+      return;
+    }
+    this.tweens.chain({
+      targets: enemy,
+      tweens: [
+        { y: this.enemy.home.y - 24, duration: 160, yoyo: true, repeat: 1, ease: 'Quad.easeOut' },
+        { x: GAME_WIDTH + 100, duration: 700, ease: 'Quad.easeIn' },
+      ],
     });
   }
 
@@ -641,6 +732,12 @@ export class BattleScene extends Phaser.Scene {
       if (rescued) this.tweens.add({ targets: enemy, x: this.player.home.x + 70, y: this.player.home.y + 10, scale: 2, duration: 700, ease: 'Sine.easeInOut' });
       else this.tweens.add({ targets: enemy, x: GAME_WIDTH + 80, y: this.enemy.home.y - 30, duration: 900, ease: 'Sine.easeIn' });
     });
+  }
+
+  /** Nombre de quien se enfrenta al niño (criatura o jefe). */
+  private get enemyName(): string {
+    const locale = this.progress.locale;
+    return this.boss ? characterName(this.bossInfo.character)[locale] : (this.creature?.name[locale] ?? tr('creatureFallback', locale));
   }
 
   /** Brillante: solo cambia el dibujo (#101). La vida, el daño y los ejercicios son los de siempre. */
@@ -668,16 +765,16 @@ export class BattleScene extends Phaser.Scene {
     this.won = won;
     if (won && this.boss) return this.bossDefeated();
     if (won) this.celebrate(this.rescuedNow !== undefined);
-    else {
-      sfx('wrong');
-      if (!reducedMotion()) this.tweens.add({ targets: this.player.sprite, angle: -90, alpha: 0.6, duration: 400 });
-    }
-    // Perder no quita nada: ni monedas ni dominio.
+    else this.creatureEscapes();
+    // Perder seguidas cuenta para el corazón de más; ganar lo pone a cero.
+    const losses = (this.registry.get(LOSS_STREAK_KEY) as number | undefined) ?? 0;
+    this.registry.set(LOSS_STREAK_KEY, won ? 0 : losses + 1);
+    // Perder no quita nada: ni monedas ni dominio. La criatura solo se escapa.
     const rescued = this.rescuedNow;
     const coins = `${this.progress.coins} ${tr('coins', locale)}`;
     this.panel.showResult(
-      rescued ? tr('rescued', locale) : won ? tr('victory', locale) : tr('defeat', locale),
-      rescued ? `${tr(rescued === 'new' ? 'rescuedNew' : 'rescuedAgain', locale)} ${coins}` : coins,
+      rescued ? tr('rescued', locale) : won ? tr('victory', locale) : trf('escaped', locale, { name: this.enemyName }),
+      rescued ? `${tr(rescued === 'new' ? 'rescuedNew' : 'rescuedAgain', locale)} ${coins}` : won ? coins : `${tr('escapedNote', locale)} ${coins}`,
       this.encounter ? tr('backToMap', locale) : tr('nextBattle', locale),
     );
   }
