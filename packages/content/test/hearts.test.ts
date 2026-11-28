@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HEARTS, outOfHearts, scoreHit, startHearts, takeHit } from '../src/index.js';
+import { HEARTS, isPerfect, outOfHearts, perfectBonus, scoreHit, startHearts, takeHit } from '../src/index.js';
 
 describe('corazones del combate', () => {
   it('empiezan según la edad, con uno más contra el jefe y otro tras dos derrotas seguidas', () => {
@@ -40,5 +40,17 @@ describe('corazones del combate', () => {
     expect(scoreHit(s).gotShield).toBe(false);
     s = takeHit(s).state;
     expect(s.streak).toBe(0);
+  });
+
+  it('combate perfecto: sin perder corazones (el escudo no cuenta) y con premio positivo', () => {
+    let s = startHearts('young', false, 0);
+    expect(isPerfect(s)).toBe(true);
+    for (let i = 0; i < HEARTS.shieldStreak; i++) s = scoreHit(s).state;
+    s = takeHit(s).state;
+    expect(isPerfect(s)).toBe(true);
+    s = takeHit(s).state;
+    expect(isPerfect(s)).toBe(false);
+    expect(perfectBonus(false)).toBeGreaterThan(0);
+    expect(perfectBonus(true)).toBeGreaterThan(perfectBonus(false));
   });
 });

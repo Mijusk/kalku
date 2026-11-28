@@ -12,6 +12,8 @@ import type { Band } from './story/scenes.js';
  *   colección): la regla 2 se mantiene.
  * - Escudo (comodín): cada 3 aciertos seguidos ganas uno, como mucho uno a la
  *   vez. Para el siguiente golpe.
+ * - Combate perfecto (28 nov): ganar sin perder ningún corazón da unas
+ *   Cifras de más. Se gana solo acertando; nunca se resta nada.
  * - Si pierdes dos combates seguidos, el siguiente empieza con un corazón más
  *   (sin avisar), para que nadie se quede atascado.
  */
@@ -24,6 +26,8 @@ export const HEARTS = {
   shieldStreak: 3,
   /** Combates perdidos seguidos a partir de los que se da un corazón de más. */
   comebackAfter: 2,
+  /** Cifras extra por ganar sin perder ningún corazón (el escudo no cuenta como perder). */
+  perfectBonus: { normal: 10, boss: 25 },
 } as const;
 
 export interface HeartsState {
@@ -58,4 +62,14 @@ export function scoreHit(state: HeartsState): { readonly state: HeartsState; rea
 /** ¿Se ha quedado sin corazones? Entonces la criatura se escapa. */
 export function outOfHearts(state: HeartsState): boolean {
   return state.hearts <= 0;
+}
+
+/** ¿Ha ganado sin perder ningún corazón? */
+export function isPerfect(state: HeartsState): boolean {
+  return state.hearts >= state.max;
+}
+
+/** Cifras extra por un combate perfecto. */
+export function perfectBonus(boss: boolean): number {
+  return boss ? HEARTS.perfectBonus.boss : HEARTS.perfectBonus.normal;
 }

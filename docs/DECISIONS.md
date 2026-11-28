@@ -492,3 +492,4 @@ Petición de Luis: «la gracia de un juego es que también tenga un toque de dif
 - **Escudo (comodín):** cada 3 aciertos seguidos ganas uno (como mucho uno a la vez). Para el siguiente golpe. Se gana solo resolviendo: no se compra (regla 1).
 - **Ayuda silenciosa:** tras perder 2 combates seguidos, el siguiente empieza con un corazón más, sin avisar. Se cuenta en la sesión (no se guarda).
 - **Primer combate (tutorial):** nunca baja de un corazón, para que el primer rescate siempre salga. Uni explica los corazones en su primer consejo.
+- **Combate perfecto** (28 nov): ganar (o rescatar) sin perder ningún corazón da 10 Cifras de más (25 contra el jefe) y los corazones brillan en dorado. Parar un golpe con el escudo no cuenta como perder. Es un premio por acertar, nunca resta nada.
