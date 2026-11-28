@@ -1,0 +1,15 @@
+
+> kalku@0.1.0 dev
+> npm run dev -w @kalku/game
+
+
+> @kalku/game@0.1.0 dev
+> vite
+
+
+  VITE v8.3.5  ready in 127 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://192.0.2.2:5173/  eth0
+7:18:30 AM [vite] (client) page reload src/i18n.ts
+7:18:30 AM [vite] (client) page reload src/scenes/BattleScene.ts

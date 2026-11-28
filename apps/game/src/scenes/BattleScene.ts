@@ -28,7 +28,9 @@ import {
   CREATURES,
   damageMultiplier,
   getCreature,
+  isPerfect,
   outOfHearts,
+  perfectBonus,
   scoreHit,
   shouldShowWeaknessHint,
   startHearts,
@@ -734,6 +736,18 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
+  /** Ganar sin perder ningún corazón: unas Cifras de más y un cartel. */
+  private rewardPerfect(): void {
+    if (!isPerfect(this.hearts)) return;
+    const bonus = perfectBonus(this.boss);
+    this.progress.coins += bonus;
+    saveProgress(this.progress);
+    this.refreshHud();
+    const locale = this.progress.locale;
+    this.heartsLabel?.classList.add('hearts-perfect');
+    this.time.delayedCall(this.boss ? 3200 : 2600, () => banner(trf('perfectBattle', locale, { n: bonus }), 'streak', 2200));
+  }
+
   /** Nombre de quien se enfrenta al niño (criatura o jefe). */
   private get enemyName(): string {
     const locale = this.progress.locale;
@@ -763,6 +777,7 @@ export class BattleScene extends Phaser.Scene {
   private endBattle(won: boolean): void {
     const locale = this.progress.locale;
     this.won = won;
+    if (won) this.rewardPerfect();
     if (won && this.boss) return this.bossDefeated();
     if (won) this.celebrate(this.rescuedNow !== undefined);
     else this.creatureEscapes();

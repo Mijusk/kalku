@@ -124,6 +124,7 @@ const STRINGS = {
   shieldLabel: { es: 'con escudo', ca: 'amb escut' },
   shieldGot: { es: '¡Ganas un escudo!', ca: 'Guanyes un escut!' },
   shieldBlock: { es: '¡Escudo!', ca: 'Escut!' },
+  perfectBattle: { es: '¡Perfecto! +{n} Cifras', ca: 'Perfecte! +{n} Xifres' },
   lastHeart: { es: '¡Cuidado, te queda un corazón!', ca: 'Compte, et queda un cor!' },
   nextBattle: { es: 'Siguiente combate', ca: 'Següent combat' },
   backToMap: { es: 'Seguir explorando', ca: 'Seguir explorant' },

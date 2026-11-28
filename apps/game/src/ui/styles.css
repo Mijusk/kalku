@@ -420,6 +420,11 @@ a.btn {
   transition: color 0.3s;
 }
 
+/* Combate perfecto: los corazones brillan en dorado. */
+.hearts-perfect {
+  box-shadow: 0 0 0 2px #f4c542, 0 0 14px #f4c542;
+}
+
 .heart-lost {
   color: #5b6660;
   text-shadow: none;
