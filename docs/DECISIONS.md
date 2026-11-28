@@ -480,3 +480,15 @@ Luis pidió una historia para 5–8 años y otra para 8–12. Mismas mates y mis
 - Nombres de las invitadas (Castaña/Castanya, Copito/Floquet, Roseta, Solete/Solet) **pendientes de aprobar por Luis**.
 - En el panel DEV se puede forzar un evento (o ninguno) y poner brillantes todas las criaturas del mapa.
 
+
+## Corazones y escudo en el combate (2026-11-27)
+
+Petición de Luis: «la gracia de un juego es que también tenga un toque de dificultad». Antes no se podía perder de verdad.
+
+- **Corazones** por combate: 4 en el inicio de 5–8 años y 3 en el de 8–12 (`HEARTS` en `packages/content/src/hearts.ts`). Contra el jefe, uno más. Se ven abajo a la izquierda, en HTML; el personaje ya no tiene barra de vida.
+- **El primer fallo de cada cuenta** hace que la criatura ataque y quita un corazón. Luego llegan la pista y otra oportunidad, como siempre: los siguientes intentos de esa cuenta no quitan más. Así un niño que se equivoca no se hunde en una sola cuenta difícil.
+- Acertar ya no tiene contraataque: la criatura solo ataca cuando fallas.
+- **Sin corazones, la criatura se escapa:** se enseña la respuesta, se va corriendo y el combate termina sin victoria ni rescate. **No se pierde nada de lo ganado** (Cifras, XP, dominio por debajo de 0, colección, historia). La regla 2 se lee así: fallar puede hacer que pierdas *este* combate, nunca lo que ya tienes.
+- **Escudo (comodín):** cada 3 aciertos seguidos ganas uno (como mucho uno a la vez). Para el siguiente golpe. Se gana solo resolviendo: no se compra (regla 1).
+- **Ayuda silenciosa:** tras perder 2 combates seguidos, el siguiente empieza con un corazón más, sin avisar. Se cuenta en la sesión (no se guarda).
+- **Primer combate (tutorial):** nunca baja de un corazón, para que el primer rescate siempre salga. Uni explica los corazones en su primer consejo.

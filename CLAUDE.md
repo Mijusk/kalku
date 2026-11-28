@@ -18,7 +18,7 @@ Lo lleva Luis, solo, unas 3 horas al día. Todo lo que se construya tiene que fu
 Son los principios del juego. Si un cambio choca con alguno, para y pregunta.
 
 1. **Aprender es la única forma de avanzar.** Nada que dé ventaja en el juego se puede comprar ni conseguir viendo anuncios. Lo de pago es solo para adultos (informes, límites de tiempo, panel de centro). Sin anuncios.
-2. **Fallar nunca quita nada.** Ni monedas, ni dominio por debajo de 0, ni progreso. Fallar da una pista y otra oportunidad.
+2. **Fallar nunca quita nada.** Ni monedas, ni dominio por debajo de 0, ni progreso. Fallar da una pista y otra oportunidad. Dentro de un combate, fallar sí cuesta un corazón y sin corazones la criatura se escapa (ver `docs/DECISIONS.md`), pero nunca se pierde nada de lo ganado.
 3. **Ser lento nunca resta.** La rapidez puede dar un bonus con tope, pero responder despacio da los mismos puntos que jugar sin tiempo.
 4. **Cada niño juega a su nivel.** El objetivo es acertar entre el 70 % y el 85 %.
 5. **Niños = datos mínimos.** RGPD y LOPDGDD: nada de datos personales sin consentimiento de los padres (menores de 14), nada de seguimiento ni analítica de terceros, alojamiento en la UE.
